@@ -1,0 +1,117 @@
+'use client';
+
+import { useRef } from 'react';
+import Image from 'next/image';
+import Link from 'next/link';
+import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { Movie } from '@/types';
+import { Button } from '@/components/ui/button';
+
+interface MovieCarouselProps {
+  movies: Movie[];
+  title: string;
+  locale: string;
+}
+
+export function MovieCarousel({ movies, title, locale }: MovieCarouselProps) {
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
+
+  const scrollLeft = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: -320,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  const scrollRight = () => {
+    if (scrollContainerRef.current) {
+      scrollContainerRef.current.scrollBy({
+        left: 320,
+        behavior: 'smooth',
+      });
+    }
+  };
+
+  if (!movies || movies.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="mb-12">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="text-2xl font-bold">{title}</h2>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            onClick={scrollLeft}
+            aria-label="Scroll left"
+          >
+            <ChevronLeft className="h-5 w-5" />
+          </Button>
+          <Button
+            variant="outline"
+            size="icon"
+            className="rounded-full"
+            onClick={scrollRight}
+            aria-label="Scroll right"
+          >
+            <ChevronRight className="h-5 w-5" />
+          </Button>
+        </div>
+      </div>
+
+      <div
+        ref={scrollContainerRef}
+        className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+      >
+        {movies.map((movie) => (
+          <div
+            key={movie._id}
+            className="relative flex-shrink-0 overflow-hidden rounded-lg"
+            style={{ width: '300px' }}
+          >
+            <div className="relative aspect-video overflow-hidden rounded-lg">
+              <Image
+                src={movie.poster_url || movie.thumb_url}
+                alt={movie.name}
+                fill
+                className="object-cover transition-transform duration-300 hover:scale-105"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+              
+              <div className="absolute bottom-0 left-0 p-4 w-full">
+                <h3 className="mb-1 text-lg font-bold line-clamp-1">{movie.name}</h3>
+                <p className="mb-2 text-sm text-gray-300 line-clamp-1">{movie.origin_name}</p>
+                
+                <div className="mb-3 flex flex-wrap gap-2">
+                  {movie.quality && (
+                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs">
+                      {movie.quality}
+                    </span>
+                  )}
+                  {movie.year && (
+                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs">
+                      {movie.year}
+                    </span>
+                  )}
+                </div>
+                
+                <Link href={`/${locale}/watch/${movie.slug}`}>
+                  <Button variant="primary" size="sm" className="flex items-center gap-1 w-full">
+                    <Play size={16} fill="white" />
+                    Watch Now
+                  </Button>
+                </Link>
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

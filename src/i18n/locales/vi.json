@@ -1,0 +1,137 @@
+{
+  "common": {
+    "appName": "Nextflix",
+    "tagline": "Xem phim mới nhất và các chương trình truyền hình trực tuyến với chất lượng HD",
+    "search": "Tìm kiếm",
+    "searchPlaceholder": "Tìm kiếm phim...",
+    "viewAll": "Xem tất cả",
+    "watchNow": "Xem ngay",
+    "moreInfo": "Thông tin thêm",
+    "loading": "Đang tải...",
+    "notFound": "Không tìm thấy",
+    "backToHome": "Trở về trang chủ",
+    "allRightsReserved": "Đã đăng ký bản quyền",
+    "demoProject": "Đây là dự án demo được tạo bằng Next.js và Tailwind CSS"
+  },
+  "navigation": {
+    "home": "Trang chủ",
+    "movies": "Phim lẻ",
+    "tvSeries": "Phim bộ",
+    "anime": "Hoạt hình",
+    "categories": "Danh mục",
+    "genres": "Thể loại",
+    "countries": "Quốc gia"
+  },
+  "home": {
+    "newMovies": "Phim mới cập nhật",
+    "featuredMovies": "Phim nổi bật",
+    "popularMovies": "Phim phổ biến",
+    "recentlyUpdated": "Mới cập nhật",
+    "watchNow": "Xem ngay",
+    "moreInfo": "Thông tin thêm",
+    "noMoviesAvailable": "Không có phim nào",
+    "tryAgainLater": "Vui lòng thử lại sau hoặc kiểm tra kết nối của bạn."
+  },
+  "movie": {
+    "aboutMovie": "Về bộ phim",
+    "episodes": "Tập phim",
+    "movieInfo": "Thông tin phim",
+    "views": "Lượt xem",
+    "quality": "Chất lượng",
+    "language": "Ngôn ngữ",
+    "currentEpisode": "Tập hiện tại",
+    "genres": "Thể loại",
+    "actors": "Diễn viên",
+    "directors": "Đạo diễn",
+    "duration": "Thời lượng",
+    "year": "Năm",
+    "country": "Quốc gia",
+    "status": "Trạng thái",
+    "movieNotFound": "Không tìm thấy phim",
+    "movieNotFoundDesc": "Bộ phim bạn đang tìm kiếm không tồn tại hoặc đã bị xóa."
+  },
+  "category": {
+    "movies": "Phim lẻ",
+    "tvSeries": "Phim bộ",
+    "anime": "Hoạt hình",
+    "nowShowing": "Đang chiếu",
+    "comingSoon": "Sắp chiếu",
+    "noMoviesFound": "Không tìm thấy phim trong danh mục này.",
+    "action": "Hành động",
+    "romance": "Tình cảm",
+    "horror": "Kinh dị",
+    "comedy": "Hài hước"
+  },
+  "genre": {
+    "action": "Hành động",
+    "adventure": "Phiêu lưu",
+    "animation": "Hoạt hình",
+    "comedy": "Hài hước",
+    "crime": "Tội phạm",
+    "documentary": "Tài liệu",
+    "drama": "Chính kịch",
+    "family": "Gia đình",
+    "fantasy": "Viễn tưởng",
+    "history": "Lịch sử",
+    "horror": "Kinh dị",
+    "music": "Âm nhạc",
+    "mystery": "Bí ẩn",
+    "romance": "Lãng mạn",
+    "scienceFiction": "Khoa học viễn tưởng",
+    "thriller": "Giật gân",
+    "war": "Chiến tranh",
+    "western": "Cao bồi",
+    "noMoviesFound": "Không tìm thấy phim thuộc thể loại này."
+  },
+  "country": {
+    "american": "Mỹ",
+    "chinese": "Trung Quốc",
+    "korean": "Hàn Quốc",
+    "japanese": "Nhật Bản",
+    "thai": "Thái Lan",
+    "hongKong": "Hồng Kông",
+    "vietnamese": "Việt Nam",
+    "indian": "Ấn Độ",
+    "british": "Anh",
+    "french": "Pháp",
+    "canadian": "Canada",
+    "daiLoan": "Đài Loan",
+    "other": "Khác",
+    "noMoviesFound": "Không tìm thấy phim từ quốc gia này."
+  },
+  "search": {
+    "title": "Tìm kiếm phim",
+    "resultsFor": "Kết quả tìm kiếm cho: {keyword}",
+    "searchResults": "Kết quả tìm kiếm cho \"{keyword}\"",
+    "searchMovies": "Tìm kiếm phim",
+    "noMoviesFound": "Không tìm thấy phim phù hợp với \"{keyword}\".",
+    "enterKeyword": "Nhập từ khóa để tìm kiếm phim",
+    "enterSearchTerm": "Nhập từ khóa để tìm kiếm phim."
+  },
+  "year": {
+    "moviesFromYear": "Phim từ năm {year}",
+    "noMoviesFound": "Không tìm thấy phim từ năm này."
+  },
+  "error": {
+    "pageNotFound": "Không tìm thấy trang",
+    "pageNotFoundDesc": "Trang bạn đang tìm kiếm có thể đã bị xóa, đổi tên hoặc tạm thời không khả dụng."
+  },
+  "Movies": {
+    "allMovies": "Tất cả phim lẻ",
+    "allTVShows": "Tất cả phim bộ",
+    "noMoviesFound": "Không tìm thấy phim",
+    "loading": "Đang tải phim..."
+  },
+  "pagination": {
+    "previous": "Trước",
+    "next": "Sau",
+    "page": "Trang"
+  },
+
+  "footer": {
+    "description": "Xem phim mới nhất và các chương trình truyền hình trực tuyến với chất lượng HD. Phát trực tuyến ngay lập tức hoặc tải xuống để xem sau.",
+    "allRightsReserved": "Tất cả các quyền được bảo lưu.",
+    "demoProject": "Đây là dự án demo được tạo bằng Next.js và Tailwind CSS."
+  }
+
+}

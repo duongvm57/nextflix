@@ -1,0 +1,134 @@
+{
+  "common": {
+    "appName": "Nextflix",
+    "tagline": "Watch the latest movies and TV shows online in HD quality",
+    "search": "Search",
+    "searchPlaceholder": "Search movies...",
+    "viewAll": "View All",
+    "watchNow": "Watch Now",
+    "moreInfo": "More Info",
+    "loading": "Loading...",
+    "notFound": "Not Found",
+    "backToHome": "Back to Home",
+    "allRightsReserved": "All rights reserved",
+    "demoProject": "This is a demo project created with Next.js and Tailwind CSS"
+  },
+  "navigation": {
+    "home": "Home",
+    "movies": "Movies",
+    "tvSeries": "TV Series",
+    "anime": "Anime",
+    "categories": "Categories",
+    "genres": "Genres",
+    "countries": "Countries"
+  },
+  "home": {
+    "newMovies": "New Movies",
+    "featuredMovies": "Featured Movies",
+    "popularMovies": "Popular Movies",
+    "recentlyUpdated": "Recently Updated",
+    "watchNow": "Watch Now",
+    "moreInfo": "More Info",
+    "noMoviesAvailable": "No Movies Available",
+    "tryAgainLater": "Please try again later or check your connection."
+  },
+  "movie": {
+    "aboutMovie": "About the Movie",
+    "episodes": "Episodes",
+    "movieInfo": "Movie Info",
+    "views": "Views",
+    "quality": "Quality",
+    "language": "Language",
+    "currentEpisode": "Current Episode",
+    "genres": "Genres",
+    "actors": "Actors",
+    "directors": "Directors",
+    "duration": "Duration",
+    "year": "Year",
+    "country": "Country",
+    "status": "Status",
+    "movieNotFound": "Movie Not Found",
+    "movieNotFoundDesc": "The movie you are looking for does not exist or has been removed."
+  },
+  "category": {
+    "movies": "Movies",
+    "tvSeries": "TV Series",
+    "anime": "Anime",
+    "nowShowing": "Now Showing",
+    "comingSoon": "Coming Soon",
+    "noMoviesFound": "No movies found in this category.",
+    "action": "Action",
+    "romance": "Romance",
+    "horror": "Horror",
+    "comedy": "Comedy"
+  },
+  "genre": {
+    "action": "Action",
+    "adventure": "Adventure",
+    "animation": "Animation",
+    "comedy": "Comedy",
+    "crime": "Crime",
+    "documentary": "Documentary",
+    "drama": "Drama",
+    "family": "Family",
+    "fantasy": "Fantasy",
+    "history": "History",
+    "horror": "Horror",
+    "music": "Music",
+    "mystery": "Mystery",
+    "romance": "Romance",
+    "scienceFiction": "Science Fiction",
+    "thriller": "Thriller",
+    "war": "War",
+    "western": "Western",
+    "noMoviesFound": "No movies found in this genre."
+  },
+  "country": {
+    "american": "American",
+    "chinese": "Chinese",
+    "korean": "Korean",
+    "japanese": "Japanese",
+    "thai": "Thai",
+    "hongKong": "Hong Kong",
+    "vietnamese": "Vietnamese",
+    "indian": "Indian",
+    "british": "British",
+    "french": "French",
+    "canadian": "Canadian",
+    "daiLoan": "Taiwan",
+    "other": "Other",
+    "noMoviesFound": "No movies found from this country."
+  },
+  "search": {
+    "searchResults": "Search Results for \"{keyword}\"",
+    "searchMovies": "Search Movies",
+    "noMoviesFound": "No movies found matching \"{keyword}\".",
+    "enterSearchTerm": "Enter a search term to find movies."
+  },
+  "year": {
+    "moviesFromYear": "Movies from {year}",
+    "noMoviesFound": "No movies found from this year."
+  },
+  "error": {
+    "pageNotFound": "Page Not Found",
+    "pageNotFoundDesc": "The page you are looking for might have been removed, had its name changed, or is temporarily unavailable."
+  },
+  "Movies": {
+    "allMovies": "All Movies",
+    "allTVShows": "All TV Shows",
+    "noMoviesFound": "No movies found",
+    "loading": "Loading movies..."
+  },
+  "pagination": {
+    "previous": "Previous",
+    "next": "Next",
+    "page": "Page"
+  },
+
+  "footer": {
+    "description": "Watch the latest movies and TV shows online in HD quality. Stream instantly or download for later.",
+    "allRightsReserved": "All rights reserved.",
+    "demoProject": "This is a demo project created with Next.js and Tailwind CSS."
+  }
+
+}
