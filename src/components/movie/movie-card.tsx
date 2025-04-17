@@ -27,6 +27,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes={isFeatured ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
+            unoptimized
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
@@ -60,7 +61,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
         <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-300 group-hover:opacity-100">
           <Link href={`/${locale}/watch/${movie.slug}`}>
             <div className="flex h-12 w-12 items-center justify-center rounded-full bg-primary/80 text-white">
-              <Play size={24} fill="white" />
+              <Play size={20} fill="white" />
             </div>
           </Link>
         </div>

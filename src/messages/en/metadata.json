@@ -1,0 +1,15 @@
+{
+  "siteName": "NextFlix",
+  "homeDescription": "Watch the latest movies and TV shows online",
+  "newMovies": "New Movies",
+  "newMoviesDescription": "Latest movies and TV shows added to our collection",
+  "movies": "Movies",
+  "tvSeries": "TV Series",
+  "animation": "Animation",
+  "dubbed": "Dubbed Movies",
+  "voiceOver": "Voice Over Movies",
+  "movieListDescription": "Browse our collection of {type}",
+  "categoryDescription": "Browse our collection of {category} movies and TV shows",
+  "countryDescription": "Browse our collection of movies and TV shows from {country}",
+  "yearDescription": "Browse our collection of movies and TV shows from {year}"
+}

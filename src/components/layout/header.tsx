@@ -6,9 +6,10 @@ import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { useLocale, useTranslations } from 'next-intl';
 import { LanguageSwitcher } from './language-switcher';
-import { getCategories, getCountries, getGenres } from '@/services/api-updated';
+import { getCategories, getCountries } from '@/services/phimapi';
 import { Category, Country } from '@/types';
 import Image from 'next/image';
+import { getAllMenuItems } from '@/lib/menu/phimapi-menu';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -16,7 +17,7 @@ export function Header() {
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
   const [countries, setCountries] = useState<Country[]>([]);
-  const [genres, setGenres] = useState<Category[]>([]);
+  const [menuItems, setMenuItems] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   const router = useRouter();
@@ -24,18 +25,20 @@ export function Header() {
   const t = useTranslations();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch categories, countries and genres
+  // Fetch categories and countries
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [categoriesData, countriesData, genresData] = await Promise.all([
-          getCategories(locale),
-          getCountries(locale),
-          getGenres(locale)
+        const [categoriesData, countriesData] = await Promise.all([
+          getCategories(),
+          getCountries()
         ]);
         setCategories(categoriesData);
         setCountries(countriesData);
-        setGenres(genresData);
+
+        // Generate menu items
+        const items = getAllMenuItems(locale as any, categoriesData, countriesData);
+        setMenuItems(items);
       } catch (error) {
         console.error('Error fetching menu data:', error);
       } finally {
@@ -60,59 +63,7 @@ export function Header() {
     };
   }, []);
 
-  // Base menu items
-  const baseMenuItems = [
-    { id: 'home', label: t('navigation.home'), href: `/${locale}` },
-    { id: 'movies', label: t('navigation.movies'), href: `/${locale}/movies` },
-    { id: 'tv-series', label: t('navigation.tvSeries'), href: `/${locale}/tv-shows` },
-  ];
-
-  // Create categories menu item
-  const categoriesMenuItem = {
-    id: 'categories',
-    label: t('navigation.categories'),
-    href: `#categories`,
-    isDropdown: true,
-    children: categories.map(category => ({
-      id: category.id,
-      label: category.name,
-      href: `/${locale}/category/${category.slug}`
-    }))
-  };
-
-  // Create countries menu item
-  const countriesMenuItem = {
-    id: 'countries',
-    label: t('navigation.countries'),
-    href: `#countries`,
-    isDropdown: true,
-    children: countries.map(country => ({
-      id: country.id,
-      label: country.name,
-      href: `/${locale}/country/${country.slug}`
-    }))
-  };
-
-  // Create genres menu item
-  const genresMenuItem = {
-    id: 'genres',
-    label: t('navigation.genres'),
-    href: `#genres`,
-    isDropdown: true,
-    children: genres.map(genre => ({
-      id: genre.id,
-      label: genre.name,
-      href: `/${locale}/genre/${genre.slug}`
-    }))
-  };
-
-  // Combine all menu items
-  const MENU_ITEMS = [
-    ...baseMenuItems,
-    categoriesMenuItem,
-    countriesMenuItem,
-    genresMenuItem
-  ];
+  // Use the menu items from phimapi-menu.ts
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
@@ -128,7 +79,7 @@ export function Header() {
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
           <Link href={`/${locale}`} className="flex items-center cursor-pointer">
-            <Image 
+            <Image
               src="/images/logo.png"
               alt="Nextflix"
               width={500}
@@ -141,7 +92,7 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:block" ref={dropdownRef}>
             <ul className="flex space-x-8">
-              {MENU_ITEMS.map((item) => (
+              {menuItems.map((item) => (
                 <li key={item.id} className="relative">
                   {item.isDropdown ? (
                     <>
@@ -219,7 +170,7 @@ export function Header() {
               <LanguageSwitcher />
             </div>
             <ul className="space-y-4">
-              {MENU_ITEMS.map((item) => (
+              {menuItems.map((item) => (
                 <li key={item.id}>
                   {item.isDropdown ? (
                     <div className="space-y-2">

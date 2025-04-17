@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { getMoviesByCategory } from '@/services/api-updated';
+import { getMoviesByCategory } from '@/services/phimapi';
 import { Movie } from '@/types';
 import { MovieGrid } from '@/components/movie/movie-grid';
 
@@ -12,20 +12,27 @@ export default function CategoryClientPage() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
-  
+
   const [movies, setMovies] = useState<Movie[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [categoryName, setCategoryName] = useState('');
-  
+
   useEffect(() => {
     const fetchMoviesByCategory = async () => {
       setIsLoading(true);
       try {
-        const response = await getMoviesByCategory(slug, currentPage);
+        // Add sort options for better results
+        const options = {
+          sort_field: 'modified.time',
+          sort_type: 'desc',
+          limit: '20'
+        };
+
+        const response = await getMoviesByCategory(slug, currentPage, options);
         setMovies(response.data);
         setTotalPages(response.pagination.totalPages);
-        
+
         // Set category display name based on slug
         let name = '';
         switch (slug) {
@@ -56,24 +63,24 @@ export default function CategoryClientPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchMoviesByCategory();
   }, [slug, currentPage]);
-  
+
   const handlePageChange = (page: number) => {
     // Update URL with new page number
     const url = new URL(window.location.href);
     url.searchParams.set('page', page.toString());
     window.history.pushState({}, '', url);
-    
+
     // This will trigger the useEffect to fetch new data
     window.dispatchEvent(new Event('popstate'));
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">{categoryName}</h1>
-      
+
       <MovieGrid
         movies={movies}
         currentPage={currentPage}

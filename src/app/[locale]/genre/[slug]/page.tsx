@@ -1,16 +1,9 @@
-import { movieService } from '@/lib/services/api';
+import { getMoviesByGenre } from '@/services/phimapi';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-async function getMoviesByGenre(slug: string, page: number = 1) {
-  try {
-    return await movieService.getMoviesByGenre(slug, page);
-  } catch (error) {
-    console.error('Error fetching movies by genre:', error);
-    return { data: [], pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 } };
-  }
-}
+// getMoviesByGenre is imported from phimapi.ts
 
 // Map of genre slugs to translation keys
 const GENRE_TRANSLATION_KEYS: Record<string, string> = {

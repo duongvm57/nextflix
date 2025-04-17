@@ -1,17 +1,10 @@
 import Image from 'next/image';
-import { movieService } from '@/lib/services/api';
+import { getMovieDetail } from '@/services/phimapi';
 import { Button } from '@/components/ui/button';
 import { Play, Star, Calendar, Clock, Globe, Film } from 'lucide-react';
 import Link from 'next/link';
 
-async function getMovieDetail(slug: string) {
-  try {
-    return await movieService.getMovieDetail(slug);
-  } catch (error) {
-    console.error('Error fetching movie detail:', error);
-    return null;
-  }
-}
+// getMovieDetail is imported from phimapi.ts
 
 export default async function MovieDetailPage({
   params,

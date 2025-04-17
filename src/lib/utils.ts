@@ -21,6 +21,13 @@ export function formatViewCount(count?: number): string {
 // Get image URL with fallback
 export function getImageUrl(url: string, fallback: string = '/placeholder.jpg'): string {
   if (!url) return fallback;
+
+  // Handle relative URLs from API
+  if (!url.startsWith('http') && !url.startsWith('/')) {
+    console.log('Fixing image URL:', url);
+    return `https://phimimg.com/${url}`;
+  }
+
   return url;
 }
 

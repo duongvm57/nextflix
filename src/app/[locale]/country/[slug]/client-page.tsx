@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useParams, useSearchParams } from 'next/navigation';
-import { getMoviesByCountry } from '@/services/api-updated';
+import { getMoviesByCountry } from '@/services/phimapi';
 import { Movie } from '@/types';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { useTranslations } from 'next-intl';
@@ -30,22 +30,29 @@ export default function CountryClientPage() {
   const searchParams = useSearchParams();
   const pageParam = searchParams.get('page');
   const currentPage = pageParam ? parseInt(pageParam, 10) : 1;
-  
+
   const [movies, setMovies] = useState<Movie[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
   const [countryName, setCountryName] = useState('');
-  
+
   const t = useTranslations();
-  
+
   useEffect(() => {
     const fetchMoviesByCountry = async () => {
       setIsLoading(true);
       try {
-        const response = await getMoviesByCountry(slug, currentPage);
+        // Add sort options for better results
+        const options = {
+          sort_field: 'modified.time',
+          sort_type: 'desc',
+          limit: '20'
+        };
+
+        const response = await getMoviesByCountry(slug, currentPage, options);
         setMovies(response.data);
         setTotalPages(response.pagination.totalPages);
-        
+
         // Get country name from translations if available
         const translationKey = COUNTRY_TRANSLATION_KEYS[slug];
         const name = translationKey
@@ -58,24 +65,24 @@ export default function CountryClientPage() {
         setIsLoading(false);
       }
     };
-    
+
     fetchMoviesByCountry();
   }, [slug, currentPage, t]);
-  
+
   const handlePageChange = (page: number) => {
     // Update URL with new page number
     const url = new URL(window.location.href);
     url.searchParams.set('page', page.toString());
     window.history.pushState({}, '', url);
-    
+
     // This will trigger the useEffect to fetch new data
     window.dispatchEvent(new Event('popstate'));
   };
-  
+
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">{countryName}</h1>
-      
+
       <MovieGrid
         movies={movies}
         currentPage={currentPage}

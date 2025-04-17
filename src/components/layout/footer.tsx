@@ -29,17 +29,17 @@ export function Footer() {
             <h3 className="mb-4 text-lg font-semibold text-white">{t('navigation.categories')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href={`/${locale}/category/phim-le`} className="hover:text-primary">
+                <Link href={`/${locale}/danh-sach/phim-le`} className="hover:text-primary">
                   {t('navigation.movies')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/category/phim-bo`} className="hover:text-primary">
+                <Link href={`/${locale}/danh-sach/phim-bo`} className="hover:text-primary">
                   {t('navigation.tvSeries')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/category/hoat-hinh`} className="hover:text-primary">
+                <Link href={`/${locale}/danh-sach/hoat-hinh`} className="hover:text-primary">
                   {t('navigation.anime')}
                 </Link>
               </li>
@@ -51,22 +51,22 @@ export function Footer() {
             <h3 className="mb-4 text-lg font-semibold text-white">{t('navigation.genres')}</h3>
             <ul className="space-y-2">
               <li>
-                <Link href={`/${locale}/genre/hanh-dong`} className="hover:text-primary">
+                <Link href={`/${locale}/the-loai/hanh-dong`} className="hover:text-primary">
                   {t('category.action')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/genre/tinh-cam`} className="hover:text-primary">
+                <Link href={`/${locale}/the-loai/tinh-cam`} className="hover:text-primary">
                   {t('category.romance')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/genre/kinh-di`} className="hover:text-primary">
+                <Link href={`/${locale}/the-loai/kinh-di`} className="hover:text-primary">
                   {t('category.horror')}
                 </Link>
               </li>
               <li>
-                <Link href={`/${locale}/genre/hai-huoc`} className="hover:text-primary">
+                <Link href={`/${locale}/the-loai/hai-huoc`} className="hover:text-primary">
                   {t('category.comedy')}
                 </Link>
               </li>

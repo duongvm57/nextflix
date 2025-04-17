@@ -2,9 +2,12 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { searchMovies } from '@/services/api-updated';
+import { searchMoviesClientPaginated } from '@/services/phimapi';
+import { SORT_FIELD, SORT_TYPE } from '@/lib/menu/phimapi-menu';
+import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { Movie } from '@/types';
 import { MovieGrid } from '@/components/movie/movie-grid';
+import { BackToTop } from '@/components/ui/back-to-top';
 import { useTranslations } from 'next-intl';
 
 export default function SearchClientPage() {
@@ -28,7 +31,12 @@ export default function SearchClientPage() {
 
       setIsLoading(true);
       try {
-        const response = await searchMovies(keyword, currentPage);
+        const options = {
+          sort_field: SORT_FIELD.MODIFIED_TIME,
+          sort_type: SORT_TYPE.DESC,
+          limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+        };
+        const response = await searchMovies(keyword, currentPage, options);
 
         // Check if response has data and items
         if (response && response.data) {
@@ -63,7 +71,12 @@ export default function SearchClientPage() {
       setIsLoading(true);
       const fetchSearchResults = async () => {
         try {
-          const response = await searchMovies(keyword, page);
+          const options = {
+            sort_field: SORT_FIELD.MODIFIED_TIME,
+            sort_type: SORT_TYPE.DESC,
+            limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+          };
+          const response = await searchMovies(keyword, page, options);
 
           // Check if response has data and items
           if (response && response.data) {
@@ -91,24 +104,29 @@ export default function SearchClientPage() {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">
-        {keyword ? t('search.resultsFor', { keyword }) : t('search.title')}
-      </h1>
+    <>
+      <div className="container mx-auto px-4 py-8">
+        <h1 className="mb-8 text-3xl font-bold">
+          {keyword ? t('search.resultsFor', { keyword }) : t('search.title')}
+        </h1>
 
-      {keyword ? (
-        <MovieGrid
-          movies={movies}
-          currentPage={currentPage}
-          totalPages={totalPages}
-          onPageChange={handlePageChange}
-          isLoading={isLoading}
-        />
-      ) : (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <p className="text-xl text-gray-400">{t('search.enterKeyword')}</p>
-        </div>
-      )}
-    </div>
+        {keyword ? (
+          <MovieGrid
+            movies={movies}
+            currentPage={currentPage}
+            totalPages={totalPages}
+            onPageChange={handlePageChange}
+            isLoading={isLoading}
+          />
+        ) : (
+          <div className="flex min-h-[40vh] items-center justify-center">
+            <p className="text-xl text-gray-400">{t('search.enterKeyword')}</p>
+          </div>
+        )}
+      </div>
+
+      {/* Back to Top Button */}
+      <BackToTop threshold={500} />
+    </>
   );
 }

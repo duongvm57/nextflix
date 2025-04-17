@@ -109,28 +109,8 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
 
   return (
     <div className="relative mb-12">
-      <div className="mb-4 flex items-center justify-between">
+      <div className="mb-4">
         <h2 className="text-2xl font-bold">{title}</h2>
-        <div className="flex gap-2">
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            onClick={scrollLeft}
-            aria-label="Previous movie"
-          >
-            <ChevronLeft className="h-5 w-5" />
-          </Button>
-          <Button
-            variant="outline"
-            size="icon"
-            className="rounded-full"
-            onClick={scrollRight}
-            aria-label="Next movie"
-          >
-            <ChevronRight className="h-5 w-5" />
-          </Button>
-        </div>
       </div>
 
       <div className="relative">
