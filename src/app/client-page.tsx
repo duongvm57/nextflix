@@ -1,14 +1,15 @@
 'use client';
 
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 
 import { getNewMoviesClientPaginated } from '@/services/phimapi';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
-import { Movie } from '@/types';
+import { Movie, PaginatedResponse } from '@/types';
 import { MovieCard } from '@/components/movie/movie-card';
 import { HeroCarousel } from '@/components/movie/hero-carousel';
 import { BackToTop } from '@/components/ui/back-to-top';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
+import { clientCache } from '@/lib/cache/client-cache';
 
 export default function HomeClientPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
@@ -25,12 +26,37 @@ export default function HomeClientPage() {
     setHasMore,
   } = useInfiniteScroll(containerRef, { threshold: 300 });
 
+  // Function to fetch movies with caching
+  const fetchMoviesWithCache = useCallback(async (page: number) => {
+    const cacheKey = `movies_page_${page}`;
+    const cachedData = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
+
+    if (cachedData) {
+      console.log(`Using cached data for page ${page}`);
+      return cachedData;
+    }
+
+    console.log(`Fetching fresh data for page ${page}`);
+
+    // Add a small delay to show loading indicator (only for visual feedback)
+    if (page > 1) {
+      await new Promise(resolve => setTimeout(resolve, 300));
+    }
+
+    const response = await getNewMoviesClientPaginated(page);
+
+    // Cache for 5 minutes
+    clientCache.set(cacheKey, response, 5 * 60 * 1000);
+
+    return response;
+  }, []);
+
   // Initial load
   useEffect(() => {
     const fetchInitialMovies = async () => {
       setIsLoading(true);
       try {
-        const response = await getNewMoviesClientPaginated(1);
+        const response = await fetchMoviesWithCache(1);
         setMovies(response.data);
 
         setInitialLoadComplete(true);
@@ -42,7 +68,33 @@ export default function HomeClientPage() {
     };
 
     fetchInitialMovies();
-  }, []);
+  }, [fetchMoviesWithCache]);
+
+  // Prefetch next page
+  useEffect(() => {
+    let timer: NodeJS.Timeout | undefined;
+
+    // Only prefetch if we're not loading and initial load is complete
+    if (initialLoadComplete && !isLoading) {
+      const nextPage = page + 1;
+      const cacheKey = `movies_page_${nextPage}`;
+
+      // Check if already cached
+      if (!clientCache.get(cacheKey)) {
+        console.log(`Prefetching data for page ${nextPage}`);
+        // Use setTimeout to avoid blocking the main thread
+        timer = setTimeout(() => {
+          fetchMoviesWithCache(nextPage).catch(err =>
+            console.error(`Error prefetching page ${nextPage}:`, err)
+          );
+        }, 1000);
+      }
+    }
+
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [page, isLoading, initialLoadComplete, fetchMoviesWithCache]);
 
   // Load more when scrolling
   useEffect(() => {
@@ -50,7 +102,7 @@ export default function HomeClientPage() {
 
     const fetchMoreMovies = async () => {
       try {
-        const response = await getNewMoviesClientPaginated(page);
+        const response = await fetchMoviesWithCache(page);
         const newMovies = response.data;
 
         if (newMovies.length === 0) {
@@ -72,7 +124,7 @@ export default function HomeClientPage() {
     };
 
     fetchMoreMovies();
-  }, [page, initialLoadComplete, setHasMore, setScrollLoading]);
+  }, [page, initialLoadComplete, setHasMore, setScrollLoading, fetchMoviesWithCache]);
 
   // Loading indicator
   const renderLoadingIndicator = () => {
@@ -123,7 +175,7 @@ export default function HomeClientPage() {
     <>
       <div className="container mx-auto px-4 py-8" ref={containerRef}>
         {/* Hero Carousel Section */}
-        {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} title="Mới cập nhật" />}
+        {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} title="" />}
 
         {/* New Movies Section */}
         <section className="py-6">

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 
 export function Footer() {
   const currentYear = new Date().getFullYear();
@@ -11,12 +12,12 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">
-            <Link
+            <MenuLink
               href="/"
               className="mb-4 inline-block text-2xl font-bold text-primary drop-shadow-md"
             >
               NEXTFLIX
-            </Link>
+            </MenuLink>
             <p className="mb-4 max-w-md">
               Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD
             </p>
@@ -49,24 +50,24 @@ export function Footer() {
             <h3 className="mb-4 text-lg font-semibold text-white">Thể loại</h3>
             <ul className="space-y-2">
               <li>
-                <Link href="/genres/hanh-dong" className="hover:text-primary">
+                <MenuLink href="/genres/hanh-dong" className="hover:text-primary">
                   Hành động
-                </Link>
+                </MenuLink>
               </li>
               <li>
-                <Link href="/genres/tinh-cam" className="hover:text-primary">
+                <MenuLink href="/genres/tinh-cam" className="hover:text-primary">
                   Tình cảm
-                </Link>
+                </MenuLink>
               </li>
               <li>
-                <Link href="/genres/kinh-di" className="hover:text-primary">
+                <MenuLink href="/genres/kinh-di" className="hover:text-primary">
                   Kinh dị
-                </Link>
+                </MenuLink>
               </li>
               <li>
-                <Link href="/genres/hai-huoc" className="hover:text-primary">
+                <MenuLink href="/genres/hai-huoc" className="hover:text-primary">
                   Hài hước
-                </Link>
+                </MenuLink>
               </li>
             </ul>
           </div>

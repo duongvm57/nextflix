@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect, useCallback, TouchEvent } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Movie } from '@/types';
 import { Button } from '@/components/ui/button';
@@ -182,7 +182,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                 </p>
 
                 <div className="flex flex-wrap gap-2 md:gap-4">
-                  <Link href={`/watch/${movie.slug}`}>
+                  <MenuLink href={`/watch/${movie.slug}`}>
                     <Button
                       variant="primary"
                       size="sm"
@@ -191,12 +191,12 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                       <Play size={16} fill="white" className="md:h-5 md:w-5" />
                       Xem ngay
                     </Button>
-                  </Link>
-                  <Link href={`/watch/${movie.slug}`}>
+                  </MenuLink>
+                  <MenuLink href={`/watch/${movie.slug}`}>
                     <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
                       Thông tin thêm
                     </Button>
-                  </Link>
+                  </MenuLink>
                 </div>
               </div>
             </div>

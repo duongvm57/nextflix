@@ -147,8 +147,14 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
       headers: {
         Accept: 'application/json',
       },
-      cache: 'no-store', // Disable caching to ensure fresh data
-      next: { revalidate: 0 }, // Disable Next.js cache
+      // Use cache for better performance
+      cache: endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) || endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+        ? 'force-cache'
+        : 'no-store',
+      // Revalidate categories and countries every hour, otherwise disable cache
+      next: endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) || endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+        ? { revalidate: 3600 }
+        : { revalidate: 0 },
     });
 
     if (!response.ok) {
@@ -198,8 +204,10 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
       headers: {
         Accept: 'application/json',
       },
-      cache: 'no-store', // Disable caching to ensure fresh data
-      next: { revalidate: 0 }, // Disable Next.js cache
+      // Use cache for better performance
+      cache: 'no-store',
+      // Disable Next.js cache for dynamic data
+      next: { revalidate: 0 },
     });
 
     logger.debug(`[DEBUG] API V1 response status: ${response.status}`);
@@ -996,8 +1004,8 @@ export async function getCategories(): Promise<any[]> {
 
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
       signal: controller.signal,
-      cache: 'no-store',
-      next: { revalidate: 0 },
+      cache: 'force-cache', // Use cache for categories
+      next: { revalidate: 3600 }, // Revalidate every hour
     });
 
     clearTimeout(timeoutId);
@@ -1048,8 +1056,8 @@ export async function getCountries(): Promise<any[]> {
 
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
       signal: controller.signal,
-      cache: 'no-store',
-      next: { revalidate: 0 },
+      cache: 'force-cache', // Use cache for countries
+      next: { revalidate: 3600 }, // Revalidate every hour
     });
 
     clearTimeout(timeoutId);

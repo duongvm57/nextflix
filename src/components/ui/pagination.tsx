@@ -1,6 +1,6 @@
 import { Button } from './button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import Link from 'next/link';
+import { MenuLink } from './menu-link';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -64,9 +64,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
     <div className="flex items-center justify-center gap-2 py-8">
       {/* Previous button */}
       {baseUrl ? (
-        <Link
+        <MenuLink
           href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
-          aria-disabled={currentPage <= 1}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
             currentPage <= 1 ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
@@ -74,7 +73,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronLeft size={16} />
           <span className="sr-only">Previous Page</span>
-        </Link>
+        </MenuLink>
       ) : (
         <Button
           variant="outline"
@@ -99,7 +98,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         }
 
         return baseUrl ? (
-          <Link
+          <MenuLink
             key={`link-page-${page}-${index}`}
             href={`${baseUrl}?page=${page}`}
             className={cn(
@@ -108,7 +107,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             )}
           >
             {page}
-          </Link>
+          </MenuLink>
         ) : (
           <Button
             key={`button-page-${page}-${index}`}
@@ -123,9 +122,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
 
       {/* Next button */}
       {baseUrl ? (
-        <Link
+        <MenuLink
           href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
-          aria-disabled={currentPage >= totalPages}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
             currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
@@ -133,7 +131,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronRight size={16} />
           <span className="sr-only">Next Page</span>
-        </Link>
+        </MenuLink>
       ) : (
         <Button
           variant="outline"
