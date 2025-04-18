@@ -37,5 +37,5 @@ export const logger = {
    */
   info: (...args: any[]): void => {
     console.info(...args);
-  }
+  },
 };

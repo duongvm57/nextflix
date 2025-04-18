@@ -10,11 +10,7 @@ async function searchMovies(keyword: string) {
   }
 }
 
-export default async function SearchPage({
-  searchParams,
-}: {
-  searchParams: { keyword?: string };
-}) {
+export default async function SearchPage({ searchParams }: { searchParams: { keyword?: string } }) {
   const keyword = searchParams.keyword || '';
   const movies = keyword ? await searchMovies(keyword) : [];
 
@@ -23,7 +19,7 @@ export default async function SearchPage({
       <h1 className="mb-8 text-3xl font-bold">
         {keyword ? `Search Results for "${keyword}"` : 'Search Movies'}
       </h1>
-      
+
       {keyword ? (
         movies.length > 0 ? (
           <MovieGrid movies={movies} />

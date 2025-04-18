@@ -7,5 +7,5 @@ export const PAGINATION_CONFIG = {
   MAX_PAGES_TO_SHOW: 5,
 
   // Default starting page
-  DEFAULT_PAGE: 1
+  DEFAULT_PAGE: 1,
 };

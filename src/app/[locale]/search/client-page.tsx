@@ -34,7 +34,7 @@ export default function SearchClientPage() {
         const options = {
           sort_field: SORT_FIELD.MODIFIED_TIME,
           sort_type: SORT_TYPE.DESC,
-          limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+          limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
         };
         // Use the client-paginated version of the search function
         const response = await searchMoviesClientPaginated(keyword, currentPage, options);
@@ -74,7 +74,7 @@ export default function SearchClientPage() {
           const options = {
             sort_field: SORT_FIELD.MODIFIED_TIME,
             sort_type: SORT_TYPE.DESC,
-            limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+            limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
           };
           // Use the client-paginated version of the search function
           const response = await searchMoviesClientPaginated(keyword, page, options);

@@ -15,7 +15,11 @@ export function EmbedClient({ src }: EmbedClientProps) {
   }, []);
 
   if (!isMounted) {
-    return <div className="h-full w-full bg-black flex items-center justify-center">Loading player...</div>;
+    return (
+      <div className="h-full w-full bg-black flex items-center justify-center">
+        Loading player...
+      </div>
+    );
   }
 
   return (

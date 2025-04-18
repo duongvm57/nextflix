@@ -7,7 +7,10 @@ async function getMoviesByCountry(slug: string, page: number = 1) {
     return await movieService.getMoviesByCountry(slug, page);
   } catch (error) {
     console.error('Error fetching movies by country:', error);
-    return { data: [], pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 } };
+    return {
+      data: [],
+      pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 },
+    };
   }
 }
 
@@ -22,9 +25,9 @@ const COUNTRY_NAMES: Record<string, string> = {
   'viet-nam': 'Vietnamese',
   'dai-loan': 'Taiwan',
   'an-do': 'Indian',
-  'anh': 'British',
-  'phap': 'French',
-  'canada': 'Canadian',
+  anh: 'British',
+  phap: 'French',
+  canada: 'Canadian',
   'quoc-gia-khac': 'Other',
 };
 
@@ -40,22 +43,25 @@ export default async function CountryPage({
   const { data: movies, pagination } = await getMoviesByCountry(slug, page);
 
   // Get country display name or use formatted slug if not found
-  const countryName = COUNTRY_NAMES[slug] || slug.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  const countryName =
+    COUNTRY_NAMES[slug] ||
+    slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">{countryName} Movies</h1>
-      
+
       {movies.length > 0 ? (
         <>
           <MovieGrid movies={movies} />
-          
+
           {pagination && pagination.totalPages > 1 && (
-            <Pagination 
-              currentPage={pagination.currentPage} 
-              totalPages={pagination.totalPages} 
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
               baseUrl={`/country/${slug}`}
             />
           )}

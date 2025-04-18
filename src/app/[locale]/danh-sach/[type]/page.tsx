@@ -59,9 +59,10 @@ export async function generateMetadata({
   }
 
   // Create description
-  const description = locale === 'en'
-    ? `Browse our collection of ${title}`
-    : `Duyệt bộ sưu tập ${title} của chúng tôi`;
+  const description =
+    locale === 'en'
+      ? `Browse our collection of ${title}`
+      : `Duyệt bộ sưu tập ${title} của chúng tôi`;
 
   // Add page number to title if not on first page
   const pageTitle = page > 1 ? `${title} - ${locale === 'en' ? 'Page' : 'Trang'} ${page}` : title;
@@ -92,7 +93,7 @@ export default async function MovieListPage({
     country?: string;
   } = {
     sort_field: 'modified.time',
-    sort_type: 'desc'
+    sort_type: 'desc',
   };
 
   // Add category and country parameters if provided
@@ -109,84 +110,81 @@ export default async function MovieListPage({
   try {
     // Get movies by type (including year, category, etc.)
     // We'll use getMoviesByCategoryClientPaginated for all types since it now handles years correctly
-    const { data: movies, pagination } = await getMoviesByCategoryClientPaginated(type, page, options);
+    const { data: movies, pagination } = await getMoviesByCategoryClientPaginated(
+      type,
+      page,
+      options
+    );
 
-  // Get title based on type
-  let title = '';
+    // Get title based on type
+    let title = '';
 
-  // Check if type is a year (4 digits)
-  const isYear = /^\d{4}$/.test(type);
+    // Check if type is a year (4 digits)
+    const isYear = /^\d{4}$/.test(type);
 
-  if (isYear) {
-    title = locale === 'en' ? `Movies from ${type}` : `Phim năm ${type}`;
-  } else {
-    switch (type) {
-      case TYPE_LIST.PHIM_BO:
-        title = locale === 'en' ? 'TV Series' : 'Phim bộ';
-        break;
-      case TYPE_LIST.PHIM_LE:
-        title = locale === 'en' ? 'Movies' : 'Phim lẻ';
-        break;
-      case TYPE_LIST.TV_SHOWS:
-        title = 'TV Shows';
-        break;
-      case TYPE_LIST.HOAT_HINH:
-        title = locale === 'en' ? 'Animation' : 'Hoạt hình';
-        break;
-      case TYPE_LIST.PHIM_VIETSUB:
-        title = 'Phim Vietsub';
-        break;
-      case TYPE_LIST.PHIM_THUYET_MINH:
-        title = locale === 'en' ? 'Dubbed Movies' : 'Phim Thuyết Minh';
-        break;
-      case TYPE_LIST.PHIM_LONG_TIENG:
-        title = locale === 'en' ? 'Voice Over Movies' : 'Phim Lồng Tiếng';
-        break;
-      default:
-        title = locale === 'en' ? 'Movies' : 'Phim';
+    if (isYear) {
+      title = locale === 'en' ? `Movies from ${type}` : `Phim năm ${type}`;
+    } else {
+      switch (type) {
+        case TYPE_LIST.PHIM_BO:
+          title = locale === 'en' ? 'TV Series' : 'Phim bộ';
+          break;
+        case TYPE_LIST.PHIM_LE:
+          title = locale === 'en' ? 'Movies' : 'Phim lẻ';
+          break;
+        case TYPE_LIST.TV_SHOWS:
+          title = 'TV Shows';
+          break;
+        case TYPE_LIST.HOAT_HINH:
+          title = locale === 'en' ? 'Animation' : 'Hoạt hình';
+          break;
+        case TYPE_LIST.PHIM_VIETSUB:
+          title = 'Phim Vietsub';
+          break;
+        case TYPE_LIST.PHIM_THUYET_MINH:
+          title = locale === 'en' ? 'Dubbed Movies' : 'Phim Thuyết Minh';
+          break;
+        case TYPE_LIST.PHIM_LONG_TIENG:
+          title = locale === 'en' ? 'Voice Over Movies' : 'Phim Lồng Tiếng';
+          break;
+        default:
+          title = locale === 'en' ? 'Movies' : 'Phim';
+      }
     }
-  }
 
-  return (
-    <>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold md:text-3xl">{title}</h1>
+    return (
+      <>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="mb-6 text-2xl font-bold md:text-3xl">{title}</h1>
 
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-          {movies.map((movie) => (
-            <MovieCard
-              key={movie._id}
-              movie={movie}
-            />
-          ))}
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
+            {movies.map(movie => (
+              <MovieCard key={movie._id} movie={movie} />
+            ))}
+          </div>
+
+          {pagination && pagination.totalPages > 1 && (
+            <div className="mt-8 flex justify-center">
+              <Pagination
+                currentPage={pagination.currentPage}
+                totalPages={pagination.totalPages}
+                baseUrl={`/${locale}/danh-sach/${type}`}
+              />
+            </div>
+          )}
         </div>
 
-        {pagination && pagination.totalPages > 1 && (
-          <div className="mt-8 flex justify-center">
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              baseUrl={`/${locale}/danh-sach/${type}`}
-            />
-          </div>
-        )}
-      </div>
-
-      {/* Back to Top Button */}
-      <BackToTop threshold={500} />
-    </>
-  );
+        {/* Back to Top Button */}
+        <BackToTop threshold={500} />
+      </>
+    );
   } catch (error) {
     console.error(`Error rendering page for type/year ${type}:`, error);
 
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold md:text-3xl text-red-500">
-          Error loading content
-        </h1>
-        <p className="text-gray-400">
-          {error instanceof Error ? error.message : 'Unknown error'}
-        </p>
+        <h1 className="mb-6 text-2xl font-bold md:text-3xl text-red-500">Error loading content</h1>
+        <p className="text-gray-400">{error instanceof Error ? error.message : 'Unknown error'}</p>
       </div>
     );
   }

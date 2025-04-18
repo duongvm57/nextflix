@@ -1,4 +1,46 @@
-export interface Movie {
+// Common types used across the application
+
+// Re-export types from other files
+export * from './api';
+export * from './config';
+export * from './ui';
+
+/**
+ * Represents a named entity with a slug for routing
+ */
+export interface INamedEntity {
+  name: string;
+  slug: string;
+}
+
+/**
+ * Represents a category with optional description
+ */
+export interface ICategory extends INamedEntity {
+  id: string;
+  description?: string;
+}
+
+/**
+ * Represents a country with optional description
+ */
+export interface ICountry extends INamedEntity {
+  id: string;
+  description?: string;
+}
+
+/**
+ * Represents a genre
+ */
+export interface IGenre extends INamedEntity {
+  // Additional properties can be added here in the future
+  id?: string;
+}
+
+/**
+ * Represents a movie
+ */
+export interface IMovie {
   _id: string;
   name: string;
   origin_name: string;
@@ -6,34 +48,28 @@ export interface Movie {
   thumb_url: string;
   poster_url: string;
   year: number;
-  category: {
-    name: string;
-    slug: string;
-  };
-  country: {
-    name: string;
-    slug: string;
-  }[];
-  type: string;
-  status: string;
+  category: INamedEntity | null;
+  country: INamedEntity[];
+  type: 'movie' | 'tv_series' | string;
+  status: 'ongoing' | 'completed' | string;
   episode_current: string;
-  quality: string;
+  quality: 'HD' | 'SD' | 'CAM' | string;
   lang: string;
   view: number;
-  genres: {
-    name: string;
-    slug: string;
-  }[];
+  genres: INamedEntity[];
   actors: string[];
   directors: string[];
   duration: string;
   content: string;
   trailer_url?: string;
   time?: string;
-  episodes?: Episode[];
+  episodes?: IEpisode[];
 }
 
-export interface EpisodeItem {
+/**
+ * Represents a single episode item with playback links
+ */
+export interface IEpisodeItem {
   name: string;
   slug: string;
   filename: string;
@@ -41,40 +77,56 @@ export interface EpisodeItem {
   link_m3u8: string;
 }
 
-export interface Episode {
+/**
+ * Represents a server with multiple episode items
+ */
+export interface IEpisode {
   server_name: string;
-  items: EpisodeItem[];
+  items: IEpisodeItem[];
 }
 
-export interface PaginatedResponse<T> {
+/**
+ * Represents pagination information for API responses
+ */
+export interface IPagination {
+  totalItems: number;
+  totalItemsPerPage: number;
+  currentPage: number;
+  totalPages: number;
+}
+
+/**
+ * Generic paginated response type
+ */
+export interface IPaginatedResponse<T> {
   data: T[];
-  pagination: {
-    totalItems: number;
-    totalItemsPerPage: number;
-    currentPage: number;
-    totalPages: number;
-  };
+  pagination: IPagination;
 }
 
-export interface MovieDetail extends Movie {
-  episodes: Episode[];
+/**
+ * Represents detailed movie information including episodes
+ */
+export interface IMovieDetail extends IMovie {
+  episodes: IEpisode[];
 }
 
-export interface Category {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
+/**
+ * API response types
+ */
+export interface IApiResponse<T> {
+  status: 'success' | 'error';
+  message?: string;
+  data: T;
 }
 
-export interface Country {
-  id: string;
-  name: string;
-  slug: string;
-  description?: string;
-}
-
-export interface Genre {
-  name: string;
-  slug: string;
-}
+/**
+ * For backward compatibility with existing code
+ */
+export type Movie = IMovie;
+export type MovieDetail = IMovieDetail;
+export type Episode = IEpisode;
+export type EpisodeItem = IEpisodeItem;
+export type PaginatedResponse<T> = IPaginatedResponse<T>;
+export type Category = ICategory;
+export type Country = ICountry;
+export type Genre = IGenre;

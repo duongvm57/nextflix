@@ -27,7 +27,7 @@ export function useInfiniteScroll(
     const scrollElement = scrollRef.current;
     const scrollPosition = window.innerHeight + window.scrollY;
     const scrollHeight = scrollElement.scrollHeight || document.documentElement.scrollHeight;
-    
+
     // If we're close to the bottom, load more
     if (scrollHeight - scrollPosition < threshold) {
       loadMore();
@@ -46,6 +46,6 @@ export function useInfiniteScroll(
     setIsLoading,
     hasMore,
     setHasMore,
-    loadMore
+    loadMore,
   };
 }

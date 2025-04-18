@@ -58,9 +58,5 @@ export function I18nProvider({ locale, children }: I18nProviderProps) {
     return value;
   };
 
-  return (
-    <I18nContext.Provider value={{ locale, t }}>
-      {children}
-    </I18nContext.Provider>
-  );
+  return <I18nContext.Provider value={{ locale, t }}>{children}</I18nContext.Provider>;
 }

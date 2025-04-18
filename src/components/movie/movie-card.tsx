@@ -19,7 +19,9 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
   const locale = pathname.split('/')[1] || 'en';
 
   return (
-    <div className={`group relative overflow-hidden rounded-lg transition-all duration-300 movie-card-${movie._id} ${isFeatured ? 'h-[300px] sm:h-[350px] md:h-[400px]' : 'h-[200px] sm:h-[250px] md:h-[320px]'}`}>
+    <div
+      className={`group relative overflow-hidden rounded-lg transition-all duration-300 movie-card-${movie._id} ${isFeatured ? 'h-[300px] sm:h-[350px] md:h-[400px]' : 'h-[200px] sm:h-[250px] md:h-[320px]'}`}
+    >
       <TouchRipple className={`movie-card-${movie._id}`} />
       <div className="relative h-full w-full">
         {/* Toàn bộ thẻ có thể click để xem phim */}

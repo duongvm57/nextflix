@@ -26,7 +26,7 @@ export default function CategoryClientPage() {
         const options = {
           sort_field: 'modified.time',
           sort_type: 'desc',
-          limit: '20'
+          limit: '20',
         };
 
         const response = await getMoviesByCategory(slug, currentPage, options);
@@ -52,9 +52,10 @@ export default function CategoryClientPage() {
             name = 'Coming Soon';
             break;
           default:
-            name = slug.split('-').map(word =>
-              word.charAt(0).toUpperCase() + word.slice(1)
-            ).join(' ');
+            name = slug
+              .split('-')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
         }
         setCategoryName(name);
       } catch (error) {

@@ -30,10 +30,11 @@ export async function GET(request: NextRequest) {
     const response = await fetch(finalUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+        Accept: 'application/json',
+        'User-Agent':
+          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
-      cache: 'no-store'
+      cache: 'no-store',
     });
 
     if (!response.ok) {
@@ -45,24 +46,27 @@ export async function GET(request: NextRequest) {
   } catch (error) {
     console.error('Proxy error:', error);
     // Return a more useful error response
-    return NextResponse.json({
-      status: 'error',
-      error: 'Failed to fetch data',
-      message: error instanceof Error ? error.message : 'Unknown error',
-      url: urlParam,
-      // Return empty data structure to prevent client-side errors
-      data: {
-        items: [],
-        params: {
-          pagination: {
-            totalItems: 0,
-            totalItemsPerPage: 20,
-            currentPage: 1,
-            totalPages: 0
-          }
+    return NextResponse.json(
+      {
+        status: 'error',
+        error: 'Failed to fetch data',
+        message: error instanceof Error ? error.message : 'Unknown error',
+        url: urlParam,
+        // Return empty data structure to prevent client-side errors
+        data: {
+          items: [],
+          params: {
+            pagination: {
+              totalItems: 0,
+              totalItemsPerPage: 20,
+              currentPage: 1,
+              totalPages: 0,
+            },
+          },
+          APP_DOMAIN_CDN_IMAGE: '',
         },
-        APP_DOMAIN_CDN_IMAGE: ''
-      }
-    }, { status: 500 });
+      },
+      { status: 500 }
+    );
   }
 }

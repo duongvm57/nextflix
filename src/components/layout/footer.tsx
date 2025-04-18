@@ -16,12 +16,13 @@ export function Footer() {
         <div className="grid grid-cols-1 gap-8 md:grid-cols-4">
           {/* Logo and Description */}
           <div className="col-span-1 md:col-span-2">
-            <Link href={`/${locale}`} className="mb-4 inline-block text-2xl font-bold text-primary drop-shadow-md">
+            <Link
+              href={`/${locale}`}
+              className="mb-4 inline-block text-2xl font-bold text-primary drop-shadow-md"
+            >
               NEXTFLIX
             </Link>
-            <p className="mb-4 max-w-md">
-              {t('common.tagline')}
-            </p>
+            <p className="mb-4 max-w-md">{t('common.tagline')}</p>
           </div>
 
           {/* Categories */}
@@ -75,10 +76,10 @@ export function Footer() {
         </div>
 
         <div className="mt-8 border-t border-gray-800 pt-8 text-center">
-          <p>&copy; {currentYear} Nextflix. {t('common.allRightsReserved')}</p>
-          <p className="mt-2 text-sm">
-            {t('common.demoProject')}
+          <p>
+            &copy; {currentYear} Nextflix. {t('common.allRightsReserved')}
           </p>
+          <p className="mt-2 text-sm">{t('common.demoProject')}</p>
         </div>
       </div>
     </footer>

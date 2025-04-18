@@ -4,11 +4,11 @@ async function fetchAPI(url) {
   try {
     console.log(`Fetching: ${url}`);
     const response = await fetch(url);
-    
+
     if (!response.ok) {
       throw new Error(`API error: ${response.status}`);
     }
-    
+
     const data = await response.json();
     return data;
   } catch (error) {
@@ -33,7 +33,9 @@ async function testMovieTypeAPI() {
 
 async function testLanguageFilterAPI() {
   console.log('\nTesting language filter API...');
-  const response = await fetchAPI('https://phimapi.com/v1/api/danh-sach/phim-bo?page=1&sort_lang=long-tieng');
+  const response = await fetchAPI(
+    'https://phimapi.com/v1/api/danh-sach/phim-bo?page=1&sort_lang=long-tieng'
+  );
   console.log('Status:', response.status);
   console.log('First movie:', response.data.items[0].name);
   console.log('Language:', response.data.items[0].lang);

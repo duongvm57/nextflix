@@ -48,11 +48,16 @@ export default async function GenrePage({
     const translationKey = GENRE_TRANSLATION_KEYS[slug];
     const genreName = translationKey
       ? t(translationKey)
-      : slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      : slug
+          .split('-')
+          .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+          .join(' ');
 
     return (
       <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-8 text-3xl font-bold">{genreName} {t('navigation.movies')}</h1>
+        <h1 className="mb-8 text-3xl font-bold">
+          {genreName} {t('navigation.movies')}
+        </h1>
 
         {movies.length > 0 ? (
           <>

@@ -19,14 +19,14 @@ export function TouchRipple({ className = '' }: TouchRippleProps) {
       const touch = e.touches[0];
       const x = touch.clientX - rect.left;
       const y = touch.clientY - rect.top;
-      
+
       // Calculate ripple size based on container dimensions
       const size = Math.max(rect.width, rect.height) * 2;
-      
+
       // Add new ripple
       setRipples(prev => [...prev, { id: nextId, x, y, size }]);
       setNextId(prev => prev + 1);
-      
+
       // Remove ripple after animation completes
       setTimeout(() => {
         setRipples(prev => prev.filter(ripple => ripple.id !== nextId));
@@ -34,7 +34,7 @@ export function TouchRipple({ className = '' }: TouchRippleProps) {
     };
 
     container.addEventListener('touchstart', handleTouchStart);
-    
+
     return () => {
       container.removeEventListener('touchstart', handleTouchStart);
     };

@@ -30,7 +30,7 @@ export function BackToTop({ threshold = 300, smooth = true }: BackToTopProps) {
     if (smooth) {
       window.scrollTo({
         top: 0,
-        behavior: 'smooth'
+        behavior: 'smooth',
       });
     } else {
       window.scrollTo(0, 0);

@@ -31,7 +31,7 @@ export function Header() {
       try {
         const [categoriesData, countriesData] = await Promise.all([
           getCategories(),
-          getCountries()
+          getCountries(),
         ]);
         setCategories(categoriesData);
         setCountries(countriesData);
@@ -92,12 +92,14 @@ export function Header() {
           {/* Desktop Navigation */}
           <nav className="hidden md:block" ref={dropdownRef}>
             <ul className="flex space-x-8">
-              {menuItems.map((item) => (
+              {menuItems.map(item => (
                 <li key={item.id} className="relative">
                   {item.isDropdown ? (
                     <>
                       <button
-                        onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                        onClick={() =>
+                          setOpenDropdown(openDropdown === item.label ? null : item.label)
+                        }
                         className="flex items-center text-gray-300 transition-colors hover:text-blue-500"
                       >
                         {item.label}
@@ -105,7 +107,7 @@ export function Header() {
                       </button>
                       {openDropdown === item.label && (
                         <div className="absolute left-0 top-full z-50 mt-2 w-48 rounded-md bg-black/90 py-1 shadow-lg">
-                          {item.children?.map((child) => (
+                          {item.children?.map(child => (
                             <Link
                               key={child.href}
                               href={child.href}
@@ -139,7 +141,7 @@ export function Header() {
                 type="text"
                 placeholder={t('common.searchPlaceholder')}
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={e => setSearchQuery(e.target.value)}
                 className="w-64 rounded-full bg-gray-800 px-4 py-2 pr-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
               />
               <button
@@ -170,12 +172,14 @@ export function Header() {
               <LanguageSwitcher />
             </div>
             <ul className="space-y-4">
-              {menuItems.map((item) => (
+              {menuItems.map(item => (
                 <li key={item.id}>
                   {item.isDropdown ? (
                     <div className="space-y-2">
                       <button
-                        onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                        onClick={() =>
+                          setOpenDropdown(openDropdown === item.label ? null : item.label)
+                        }
                         className="flex items-center text-gray-300 transition-colors hover:text-blue-500"
                       >
                         {item.label}
@@ -183,7 +187,7 @@ export function Header() {
                       </button>
                       {openDropdown === item.label && (
                         <div className="ml-4 space-y-2 border-l border-gray-700 pl-4">
-                          {item.children?.map((child) => (
+                          {item.children?.map(child => (
                             <Link
                               key={child.href}
                               href={child.href}
@@ -217,7 +221,7 @@ export function Header() {
               type="text"
               placeholder={t('common.searchPlaceholder')}
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={e => setSearchQuery(e.target.value)}
               className="w-full rounded-full bg-gray-800 px-4 py-2 pr-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
             />
             <button
