@@ -2,6 +2,7 @@ import { movieService } from '@/lib/services/api';
 import { MovieDetail } from '@/types';
 import Link from 'next/link';
 import Image from 'next/image';
+import { MoviePlayer } from '@/components/player/movie-player';
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
@@ -12,6 +13,7 @@ async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   }
 }
 
+// Server component for the page
 export default async function MovieDetailPage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const movie = await getMovieDetail(slug);
@@ -28,8 +30,16 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
     );
   }
 
+  // Get initial episode
+  const initialEpisode = movie.episodes?.[0]?.items?.[0] || undefined;
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Video player and episode selection */}
+      {movie.episodes && movie.episodes.length > 0 && (
+        <MoviePlayer movie={movie} initialEpisode={initialEpisode} />
+      )}
+
       {/* Movie header with poster and basic info */}
       <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-3">
         {/* Poster */}
@@ -107,13 +117,6 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
                 : 'Chưa cập nhật'}
             </p>
           </div>
-
-          {/* Watch button */}
-          <div className="mt-6">
-            <button className="rounded-md bg-primary px-6 py-3 font-semibold text-white hover:bg-primary/80">
-              Xem phim
-            </button>
-          </div>
         </div>
       </div>
 
@@ -137,30 +140,6 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
               allowFullScreen
               className="absolute inset-0 h-full w-full"
             ></iframe>
-          </div>
-        </div>
-      )}
-
-      {/* Episodes section for TV series */}
-      {movie.type === 'tv_series' && movie.episodes && movie.episodes.length > 0 && (
-        <div className="mb-8">
-          <h3 className="mb-4 text-2xl font-semibold">Danh sách tập</h3>
-          <div className="space-y-4">
-            {movie.episodes.map((server, serverIndex) => (
-              <div key={serverIndex} className="rounded-lg bg-gray-800 p-4">
-                <h4 className="mb-3 text-lg font-medium">{server.server_name}</h4>
-                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-                  {server.items.map((episode, episodeIndex) => (
-                    <button
-                      key={episodeIndex}
-                      className="rounded bg-gray-700 px-3 py-2 text-center hover:bg-primary"
-                    >
-                      {episode.name}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            ))}
           </div>
         </div>
       )}
