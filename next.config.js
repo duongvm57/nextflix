@@ -40,19 +40,23 @@ const nextConfig = {
     remotePatterns: [
       {
         protocol: 'https',
-        hostname: 'phim.nguonc.com',
-      },
-      {
-        protocol: 'https',
-        hostname: 'img.phim.nguonc.com',
-      },
-      {
-        protocol: 'https',
         hostname: 'm.media-amazon.com',
       },
       {
         protocol: 'https',
         hostname: 'placehold.co',
+      },
+      {
+        protocol: 'https',
+        hostname: 'phimimg.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'phimapi.com',
+      },
+      {
+        protocol: 'https',
+        hostname: 'img.phimapi.com',
       },
     ],
   },

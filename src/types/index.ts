@@ -33,13 +33,17 @@ export interface Movie {
   episodes?: Episode[];
 }
 
-export interface Episode {
-  _id: string;
+export interface EpisodeItem {
   name: string;
   slug: string;
   filename: string;
   link_embed: string;
   link_m3u8: string;
+}
+
+export interface Episode {
+  server_name: string;
+  items: EpisodeItem[];
 }
 
 export interface PaginatedResponse<T> {

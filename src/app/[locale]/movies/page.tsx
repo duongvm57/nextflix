@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { getMovies } from '@/services/api-updated';
+import { getMovies } from '@/services/phimapi';
 import { Movie } from '@/types';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { useTranslations } from 'next-intl';

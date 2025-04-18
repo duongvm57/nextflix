@@ -1,0 +1,15 @@
+{
+  "siteName": "NextFlix",
+  "homeDescription": "Xem phim và chương trình truyền hình mới nhất trực tuyến",
+  "newMovies": "Phim Mới",
+  "newMoviesDescription": "Phim và chương trình truyền hình mới nhất được thêm vào bộ sưu tập của chúng tôi",
+  "movies": "Phim Lẻ",
+  "tvSeries": "Phim Bộ",
+  "animation": "Hoạt Hình",
+  "dubbed": "Phim Thuyết Minh",
+  "voiceOver": "Phim Lồng Tiếng",
+  "movieListDescription": "Duyệt bộ sưu tập {type} của chúng tôi",
+  "categoryDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình {category} của chúng tôi",
+  "countryDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình từ {country} của chúng tôi",
+  "yearDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình từ năm {year} của chúng tôi"
+}

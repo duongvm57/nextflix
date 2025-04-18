@@ -1,16 +1,9 @@
-import { movieService } from '@/lib/services/api';
+import { getMoviesByYear } from '@/services/phimapi';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { getTranslations, setRequestLocale } from 'next-intl/server';
 
-async function getMoviesByYear(year: string, page: number = 1) {
-  try {
-    return await movieService.getMoviesByYear(year, page);
-  } catch (error) {
-    console.error('Error fetching movies by year:', error);
-    return { data: [], pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 } };
-  }
-}
+// getMoviesByYear is imported from phimapi.ts
 
 export default async function YearPage({
   params,
