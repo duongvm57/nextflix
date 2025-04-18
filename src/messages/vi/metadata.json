@@ -11,5 +11,10 @@
   "movieListDescription": "Duyệt bộ sưu tập {type} của chúng tôi",
   "categoryDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình {category} của chúng tôi",
   "countryDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình từ {country} của chúng tôi",
-  "yearDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình từ năm {year} của chúng tôi"
+  "yearDescription": "Duyệt bộ sưu tập phim và chương trình truyền hình từ năm {year} của chúng tôi",
+  "search": {
+    "title": "Tìm Kiếm",
+    "resultsFor": "Kết quả tìm kiếm cho: {keyword}",
+    "enterKeyword": "Vui lòng nhập từ khóa để tìm kiếm"
+  }
 }

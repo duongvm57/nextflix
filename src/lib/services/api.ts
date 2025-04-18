@@ -1,19 +1,20 @@
 import { Movie, MovieDetail, PaginatedResponse } from '@/types';
 import { getSampleMovies, sampleMovies } from '@/lib/data/sample-movies';
+import { logger } from '@/utils/logger';
 
 // API functions using only sample data
 export const movieService = {
   // Get newly updated movies
   getNewMovies: async (page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log('Using sample data for new movies');
+    logger.debug('Using sample data for new movies');
     return getSampleMovies(page);
   },
 
   // Get movies by category
   getMoviesByCategory: async (slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log(`Using sample data for category: ${slug}`);
+    logger.debug(`Using sample data for category: ${slug}`);
     // Filter sample movies by category
-    const filteredMovies = sampleMovies.filter(movie => movie.category.slug === slug);
+    const filteredMovies = sampleMovies.filter(movie => movie?.category?.slug === slug);
     return {
       data: filteredMovies,
       pagination: {
@@ -27,7 +28,7 @@ export const movieService = {
 
   // Get movie details
   getMovieDetail: async (slug: string): Promise<MovieDetail> => {
-    console.log(`Using sample data for movie detail: ${slug}`);
+    logger.debug(`Using sample data for movie detail: ${slug}`);
     // Find movie in sample data
     const movie = sampleMovies.find(m => m.slug === slug);
     if (movie) {
@@ -39,7 +40,7 @@ export const movieService = {
 
   // Get movies by genre
   getMoviesByGenre: async (slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log(`Using sample data for genre: ${slug}`);
+    logger.debug(`Using sample data for genre: ${slug}`);
     // Filter sample movies by genre
     const filteredMovies = sampleMovies.filter(movie =>
       movie.genres.some(genre => genre.slug === slug)
@@ -57,7 +58,7 @@ export const movieService = {
 
   // Get movies by country
   getMoviesByCountry: async (slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log(`Using sample data for country: ${slug}`);
+    logger.debug(`Using sample data for country: ${slug}`);
     // Filter sample movies by country
     const filteredMovies = sampleMovies.filter(movie =>
       movie.country.some(country => country.slug === slug)
@@ -75,7 +76,7 @@ export const movieService = {
 
   // Get movies by year
   getMoviesByYear: async (year: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log(`Using sample data for year: ${year}`);
+    logger.debug(`Using sample data for year: ${year}`);
     // Filter sample movies by year
     const filteredMovies = sampleMovies.filter(movie => movie.year.toString() === year);
     return {
@@ -91,7 +92,7 @@ export const movieService = {
 
   // Search movies
   searchMovies: async (keyword: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
-    console.log(`Using sample data for search: ${keyword}`);
+    logger.debug(`Using sample data for search: ${keyword}`);
     // Search in sample movies
     const searchTerm = keyword.toLowerCase();
     const filteredMovies = sampleMovies.filter(movie =>

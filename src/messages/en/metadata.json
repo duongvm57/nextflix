@@ -11,5 +11,10 @@
   "movieListDescription": "Browse our collection of {type}",
   "categoryDescription": "Browse our collection of {category} movies and TV shows",
   "countryDescription": "Browse our collection of movies and TV shows from {country}",
-  "yearDescription": "Browse our collection of movies and TV shows from {year}"
+  "yearDescription": "Browse our collection of movies and TV shows from {year}",
+  "search": {
+    "title": "Search",
+    "resultsFor": "Search results for: {keyword}",
+    "enterKeyword": "Please enter a keyword to search"
+  }
 }
