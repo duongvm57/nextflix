@@ -12,7 +12,7 @@ export const logger = {
   /**
    * Log debug information (only in debug mode)
    */
-  debug: (...args: any[]): void => {
+  debug: (...args: unknown[]): void => {
     if (DEBUG_MODE) {
       console.log(...args);
     }
@@ -21,21 +21,21 @@ export const logger = {
   /**
    * Log errors (always shown)
    */
-  error: (...args: any[]): void => {
+  error: (...args: unknown[]): void => {
     console.error(...args);
   },
 
   /**
    * Log warnings (always shown)
    */
-  warn: (...args: any[]): void => {
+  warn: (...args: unknown[]): void => {
     console.warn(...args);
   },
 
   /**
    * Log info (always shown)
    */
-  info: (...args: any[]): void => {
+  info: (...args: unknown[]): void => {
     console.info(...args);
   },
 };

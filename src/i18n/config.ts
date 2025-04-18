@@ -1,27 +1,24 @@
 export const defaultLocale = 'vi';
-export const locales = ['en', 'vi'] as const;
+export const locales = ['vi'] as const;
 export type Locale = (typeof locales)[number];
 
 export const localeNames: Record<Locale, string> = {
-  en: 'English',
   vi: 'Tiếng Việt',
 };
 
-export function getLocaleDirection(_locale: Locale) {
+export function getLocaleDirection() {
   // All supported locales use left-to-right direction
   return 'ltr';
 }
 
-export function getTranslations(locale: string) {
+export function getTranslations() {
   try {
-    // Make sure locale is one of the supported locales
-    const safeLocale = locales.includes(locale as Locale) ? locale : defaultLocale;
-
-    // This is a synchronous import
-    return require(`./locales/${safeLocale}.json`);
+    // Since we only have Vietnamese, always return Vietnamese translations
+    // Use dynamic import instead of require
+    return import('./locales/vi.json').then(module => module.default);
   } catch (error) {
-    console.error(`Failed to load translations for locale: ${locale}`, error);
-    // Fallback to English
-    return require('./locales/en.json');
+    console.error(`Failed to load translations`, error);
+    // Return empty object as fallback
+    return {};
   }
 }

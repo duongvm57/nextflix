@@ -3,36 +3,17 @@
 import { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { Play } from 'lucide-react';
 import { Movie } from '@/types';
 import { Button } from '@/components/ui/button';
 
 interface MovieCarouselProps {
   movies: Movie[];
   title: string;
-  locale: string;
 }
 
-export function MovieCarousel({ movies, title, locale }: MovieCarouselProps) {
+export function MovieCarousel({ movies, title }: MovieCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
-
-  const scrollLeft = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({
-        left: -320,
-        behavior: 'smooth',
-      });
-    }
-  };
-
-  const scrollRight = () => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollBy({
-        left: 320,
-        behavior: 'smooth',
-      });
-    }
-  };
 
   if (!movies || movies.length === 0) {
     return null;
@@ -81,10 +62,10 @@ export function MovieCarousel({ movies, title, locale }: MovieCarouselProps) {
                   )}
                 </div>
 
-                <Link href={`/${locale}/watch/${movie.slug}`}>
+                <Link href={`/watch/${movie.slug}`}>
                   <Button variant="primary" size="sm" className="flex items-center gap-1 w-full">
                     <Play size={16} fill="white" />
-                    Watch Now
+                    Xem ngay
                   </Button>
                 </Link>
               </div>

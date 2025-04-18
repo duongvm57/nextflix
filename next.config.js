@@ -1,7 +1,4 @@
-const createNextIntlPlugin = require('next-intl/plugin');
-
-// Use next-intl plugin
-const withNextIntl = createNextIntlPlugin();
+// Loại bỏ next-intl plugin để sử dụng cấu trúc thư mục đơn giản
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -62,4 +59,4 @@ const nextConfig = {
   },
 };
 
-module.exports = withNextIntl(nextConfig);
+module.exports = nextConfig;

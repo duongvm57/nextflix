@@ -5,7 +5,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { formatViewCount, getImageUrl, truncateText } from '@/lib/utils';
 import { Play, Star } from 'lucide-react';
-import { usePathname } from 'next/navigation';
+
 import { TouchRipple } from '@/components/ui/touch-ripple';
 
 interface MovieCardProps {
@@ -15,8 +15,6 @@ interface MovieCardProps {
 
 export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
   const isFeatured = variant === 'featured';
-  const pathname = usePathname();
-  const locale = pathname.split('/')[1] || 'en';
 
   return (
     <div
@@ -26,7 +24,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
       <div className="relative h-full w-full">
         {/* Toàn bộ thẻ có thể click để xem phim */}
         <Link
-          href={`/${locale}/watch/${movie.slug}`}
+          href={`/watch/${movie.slug}`}
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
           <Image

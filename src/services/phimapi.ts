@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 // API service for phimapi.com
 import { Movie, MovieDetail, PaginatedResponse, Episode } from '@/types';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';

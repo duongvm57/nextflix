@@ -1,8 +1,6 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
-import { useParams, useSearchParams } from 'next/navigation';
-import { useTranslations } from 'next-intl';
 
 import { getNewMoviesClientPaginated } from '@/services/phimapi';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
@@ -13,16 +11,12 @@ import { BackToTop } from '@/components/ui/back-to-top';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 
 export default function HomeClientPage() {
-  const params = useParams();
-  const locale = params.locale as string;
-
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [totalPages, setTotalPages] = useState(1);
+
   const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
   const containerRef = useRef<HTMLDivElement>(null);
-  const t = useTranslations();
 
   const {
     page,
@@ -38,7 +32,7 @@ export default function HomeClientPage() {
       try {
         const response = await getNewMoviesClientPaginated(1);
         setMovies(response.data);
-        setTotalPages(response.pagination.totalPages);
+
         setInitialLoadComplete(true);
       } catch (error) {
         console.error('Error fetching initial movies:', error);
@@ -116,8 +110,8 @@ export default function HomeClientPage() {
   if (!movies || movies.length === 0) {
     return (
       <div className="container mx-auto py-20 text-center">
-        <h1 className="mb-4 text-3xl font-bold">{t('home.noMoviesAvailable')}</h1>
-        <p className="mb-8 text-gray-400">{t('home.tryAgainLater')}</p>
+        <h1 className="mb-4 text-3xl font-bold">Không có phim nào</h1>
+        <p className="mb-8 text-gray-400">Vui lòng thử lại sau hoặc kiểm tra kết nối của bạn.</p>
       </div>
     );
   }
@@ -129,13 +123,11 @@ export default function HomeClientPage() {
     <>
       <div className="container mx-auto px-4 py-8" ref={containerRef}>
         {/* Hero Carousel Section */}
-        {heroMovies.length > 0 && (
-          <HeroCarousel movies={heroMovies} title={t('home.recentlyUpdated')} locale={locale} />
-        )}
+        {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} title="Mới cập nhật" />}
 
         {/* New Movies Section */}
         <section className="py-6">
-          <h2 className="mb-6 text-2xl font-bold">{t('home.newMovies')}</h2>
+          <h2 className="mb-6 text-2xl font-bold">Phim mới</h2>
           <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
             {movies.map((movie, index) => (
               <MovieCard key={`${movie._id}-${index}`} movie={movie} />

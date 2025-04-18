@@ -1,30 +1,45 @@
 import type { Metadata } from 'next';
-import { Geist, Geist_Mono } from 'next/font/google';
 import './globals.css';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-});
+// Removed font declarations to avoid hydration issues
 
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-});
+export function generateMetadata(): Metadata {
+  return {
+    title: 'Nextflix',
+    description: 'Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD',
+    icons: {
+      icon: '/favicon.svg',
+      shortcut: '/favicon.svg',
+      apple: '/favicon.svg',
+      other: {
+        rel: 'apple-touch-icon-precomposed',
+        url: '/favicon.svg',
+      },
+    },
+  };
+}
 
-export const metadata: Metadata = {
-  title: 'Nextflix - Watch Movies Online',
-  description: 'Watch the latest movies and TV shows online in HD quality',
-};
-
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable}`}>{children}</body>
+    <html lang="vi" suppressHydrationWarning>
+      <head>
+        <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+        <link rel="apple-touch-icon" href="/favicon.svg" />
+      </head>
+      <body
+        className="antialiased bg-black text-white min-h-screen flex flex-col"
+        suppressHydrationWarning
+      >
+        <Header />
+        <main className="flex-grow">{children}</main>
+        <Footer />
+      </body>
     </html>
   );
 }

@@ -4,50 +4,44 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { useLocale, useTranslations } from 'next-intl';
-import { LanguageSwitcher } from './language-switcher';
+
+import { getAllMenuItems, MenuItem } from '@/lib/menu/phimapi-menu';
 import { getCategories, getCountries } from '@/services/phimapi';
-import { Category, Country } from '@/types';
 import Image from 'next/image';
-import { getAllMenuItems } from '@/lib/menu/phimapi-menu';
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [countries, setCountries] = useState<Country[]>([]);
-  const [menuItems, setMenuItems] = useState<any[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
 
   const router = useRouter();
-  const locale = useLocale();
-  const t = useTranslations();
+
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch categories and countries
+  // Fetch menu items
   useEffect(() => {
-    const fetchData = async () => {
+    async function fetchMenuItems() {
       try {
+        // Fetch categories and countries from API
         const [categoriesData, countriesData] = await Promise.all([
           getCategories(),
-          getCountries(),
+          getCountries()
         ]);
-        setCategories(categoriesData);
-        setCountries(countriesData);
 
-        // Generate menu items
-        const items = getAllMenuItems(locale as any, categoriesData, countriesData);
+        // Get menu items with categories and countries
+        const items = getAllMenuItems(categoriesData, countriesData);
         setMenuItems(items);
       } catch (error) {
-        console.error('Error fetching menu data:', error);
-      } finally {
-        setIsLoading(false);
+        console.error('Error getting menu items:', error);
+        // Fallback to basic menu items
+        const items = getAllMenuItems();
+        setMenuItems(items);
       }
-    };
+    }
 
-    fetchData();
-  }, [locale]);
+    fetchMenuItems();
+  }, []);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -68,7 +62,7 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/${locale}/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };
@@ -78,7 +72,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href={`/${locale}`} className="flex items-center cursor-pointer">
+          <Link href="/" className="flex items-center cursor-pointer">
             <Image
               src="/images/logo.png"
               alt="Nextflix"
@@ -106,17 +100,34 @@ export function Header() {
                         <ChevronDown size={16} className="ml-1" />
                       </button>
                       {openDropdown === item.label && (
-                        <div className="absolute left-0 top-full z-50 mt-2 w-48 rounded-md bg-black/90 py-1 shadow-lg">
-                          {item.children?.map(child => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className="block px-4 py-2 text-sm text-gray-300 hover:bg-blue-500 hover:text-white"
-                              onClick={() => setOpenDropdown(null)}
-                            >
-                              {child.label}
-                            </Link>
-                          ))}
+                        <div className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}>
+                          {item.id === 'categories' || item.id === 'countries' ? (
+                            <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
+                              {item.children?.map(child => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className="block py-2 text-sm text-gray-300 hover:text-blue-500 transition-colors text-center mx-auto"
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            <div>
+                              {item.children?.map(child => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className="block py-2 text-sm text-gray-300 hover:text-blue-500 transition-colors"
+                                  onClick={() => setOpenDropdown(null)}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </>
@@ -135,11 +146,11 @@ export function Header() {
 
           {/* Search and Mobile Menu Toggle */}
           <div className="flex items-center gap-4">
-            <LanguageSwitcher />
+            {/* Language switcher removed */}
             <form onSubmit={handleSearch} className="relative hidden md:block">
               <input
                 type="text"
-                placeholder={t('common.searchPlaceholder')}
+                placeholder="Tìm kiếm phim..."
                 value={searchQuery}
                 onChange={e => setSearchQuery(e.target.value)}
                 className="w-64 rounded-full bg-gray-800 px-4 py-2 pr-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
@@ -168,9 +179,7 @@ export function Header() {
       {isMenuOpen && (
         <div className="absolute left-0 right-0 bg-black/95 px-4 py-4 shadow-lg md:hidden">
           <nav className="mb-4">
-            <div className="mb-4">
-              <LanguageSwitcher />
-            </div>
+            <div className="mb-4">{/* Language switcher removed */}</div>
             <ul className="space-y-4">
               {menuItems.map(item => (
                 <li key={item.id}>
@@ -186,20 +195,40 @@ export function Header() {
                         <ChevronDown size={16} className="ml-1" />
                       </button>
                       {openDropdown === item.label && (
-                        <div className="ml-4 space-y-2 border-l border-gray-700 pl-4">
-                          {item.children?.map(child => (
-                            <Link
-                              key={child.href}
-                              href={child.href}
-                              className="block text-sm text-gray-400 hover:text-blue-500"
-                              onClick={() => {
-                                setOpenDropdown(null);
-                                setIsMenuOpen(false);
-                              }}
-                            >
-                              {child.label}
-                            </Link>
-                          ))}
+                        <div className="ml-4 border-l border-gray-700 pl-4">
+                          {item.id === 'categories' || item.id === 'countries' ? (
+                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 py-2 text-center">
+                              {item.children?.map(child => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className="block text-sm text-gray-400 hover:text-blue-500 py-2 transition-colors text-center"
+                                  onClick={() => {
+                                    setOpenDropdown(null);
+                                    setIsMenuOpen(false);
+                                  }}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          ) : (
+                            <div className="space-y-2 py-2">
+                              {item.children?.map(child => (
+                                <Link
+                                  key={child.href}
+                                  href={child.href}
+                                  className="block text-sm text-gray-400 hover:text-blue-500"
+                                  onClick={() => {
+                                    setOpenDropdown(null);
+                                    setIsMenuOpen(false);
+                                  }}
+                                >
+                                  {child.label}
+                                </Link>
+                              ))}
+                            </div>
+                          )}
                         </div>
                       )}
                     </div>
@@ -219,7 +248,7 @@ export function Header() {
           <form onSubmit={handleSearch} className="relative">
             <input
               type="text"
-              placeholder={t('common.searchPlaceholder')}
+              placeholder="Tìm kiếm phim..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
               className="w-full rounded-full bg-gray-800 px-4 py-2 pr-10 text-sm text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary"
