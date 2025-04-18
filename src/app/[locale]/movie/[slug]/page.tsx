@@ -118,16 +118,16 @@ export default async function MovieDetailPage({
             </div>
           </div>
 
-          {/* Episodes Section */}
+          {/* Danh sách tập phim */}
           {movie.episodes && movie.episodes.length > 0 && (
             <div className="mb-8 rounded-lg bg-gray-800/50 p-6">
-              <h2 className="mb-4 text-2xl font-bold">Episodes</h2>
-              <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-                {movie.episodes.map((episode, index) => (
+              <h2 className="mb-4 text-2xl font-bold">Danh sách tập</h2>
+              <div className="grid grid-cols-8 gap-2 md:gap-3">
+                {movie.episodes[0]?.items.map((episode, index) => (
                   <Link
-                    key={episode._id}
+                    key={`episode-${index}`}
                     href={`/${locale}/watch/${movie.slug}?episode=${index + 1}`}
-                    className="flex items-center justify-center rounded-md bg-gray-700 p-3 text-center transition-colors hover:bg-primary"
+                    className="flex items-center justify-center rounded py-2 text-center transition-colors hover:bg-primary bg-gray-700"
                   >
                     {episode.name}
                   </Link>
@@ -150,44 +150,44 @@ export default async function MovieDetailPage({
             />
           </div>
 
-          {/* Movie Info */}
+          {/* Thông tin phim */}
           <div className="rounded-lg bg-gray-800/50 p-6">
-            <h3 className="mb-4 text-xl font-bold">Movie Info</h3>
+            <h3 className="mb-4 text-xl font-bold">Thông tin phim</h3>
 
             <div className="space-y-4">
               {movie.view && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Views:</span>
+                  <span className="text-gray-400">Lượt xem:</span>
                   <span>{movie.view.toLocaleString()}</span>
                 </div>
               )}
 
               {movie.quality && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Quality:</span>
+                  <span className="text-gray-400">Chất lượng:</span>
                   <span>{movie.quality}</span>
                 </div>
               )}
 
               {movie.lang && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Language:</span>
+                  <span className="text-gray-400">Ngôn ngữ:</span>
                   <span>{movie.lang}</span>
                 </div>
               )}
 
               {movie.episode_current && (
                 <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Current Episode:</span>
+                  <span className="text-gray-400">Tập hiện tại:</span>
                   <span>{movie.episode_current}</span>
                 </div>
               )}
             </div>
 
-            {/* Genres */}
+            {/* Thể loại */}
             {movie.genres && movie.genres.length > 0 && (
               <div className="mt-6">
-                <h4 className="mb-2 text-lg font-semibold">Genres</h4>
+                <h4 className="mb-2 text-lg font-semibold">Thể loại</h4>
                 <div className="flex flex-wrap gap-2">
                   {movie.genres.map((genre) => (
                     <Link
@@ -202,18 +202,18 @@ export default async function MovieDetailPage({
               </div>
             )}
 
-            {/* Actors */}
+            {/* Diễn viên */}
             {movie.actors && movie.actors.length > 0 && (
               <div className="mt-6">
-                <h4 className="mb-2 text-lg font-semibold">Actors</h4>
+                <h4 className="mb-2 text-lg font-semibold">Diễn viên</h4>
                 <p className="text-sm text-gray-300">{movie.actors.join(', ')}</p>
               </div>
             )}
 
-            {/* Directors */}
+            {/* Đạo diễn */}
             {movie.directors && movie.directors.length > 0 && (
               <div className="mt-4">
-                <h4 className="mb-2 text-lg font-semibold">Directors</h4>
+                <h4 className="mb-2 text-lg font-semibold">Đạo diễn</h4>
                 <p className="text-sm text-gray-300">{movie.directors.join(', ')}</p>
               </div>
             )}
@@ -227,10 +227,10 @@ export default async function MovieDetailPage({
     return (
       <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold">Error Loading Movie</h1>
-          <p className="mb-6">We're having trouble loading the movie details. Please try again later.</p>
+          <h1 className="mb-4 text-2xl font-bold">Lỗi tải phim</h1>
+          <p className="mb-6">Chúng tôi đang gặp sự cố khi tải thông tin phim. Vui lòng thử lại sau.</p>
           <Link href={`/${locale}`}>
-            <Button variant="primary">Back to Home</Button>
+            <Button variant="primary">Về trang chủ</Button>
           </Link>
         </div>
       </div>

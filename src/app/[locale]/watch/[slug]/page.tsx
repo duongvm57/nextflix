@@ -78,7 +78,7 @@ export default async function WatchPage({
           <Link href={`/${locale}/movie/${slug}`}>
             <Button variant="outline" size="sm" className="flex items-center gap-2">
               <ArrowLeft size={16} />
-              Back to Movie
+              Quay lại phim
             </Button>
           </Link>
           <h1 className="text-xl font-bold md:text-2xl">{movie.name}</h1>
@@ -89,7 +89,7 @@ export default async function WatchPage({
           )}
         </div>
 
-        {/* Video Player */}
+        {/* Trình phát video */}
         <div className="mb-8 w-full overflow-hidden rounded-lg bg-black">
           <div className="relative" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
             <div className="absolute inset-0">
@@ -99,36 +99,40 @@ export default async function WatchPage({
           </div>
         </div>
 
-        {/* Server Selection (if multiple servers) */}
-        {movie.episodes.length > 1 && (
+        {/* Server and Episodes Section */}
+        {movie.episodes.length > 0 && (
           <div className="mb-4 sm:mb-8 rounded-lg bg-gray-800/50 p-3 sm:p-6">
-            <h2 className="mb-4 text-xl font-bold">Servers</h2>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-4">
-              {movie.episodes.map((server, index) => (
-                <Link
-                  key={`server-${index}`}
-                  href={`/${locale}/watch/${slug}?server=${index + 1}`}
-                  className={`flex items-center justify-center rounded-md p-3 text-center transition-colors ${
-                    index === serverIndex
-                      ? 'bg-primary text-white'
-                      : 'bg-gray-700 hover:bg-gray-600'
-                  }`}
-                >
-                  {server.server_name}
-                </Link>
-              ))}
-            </div>
+            {movie.episodes.length > 1 && (
+              <>
+                <h2 className="mb-4 text-xl font-bold">Máy chủ</h2>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 mb-4">
+                  {movie.episodes.map((server, index) => (
+                    <Link
+                      key={`server-${index}`}
+                      href={`/${locale}/watch/${slug}?server=${index + 1}`}
+                      className={`flex items-center justify-center rounded-md p-3 text-center transition-colors ${
+                        index === serverIndex
+                          ? 'bg-primary text-white'
+                          : 'bg-gray-700 hover:bg-gray-600'
+                      }`}
+                    >
+                      {server.server_name}
+                    </Link>
+                  ))}
+                </div>
+              </>
+            )}
 
-            {/* Episodes List */}
+            {/* Danh sách tập phim */}
             {selectedServer.items.length > 0 && (
               <div>
-                <h2 className="mb-4 text-xl font-bold">Episodes</h2>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 md:grid-cols-6 lg:grid-cols-8">
+                <h2 className="mb-4 text-xl font-bold">Danh sách tập</h2>
+                <div className="grid grid-cols-8 gap-2 md:gap-3">
                   {selectedServer.items.map((item, index) => (
                     <Link
                       key={`episode-${index}`}
                       href={`/${locale}/watch/${slug}?server=${serverIndex + 1}&episode=${index + 1}`}
-                      className={`flex items-center justify-center rounded-md p-3 text-center transition-colors ${
+                      className={`flex items-center justify-center rounded py-2 text-center transition-colors ${
                         index === episodeIndex
                           ? 'bg-primary text-white'
                           : 'bg-gray-700 hover:bg-gray-600'
@@ -143,9 +147,9 @@ export default async function WatchPage({
           </div>
         )}
 
-        {/* Movie Info */}
+        {/* Giới thiệu phim */}
         <div className="rounded-lg bg-gray-800/50 p-3 sm:p-6">
-          <h2 className="mb-4 text-xl font-bold">About {movie.name}</h2>
+          <h2 className="mb-4 text-xl font-bold">Giới thiệu {movie.name}</h2>
           <p className="text-gray-300">{movie.content}</p>
         </div>
       </div>
@@ -157,10 +161,10 @@ export default async function WatchPage({
     return (
       <div className="container mx-auto flex min-h-[70vh] items-center justify-center px-4">
         <div className="text-center">
-          <h1 className="mb-4 text-2xl font-bold">Error Loading Video</h1>
-          <p className="mb-6">We're having trouble loading the video. Please try again later.</p>
+          <h1 className="mb-4 text-2xl font-bold">Lỗi tải video</h1>
+          <p className="mb-6">Chúng tôi đang gặp sự cố khi tải video. Vui lòng thử lại sau.</p>
           <Link href={`/${locale}`}>
-            <Button variant="primary">Back to Home</Button>
+            <Button variant="primary">Về trang chủ</Button>
           </Link>
         </div>
       </div>
