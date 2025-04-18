@@ -1,46 +1,152 @@
 'use client';
 
 import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 import { useState, useRef, useEffect } from 'react';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { getAllMenuItems, MenuItem } from '@/lib/menu/phimapi-menu';
-import { getCategories, getCountries } from '@/services/phimapi';
+import { MenuItem } from '@/lib/menu/phimapi-menu';
+import { fetchMenuData } from '@/lib/cache/api-cache';
 import Image from 'next/image';
+import { MenuSkeleton } from '@/components/ui/menu-skeleton';
+
+// Tạo menu cơ bản để hiển thị ngay từ đầu
+const getFixedMenuItems = (): MenuItem[] => {
+  return [
+    // Trang chủ
+    { id: 'home', label: 'Trang chủ', href: `/` },
+
+    // Loại phim
+    {
+      id: 'movie-types',
+      label: 'Loại phim',
+      href: '#movie-types',
+      isDropdown: true,
+      children: [
+        { id: 'phim-le', label: 'Phim lẻ', href: `/categories/phim-le` },
+        { id: 'phim-bo', label: 'Phim bộ', href: `/categories/phim-bo` },
+        { id: 'tv-shows', label: 'TV Shows', href: `/categories/tv-shows` },
+        { id: 'hoat-hinh', label: 'Hoạt hình', href: `/categories/hoat-hinh` },
+      ],
+    },
+
+    // Ngôn ngữ
+    {
+      id: 'languages',
+      label: 'Ngôn ngữ',
+      href: '#languages',
+      isDropdown: true,
+      children: [
+        { id: 'phim-vietsub', label: 'Vietsub', href: `/categories/phim-vietsub` },
+        { id: 'phim-thuyet-minh', label: 'Thuyết minh', href: `/categories/phim-thuyet-minh` },
+        { id: 'phim-long-tieng', label: 'Lồng tiếng', href: `/categories/phim-long-tieng` },
+      ],
+    },
+
+    // Thể loại (menu con sẽ load từ API)
+    {
+      id: 'categories',
+      label: 'Thể loại',
+      href: '#categories',
+      isDropdown: true,
+      children: [],
+    },
+
+    // Quốc gia (menu con sẽ load từ API)
+    {
+      id: 'countries',
+      label: 'Quốc gia',
+      href: '#countries',
+      isDropdown: true,
+      children: [],
+    },
+
+    // Năm
+    {
+      id: 'years',
+      label: 'Năm',
+      href: '#years',
+      isDropdown: true,
+      children: Array.from({ length: 10 }, (_, i) => {
+        const year = new Date().getFullYear() - i;
+        return {
+          id: `year-${year}`,
+          label: year.toString(),
+          href: `/categories/${year}`,
+        };
+      }),
+    },
+  ];
+};
 
 export function Header() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  // Khởi tạo với menu cứng để tránh hiệu ứng nháy
+  const [menuItems, setMenuItems] = useState<MenuItem[]>(getFixedMenuItems());
+  const [isMenuLoading, setIsMenuLoading] = useState(false);
 
   const router = useRouter();
 
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch menu items
+  // Fetch menu items with caching
   useEffect(() => {
-    async function fetchMenuItems() {
+    // Kiểm tra xem đã có dữ liệu cache chưa
+    const checkCacheAndFetch = async () => {
       try {
-        // Fetch categories and countries from API
-        const [categoriesData, countriesData] = await Promise.all([
-          getCategories(),
-          getCountries()
-        ]);
+        // Không hiển thị loading nếu đã có menu cơ bản
+        // setIsMenuLoading(true);
 
-        // Get menu items with categories and countries
-        const items = getAllMenuItems(categoriesData, countriesData);
-        setMenuItems(items);
+        // Fetch categories and countries from API with caching
+        const { categories, countries } = await fetchMenuData();
+
+        // Chỉ cập nhật menu con của thể loại và quốc gia
+        if (categories?.length > 0 && countries?.length > 0) {
+          // Tạo bản sao của menu hiện tại
+          const updatedMenuItems = [...menuItems];
+
+          // Tìm và cập nhật menu thể loại
+          const categoryMenuIndex = updatedMenuItems.findIndex(item => item.id === 'categories');
+          if (categoryMenuIndex !== -1) {
+            updatedMenuItems[categoryMenuIndex] = {
+              ...updatedMenuItems[categoryMenuIndex],
+              children: categories.map(category => ({
+                id: category.id || category.slug,
+                label: category.name,
+                href: `/genres/${category.slug}`,
+              })),
+            };
+          }
+
+          // Tìm và cập nhật menu quốc gia
+          const countryMenuIndex = updatedMenuItems.findIndex(item => item.id === 'countries');
+          if (countryMenuIndex !== -1) {
+            updatedMenuItems[countryMenuIndex] = {
+              ...updatedMenuItems[countryMenuIndex],
+              children: countries.map(country => ({
+                id: country.id || country.slug,
+                label: country.name,
+                href: `/countries/${country.slug}`,
+              })),
+            };
+          }
+
+          // Cập nhật menu
+          setMenuItems(updatedMenuItems);
+        }
       } catch (error) {
         console.error('Error getting menu items:', error);
-        // Fallback to basic menu items
-        const items = getAllMenuItems();
-        setMenuItems(items);
+        // Không cần fallback vì đã có menu cơ bản từ đầu
+      } finally {
+        setIsMenuLoading(false);
       }
-    }
+    };
 
-    fetchMenuItems();
+    checkCacheAndFetch();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Close dropdown when clicking outside
@@ -85,63 +191,67 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block" ref={dropdownRef}>
-            <ul className="flex space-x-8">
-              {menuItems.map(item => (
-                <li key={item.id} className="relative">
-                  {item.isDropdown ? (
-                    <>
-                      <button
-                        onClick={() =>
-                          setOpenDropdown(openDropdown === item.label ? null : item.label)
-                        }
-                        className="flex items-center text-gray-300 transition-colors hover:text-blue-500"
+            {isMenuLoading ? (
+              <MenuSkeleton />
+            ) : (
+              <ul className="flex space-x-8">
+                {menuItems.map(item => (
+                  <li key={item.id} className="relative">
+                    {item.isDropdown ? (
+                      <>
+                        <button
+                          onClick={() =>
+                            setOpenDropdown(openDropdown === item.label ? null : item.label)
+                          }
+                          className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
+                        >
+                          {item.label}
+                          <ChevronDown size={16} className="ml-1" />
+                        </button>
+                        {openDropdown === item.label && (
+                          <div className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}>
+                            {item.id === 'categories' || item.id === 'countries' ? (
+                              <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
+                                {item.children?.map(child => (
+                                  <MenuLink
+                                    key={child.href}
+                                    href={child.href}
+                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors text-center mx-auto"
+                                    onClick={() => setOpenDropdown(null)}
+                                  >
+                                    {child.label}
+                                  </MenuLink>
+                                ))}
+                              </div>
+                            ) : (
+                              <div>
+                                {item.children?.map(child => (
+                                  <MenuLink
+                                    key={child.href}
+                                    href={child.href}
+                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                                    onClick={() => setOpenDropdown(null)}
+                                  >
+                                    {child.label}
+                                  </MenuLink>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        )}
+                      </>
+                    ) : (
+                      <MenuLink
+                        href={item.href}
+                        className="text-gray-300 font-medium transition-colors hover:text-blue-500"
                       >
                         {item.label}
-                        <ChevronDown size={16} className="ml-1" />
-                      </button>
-                      {openDropdown === item.label && (
-                        <div className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}>
-                          {item.id === 'categories' || item.id === 'countries' ? (
-                            <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
-                              {item.children?.map(child => (
-                                <Link
-                                  key={child.href}
-                                  href={child.href}
-                                  className="block py-2 text-sm text-gray-300 hover:text-blue-500 transition-colors text-center mx-auto"
-                                  onClick={() => setOpenDropdown(null)}
-                                >
-                                  {child.label}
-                                </Link>
-                              ))}
-                            </div>
-                          ) : (
-                            <div>
-                              {item.children?.map(child => (
-                                <Link
-                                  key={child.href}
-                                  href={child.href}
-                                  className="block py-2 text-sm text-gray-300 hover:text-blue-500 transition-colors"
-                                  onClick={() => setOpenDropdown(null)}
-                                >
-                                  {child.label}
-                                </Link>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </>
-                  ) : (
-                    <Link
-                      href={item.href}
-                      className="text-gray-300 transition-colors hover:text-blue-500"
-                    >
-                      {item.label}
-                    </Link>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      </MenuLink>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </nav>
 
           {/* Search and Mobile Menu Toggle */}
@@ -189,7 +299,7 @@ export function Header() {
                         onClick={() =>
                           setOpenDropdown(openDropdown === item.label ? null : item.label)
                         }
-                        className="flex items-center text-gray-300 transition-colors hover:text-blue-500"
+                        className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
                       >
                         {item.label}
                         <ChevronDown size={16} className="ml-1" />
@@ -199,33 +309,33 @@ export function Header() {
                           {item.id === 'categories' || item.id === 'countries' ? (
                             <div className="grid grid-cols-2 gap-x-4 gap-y-1 py-2 text-center">
                               {item.children?.map(child => (
-                                <Link
+                                <MenuLink
                                   key={child.href}
                                   href={child.href}
-                                  className="block text-sm text-gray-400 hover:text-blue-500 py-2 transition-colors text-center"
+                                  className="block text-sm text-gray-400 font-medium hover:text-blue-500 py-2 transition-colors text-center"
                                   onClick={() => {
                                     setOpenDropdown(null);
                                     setIsMenuOpen(false);
                                   }}
                                 >
                                   {child.label}
-                                </Link>
+                                </MenuLink>
                               ))}
                             </div>
                           ) : (
                             <div className="space-y-2 py-2">
                               {item.children?.map(child => (
-                                <Link
+                                <MenuLink
                                   key={child.href}
                                   href={child.href}
-                                  className="block text-sm text-gray-400 hover:text-blue-500"
+                                  className="block text-sm text-gray-400 font-medium hover:text-blue-500"
                                   onClick={() => {
                                     setOpenDropdown(null);
                                     setIsMenuOpen(false);
                                   }}
                                 >
                                   {child.label}
-                                </Link>
+                                </MenuLink>
                               ))}
                             </div>
                           )}
@@ -233,13 +343,13 @@ export function Header() {
                       )}
                     </div>
                   ) : (
-                    <Link
+                    <MenuLink
                       href={item.href}
-                      className="block text-gray-300 transition-colors hover:text-blue-500"
+                      className="block text-gray-300 font-medium transition-colors hover:text-blue-500"
                       onClick={() => setIsMenuOpen(false)}
                     >
                       {item.label}
-                    </Link>
+                    </MenuLink>
                   )}
                 </li>
               ))}

@@ -32,7 +32,7 @@
       }
     },
     {
-      "files": ["src/services/**/*.ts"],
+      "files": ["src/lib/cache/api-cache.ts", "src/lib/cache/client-cache.ts"],
       "rules": {
         "@typescript-eslint/no-explicit-any": "off"
       }

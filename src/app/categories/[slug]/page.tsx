@@ -1,7 +1,6 @@
 import { movieService } from '@/lib/services/api';
-import { MovieGrid } from '@/components/movie/movie-grid';
-import { Pagination } from '@/components/ui/pagination';
 import { getCategories } from '@/services/phimapi';
+import { CategoryClientPage } from './client-page';
 
 async function getMoviesByCategory(slug: string, page: number = 1) {
   try {
@@ -85,27 +84,13 @@ export default async function ListingPage({
     }
   }
 
-  return (
-    <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">{title}</h1>
+  // Prepare initial data for client component
+  const initialData = {
+    movies,
+    pagination,
+    title,
+    slug
+  };
 
-      {movies.length > 0 ? (
-        <>
-          <MovieGrid movies={movies} />
-
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              baseUrl={`/categories/${slug}`}
-            />
-          )}
-        </>
-      ) : (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <p className="text-xl text-gray-400">Không tìm thấy phim nào.</p>
-        </div>
-      )}
-    </div>
-  );
+  return <CategoryClientPage initialData={initialData} isYear={isYear} />;
 }

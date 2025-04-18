@@ -22,11 +22,23 @@ const config: Config = {
       },
       animation: {
         'ripple': 'ripple 0.6s linear forwards',
+        'loading-bar': 'loading-bar 1.5s ease-in-out infinite',
+        'pulse-blue': 'pulse-blue 1.5s ease-in-out infinite',
+        'spin': 'spin 0.8s linear infinite',
       },
       keyframes: {
         ripple: {
-          '0%': { transform: 'scale(0)', opacity: '0.5' },
+          '0%': { transform: 'scale(0)', opacity: '0.7' },
           '100%': { transform: 'scale(1)', opacity: '0' },
+        },
+        'loading-bar': {
+          '0%': { transform: 'translateX(-100%)', opacity: '0.7' },
+          '50%': { opacity: '1' },
+          '100%': { transform: 'translateX(400%)', opacity: '0.7' },
+        },
+        'pulse-blue': {
+          '0%, 100%': { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
+          '50%': { backgroundColor: 'rgba(59, 130, 246, 0.5)' },
         },
       },
     },

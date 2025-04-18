@@ -6,7 +6,7 @@ interface UseInfiniteScrollOptions {
 }
 
 export function useInfiniteScroll(
-  scrollRef: RefObject<HTMLElement>,
+  scrollRef: RefObject<HTMLElement | null>,
   options: UseInfiniteScrollOptions = {}
 ) {
   const { threshold = 200, initialPage = 1 } = options;

@@ -2,7 +2,7 @@
 
 import { Movie } from '@/types';
 import Image from 'next/image';
-import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 import { formatViewCount, getImageUrl, truncateText } from '@/lib/utils';
 import { Play, Star } from 'lucide-react';
 
@@ -23,7 +23,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
       <TouchRipple className={`movie-card-${movie._id}`} />
       <div className="relative h-full w-full">
         {/* Toàn bộ thẻ có thể click để xem phim */}
-        <Link
+        <MenuLink
           href={`/watch/${movie.slug}`}
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
@@ -70,7 +70,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
               <Play size={20} className="hidden md:block" fill="white" />
             </div>
           </div>
-        </Link>
+        </MenuLink>
       </div>
     </div>
   );
