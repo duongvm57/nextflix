@@ -1,5 +1,4 @@
 // Menu configuration for phimapi.com
-import { Locale } from '@/i18n';
 
 export interface MenuItem {
   id: string;
@@ -42,79 +41,77 @@ export const SORT_LANG = {
 };
 
 // Base menu items
-export function getBaseMenuItems(locale: Locale): MenuItem[] {
-  return [{ id: 'home', label: locale === 'en' ? 'Home' : 'Trang chủ', href: `/${locale}` }];
+export function getBaseMenuItems(): MenuItem[] {
+  return [{ id: 'home', label: 'Trang chủ', href: `/` }];
 }
 
 // Movie type menu items
-export function getMovieTypeMenuItems(locale: Locale): MenuItem {
-  const label = locale === 'en' ? 'Movie Types' : 'Loại phim';
-
+export function getMovieTypeMenuItems(): MenuItem {
   return {
     id: 'movie-types',
-    label,
+    label: 'Loại phim',
     href: '#movie-types',
     isDropdown: true,
     children: [
       {
         id: 'phim-le',
-        label: locale === 'en' ? 'Movies' : 'Phim lẻ',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LE}`,
+        label: 'Phim lẻ',
+        href: `/categories/${TYPE_LIST.PHIM_LE}`,
       },
       {
         id: 'phim-bo',
-        label: locale === 'en' ? 'TV Series' : 'Phim bộ',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_BO}`,
+        label: 'Phim bộ',
+        href: `/categories/${TYPE_LIST.PHIM_BO}`,
       },
       {
         id: 'tv-shows',
         label: 'TV Shows',
-        href: `/${locale}/danh-sach/${TYPE_LIST.TV_SHOWS}`,
+        href: `/categories/${TYPE_LIST.TV_SHOWS}`,
       },
       {
         id: 'hoat-hinh',
-        label: locale === 'en' ? 'Animation' : 'Hoạt hình',
-        href: `/${locale}/danh-sach/${TYPE_LIST.HOAT_HINH}`,
+        label: 'Hoạt hình',
+        href: `/categories/${TYPE_LIST.HOAT_HINH}`,
       },
     ],
   };
 }
 
 // Language menu items
-export function getLanguageMenuItems(locale: Locale): MenuItem {
-  const label = locale === 'en' ? 'Languages' : 'Ngôn ngữ';
-
+export function getLanguageMenuItems(): MenuItem {
   return {
     id: 'languages',
-    label,
+    label: 'Ngôn ngữ',
     href: '#languages',
     isDropdown: true,
     children: [
       {
         id: 'phim-vietsub',
         label: 'Vietsub',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_VIETSUB}`,
+        href: `/categories/${TYPE_LIST.PHIM_VIETSUB}`,
       },
       {
         id: 'phim-thuyet-minh',
-        label: locale === 'en' ? 'Dubbed' : 'Thuyết minh',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_THUYET_MINH}`,
+        label: 'Thuyết minh',
+        href: `/categories/${TYPE_LIST.PHIM_THUYET_MINH}`,
       },
       {
         id: 'phim-long-tieng',
-        label: locale === 'en' ? 'Voice Over' : 'Lồng tiếng',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LONG_TIENG}`,
+        label: 'Lồng tiếng',
+        href: `/categories/${TYPE_LIST.PHIM_LONG_TIENG}`,
       },
     ],
   };
 }
 
 // Create categories menu item from API data
-export function getCategoriesMenuItem(locale: Locale, categories: any[]): MenuItem {
+export function getCategoriesMenuItem(
+  categories: Array<{ id: string; name: string; slug: string }>
+): MenuItem {
   console.log('[DEBUG] Creating categories menu with categories:', categories);
   return {
     id: 'categories',
-    label: locale === 'en' ? 'Categories' : 'Thể loại',
+    label: 'Thể loại',
     href: '#categories',
     isDropdown: true,
     children: categories.map(category => {
@@ -122,18 +119,20 @@ export function getCategoriesMenuItem(locale: Locale, categories: any[]): MenuIt
       return {
         id: category.id || category.slug,
         label: category.name,
-        href: `/${locale}/the-loai/${category.slug}`,
+        href: `/genres/${category.slug}`,
       };
     }),
   };
 }
 
 // Create countries menu item from API data
-export function getCountriesMenuItem(locale: Locale, countries: any[]): MenuItem {
+export function getCountriesMenuItem(
+  countries: Array<{ id: string; name: string; slug: string }>
+): MenuItem {
   console.log('[DEBUG] Creating countries menu with countries:', countries);
   return {
     id: 'countries',
-    label: locale === 'en' ? 'Countries' : 'Quốc gia',
+    label: 'Quốc gia',
     href: '#countries',
     isDropdown: true,
     children: countries.map(country => {
@@ -141,38 +140,52 @@ export function getCountriesMenuItem(locale: Locale, countries: any[]): MenuItem
       return {
         id: country.id || country.slug,
         label: country.name,
-        href: `/${locale}/quoc-gia/${country.slug}`,
+        href: `/countries/${country.slug}`,
       };
     }),
   };
 }
 
 // Create years menu item
-export function getYearsMenuItem(locale: Locale): MenuItem {
+export function getYearsMenuItem(): MenuItem {
   const currentYear = new Date().getFullYear();
   const years = Array.from({ length: 10 }, (_, i) => currentYear - i);
 
   return {
     id: 'years',
-    label: locale === 'en' ? 'Years' : 'Năm',
+    label: 'Năm',
     href: '#years',
     isDropdown: true,
     children: years.map(year => ({
       id: `year-${year}`,
       label: year.toString(),
-      href: `/${locale}/danh-sach/${year}`,
+      href: `/categories/${year}`,
     })),
   };
 }
 
 // Get all menu items
-export function getAllMenuItems(locale: Locale, categories: any[], countries: any[]): MenuItem[] {
+export function getAllMenuItems(
+  categories?: Array<{ id: string; name: string; slug: string }>,
+  countries?: Array<{ id: string; name: string; slug: string }>
+): MenuItem[] {
+  // If categories or countries are not provided, return only the static menu items
+  if (!categories || !countries) {
+    return [
+      ...getBaseMenuItems(),
+      getMovieTypeMenuItems(),
+      getLanguageMenuItems(),
+      getYearsMenuItem(),
+    ];
+  }
+
+  // Return all menu items including dynamic ones
   return [
-    ...getBaseMenuItems(locale),
-    getMovieTypeMenuItems(locale),
-    getLanguageMenuItems(locale),
-    getCategoriesMenuItem(locale, categories),
-    getCountriesMenuItem(locale, countries),
-    getYearsMenuItem(locale),
+    ...getBaseMenuItems(),
+    getMovieTypeMenuItems(),
+    getLanguageMenuItems(),
+    getCategoriesMenuItem(categories),
+    getCountriesMenuItem(countries),
+    getYearsMenuItem(),
   ];
 }

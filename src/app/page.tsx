@@ -1,6 +1,5 @@
-import { redirect } from 'next/navigation';
-import { defaultLocale } from '@/i18n/config';
+import HomeClientPage from './client-page';
 
-export default function RootPage() {
-  redirect(`/${defaultLocale}`);
+export default function Home() {
+  return <HomeClientPage />;
 }

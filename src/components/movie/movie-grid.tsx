@@ -3,7 +3,7 @@
 import { Movie } from '@/types';
 import { MovieCard } from './movie-card';
 import { Pagination } from '../ui/pagination';
-import { useTranslations } from 'next-intl';
+
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 
 interface MovieGridProps {
@@ -40,12 +40,10 @@ export function MovieGrid({
     );
   }
 
-  const t = useTranslations();
-
   if (!movies || movies.length === 0) {
     return (
       <div className="py-10 text-center">
-        <h2 className="text-xl font-semibold">{t('Movies.noMoviesFound')}</h2>
+        <h2 className="text-xl font-semibold">Không tìm thấy phim nào</h2>
       </div>
     );
   }

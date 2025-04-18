@@ -1,7 +1,7 @@
 import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
-import { getTranslations } from 'next-intl/server';
+import { getCategories } from '@/services/phimapi';
 
 async function getMoviesByGenre(slug: string, page: number = 1) {
   try {
@@ -22,25 +22,25 @@ export default async function GenrePage({
   params: { slug: string };
   searchParams: { page?: string };
 }) {
-  const t = await getTranslations('genre');
-  const commonT = await getTranslations('common');
   const { slug } = params;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   const { data: movies, pagination } = await getMoviesByGenre(slug, page);
 
-  // Format genre name from slug
-  const genreName =
-    t(slug as any) ||
-    slug
-      .split('-')
-      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-      .join(' ');
+  // Get genre name from API
+  const categories = await getCategories();
+  const genre = categories.find(cat => cat.slug === slug);
+
+  // Use genre name from API or format from slug if not found
+  const genreName = genre
+    ? genre.name
+    : slug
+        .split('-')
+        .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+        .join(' ');
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">
-        {genreName} {commonT('movies')}
-      </h1>
+      <h1 className="mb-8 text-3xl font-bold">Thể loại: {genreName}</h1>
 
       {movies.length > 0 ? (
         <>
@@ -50,13 +50,13 @@ export default async function GenrePage({
             <Pagination
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
-              baseUrl={`/genre/${slug}`}
+              baseUrl={`/genres/${slug}`}
             />
           )}
         </>
       ) : (
         <div className="flex min-h-[40vh] items-center justify-center">
-          <p className="text-xl text-gray-400">{t('noMoviesFound')}</p>
+          <p className="text-xl text-gray-400">Không tìm thấy phim nào trong thể loại này.</p>
         </div>
       )}
     </div>

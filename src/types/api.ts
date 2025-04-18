@@ -8,7 +8,16 @@ export interface IPhimApiResponse<T> {
   message?: string;
   items?: T[];
   movie?: IMovie;
-  episodes?: any[];
+  episodes?: Array<{
+    server_name: string;
+    server_data: Array<{
+      name: string;
+      slug: string;
+      filename?: string;
+      link_embed?: string;
+      link_m3u8?: string;
+    }>;
+  }>;
   pagination?: {
     totalItems: number;
     totalItemsPerPage: number;
@@ -63,20 +72,20 @@ export type GetMovieDetailFunction = (slug: string) => Promise<IMovieDetail | nu
 export type GetMoviesByCategoryFunction = (
   categorySlug: string,
   page?: number,
-  options?: Record<string, any>
+  options?: Record<string, string | number | boolean | undefined>
 ) => Promise<IPaginatedResponse<IMovie>>;
 export type GetMoviesByCountryFunction = (
   countrySlug: string,
   page?: number,
-  options?: Record<string, any>
+  options?: Record<string, string | number | boolean | undefined>
 ) => Promise<IPaginatedResponse<IMovie>>;
 export type GetMoviesByYearFunction = (
   year: string,
   page?: number,
-  options?: Record<string, any>
+  options?: Record<string, string | number | boolean | undefined>
 ) => Promise<IPaginatedResponse<IMovie>>;
 export type SearchMoviesFunction = (
   keyword: string,
   page?: number,
-  options?: Record<string, any>
+  options?: Record<string, string | number | boolean | undefined>
 ) => Promise<IPaginatedResponse<IMovie>>;

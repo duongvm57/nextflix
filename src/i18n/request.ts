@@ -3,7 +3,8 @@ import { locales, defaultLocale } from './config';
 
 export default getRequestConfig(async ({ locale }) => {
   // If locale is undefined, use the default locale
-  const safeLocale = locale && locales.includes(locale as any) ? locale : defaultLocale;
+  const safeLocale =
+    locale && locales.includes(locale as (typeof locales)[number]) ? locale : defaultLocale;
 
   return {
     locale: safeLocale,

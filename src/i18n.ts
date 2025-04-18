@@ -3,7 +3,10 @@ import { locales, defaultLocale } from './i18n/config';
 
 export default getRequestConfig(async ({ locale: paramLocale }) => {
   // Use param locale if it exists and is valid, otherwise use default
-  const locale = paramLocale && locales.includes(paramLocale as any) ? paramLocale : defaultLocale;
+  const locale =
+    paramLocale && locales.includes(paramLocale as (typeof locales)[number])
+      ? paramLocale
+      : defaultLocale;
 
   return {
     locale,

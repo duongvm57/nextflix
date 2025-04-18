@@ -1,26 +1,23 @@
 'use client';
 
-import { useRef, useState, useEffect, TouchEvent } from 'react';
+import { useRef, useState, useEffect, useCallback, TouchEvent } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Movie } from '@/types';
 import { Button } from '@/components/ui/button';
-import { useTranslations } from 'next-intl';
 
 interface HeroCarouselProps {
   movies: Movie[];
   title: string;
-  locale: string;
 }
 
-export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
+export function HeroCarousel({ movies, title }: HeroCarouselProps) {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isAnimating, setIsAnimating] = useState(false);
   const [touchStart, setTouchStart] = useState(0);
   const [touchEnd, setTouchEnd] = useState(0);
-  const t = useTranslations();
 
   const scrollLeft = () => {
     if (isAnimating || !scrollContainerRef.current) return;
@@ -37,7 +34,7 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
     setTimeout(() => setIsAnimating(false), 500);
   };
 
-  const scrollRight = () => {
+  const scrollRight = useCallback(() => {
     if (isAnimating || !scrollContainerRef.current) return;
 
     setIsAnimating(true);
@@ -50,7 +47,7 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
     });
 
     setTimeout(() => setIsAnimating(false), 500);
-  };
+  }, [currentIndex, isAnimating, movies.length]);
 
   // Handle touch events for mobile swipe
   const handleTouchStart = (e: TouchEvent) => {
@@ -88,7 +85,7 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isAnimating]);
+  }, [currentIndex, isAnimating, scrollRight]);
 
   // Handle manual scroll
   const handleScroll = () => {
@@ -185,19 +182,19 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
                 </p>
 
                 <div className="flex flex-wrap gap-2 md:gap-4">
-                  <Link href={`/${locale}/watch/${movie.slug}`}>
+                  <Link href={`/watch/${movie.slug}`}>
                     <Button
                       variant="primary"
                       size="sm"
                       className="flex items-center gap-1 md:gap-2 md:text-base md:px-4 md:py-2"
                     >
                       <Play size={16} fill="white" className="md:h-5 md:w-5" />
-                      {t('home.watchNow')}
+                      Xem ngay
                     </Button>
                   </Link>
-                  <Link href={`/${locale}/movie/${movie.slug}`}>
+                  <Link href={`/watch/${movie.slug}`}>
                     <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
-                      {t('home.moreInfo')}
+                      Thông tin thêm
                     </Button>
                   </Link>
                 </div>
