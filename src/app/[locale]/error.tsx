@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { logger } from '@/utils/logger';
 
 export default function LocaleError({
   error,
@@ -12,7 +13,7 @@ export default function LocaleError({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error);
+    logger.error(error);
   }, [error]);
 
   return (

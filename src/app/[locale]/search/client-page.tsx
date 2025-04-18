@@ -36,7 +36,8 @@ export default function SearchClientPage() {
           sort_type: SORT_TYPE.DESC,
           limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
         };
-        const response = await searchMovies(keyword, currentPage, options);
+        // Use the client-paginated version of the search function
+        const response = await searchMoviesClientPaginated(keyword, currentPage, options);
 
         // Check if response has data and items
         if (response && response.data) {
@@ -48,8 +49,7 @@ export default function SearchClientPage() {
           setTotalPages(1);
         }
       } catch (error) {
-        console.error('Error searching movies:', error);
-        // Set empty array on error
+        // Use a more user-friendly error handling approach
         setMovies([]);
         setTotalPages(1);
       } finally {
@@ -76,7 +76,8 @@ export default function SearchClientPage() {
             sort_type: SORT_TYPE.DESC,
             limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
           };
-          const response = await searchMovies(keyword, page, options);
+          // Use the client-paginated version of the search function
+          const response = await searchMoviesClientPaginated(keyword, page, options);
 
           // Check if response has data and items
           if (response && response.data) {
@@ -88,8 +89,7 @@ export default function SearchClientPage() {
             setTotalPages(1);
           }
         } catch (error) {
-          console.error('Error searching movies:', error);
-          // Set empty array on error
+          // Use a more user-friendly error handling approach
           setMovies([]);
           setTotalPages(1);
         } finally {
@@ -99,7 +99,7 @@ export default function SearchClientPage() {
 
       fetchSearchResults();
     } catch (error) {
-      console.error('Error updating URL:', error);
+      // Silently handle URL update errors
     }
   };
 
@@ -107,7 +107,7 @@ export default function SearchClientPage() {
     <>
       <div className="container mx-auto px-4 py-8">
         <h1 className="mb-8 text-3xl font-bold">
-          {keyword ? t('search.resultsFor', { keyword }) : t('search.title')}
+          {keyword ? t('search.searchResults', { keyword }) : t('search.searchMovies')}
         </h1>
 
         {keyword ? (
@@ -120,7 +120,7 @@ export default function SearchClientPage() {
           />
         ) : (
           <div className="flex min-h-[40vh] items-center justify-center">
-            <p className="text-xl text-gray-400">{t('search.enterKeyword')}</p>
+            <p className="text-xl text-gray-400">{t('search.enterSearchTerm')}</p>
           </div>
         )}
       </div>
