@@ -158,7 +158,9 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
 
               <div className="absolute bottom-0 left-0 p-4 md:p-12 md:w-2/3 lg:w-1/2">
                 <h1 className="mb-2 text-2xl font-bold md:text-4xl lg:text-5xl">{movie.name}</h1>
-                <p className="mb-2 text-sm text-gray-300 md:mb-4 md:text-base">{movie.origin_name}</p>
+                <p className="mb-2 text-sm text-gray-300 md:mb-4 md:text-base">
+                  {movie.origin_name}
+                </p>
 
                 <div className="mb-2 flex flex-wrap gap-2 md:mb-4">
                   {movie.category && (
@@ -184,7 +186,11 @@ export function HeroCarousel({ movies, title, locale }: HeroCarouselProps) {
 
                 <div className="flex flex-wrap gap-2 md:gap-4">
                   <Link href={`/${locale}/watch/${movie.slug}`}>
-                    <Button variant="primary" size="sm" className="flex items-center gap-1 md:gap-2 md:text-base md:px-4 md:py-2">
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      className="flex items-center gap-1 md:gap-2 md:text-base md:px-4 md:py-2"
+                    >
                       <Play size={16} fill="white" className="md:h-5 md:w-5" />
                       {t('home.watchNow')}
                     </Button>

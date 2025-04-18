@@ -21,7 +21,9 @@ export default async function MovieDetailPage({
         <div className="container mx-auto flex min-h-[50vh] items-center justify-center px-4">
           <div className="text-center">
             <h1 className="mb-4 text-2xl font-bold">Movie Not Found</h1>
-            <p className="mb-6">The movie you are looking for might have been removed or is temporarily unavailable.</p>
+            <p className="mb-6">
+              The movie you are looking for might have been removed or is temporarily unavailable.
+            </p>
             <Link href={`/${locale}`}>
               <Button variant="primary">Back to Home</Button>
             </Link>
@@ -32,194 +34,190 @@ export default async function MovieDetailPage({
 
     return (
       <div className="container mx-auto px-4 py-8">
-      {/* Movie Hero Section */}
-      <div className="relative mb-8 overflow-hidden rounded-xl">
-        <div className="relative aspect-video w-full overflow-hidden">
-          <Image
-            src={movie.poster_url || movie.thumb_url}
-            alt={movie.name}
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
-        </div>
-
-        <div className="absolute bottom-0 left-0 p-6 md:p-12">
-          <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">{movie.name}</h1>
-          <p className="mb-4 text-gray-300">{movie.origin_name}</p>
-
-          <div className="mb-4 flex flex-wrap gap-2">
-            {movie.category && (
-              <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">
-                {movie.category.name}
-              </span>
-            )}
-            {movie.quality && (
-              <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">
-                {movie.quality}
-              </span>
-            )}
-            {movie.year && (
-              <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">
-                {movie.year}
-              </span>
-            )}
-          </div>
-
-          {/* Watch Button */}
-          <div className="mt-6">
-            <Link href={`/${locale}/watch/${movie.slug}`}>
-              <Button variant="primary" size="lg" className="flex items-center gap-2">
-                <Play size={20} fill="white" />
-                Watch Now
-              </Button>
-            </Link>
-          </div>
-        </div>
-      </div>
-
-      {/* Movie Info Section */}
-      <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
-        {/* Left Column - Movie Details */}
-        <div className="md:col-span-2">
-          <div className="mb-8 rounded-lg bg-gray-800/50 p-6">
-            <h2 className="mb-4 text-2xl font-bold">About Movie</h2>
-            <p className="text-gray-300">{movie.content}</p>
-
-            <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
-              <div className="flex items-center gap-2">
-                <Calendar size={18} className="text-gray-400" />
-                <span className="text-sm text-gray-300">Year: {movie.year}</span>
-              </div>
-
-              {movie.duration && (
-                <div className="flex items-center gap-2">
-                  <Clock size={18} className="text-gray-400" />
-                  <span className="text-sm text-gray-300">Duration: {movie.duration}</span>
-                </div>
-              )}
-
-              {movie.country && movie.country.length > 0 && (
-                <div className="flex items-center gap-2">
-                  <Globe size={18} className="text-gray-400" />
-                  <span className="text-sm text-gray-300">
-                    Country: {movie.country.map(c => c.name).join(', ')}
-                  </span>
-                </div>
-              )}
-
-              {movie.status && (
-                <div className="flex items-center gap-2">
-                  <Film size={18} className="text-gray-400" />
-                  <span className="text-sm text-gray-300">Status: {movie.status}</span>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Danh sách tập phim */}
-          {movie.episodes && movie.episodes.length > 0 && (
-            <div className="mb-8 rounded-lg bg-gray-800/50 p-6">
-              <h2 className="mb-4 text-2xl font-bold">Danh sách tập</h2>
-              <div className="grid grid-cols-8 gap-2 md:gap-3">
-                {movie.episodes[0]?.items.map((episode, index) => (
-                  <Link
-                    key={`episode-${index}`}
-                    href={`/${locale}/watch/${movie.slug}?episode=${index + 1}`}
-                    className="flex items-center justify-center rounded py-2 text-center transition-colors hover:bg-primary bg-gray-700"
-                  >
-                    {episode.name}
-                  </Link>
-                ))}
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Column - Sidebar */}
-        <div>
-          {/* Movie Poster */}
-          <div className="mb-6 overflow-hidden rounded-lg">
+        {/* Movie Hero Section */}
+        <div className="relative mb-8 overflow-hidden rounded-xl">
+          <div className="relative aspect-video w-full overflow-hidden">
             <Image
-              src={movie.thumb_url}
+              src={movie.poster_url || movie.thumb_url}
               alt={movie.name}
-              width={300}
-              height={450}
-              className="w-full"
+              fill
+              className="object-cover"
+              priority
             />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/60 to-transparent" />
           </div>
 
-          {/* Thông tin phim */}
-          <div className="rounded-lg bg-gray-800/50 p-6">
-            <h3 className="mb-4 text-xl font-bold">Thông tin phim</h3>
+          <div className="absolute bottom-0 left-0 p-6 md:p-12">
+            <h1 className="mb-2 text-3xl font-bold md:text-4xl lg:text-5xl">{movie.name}</h1>
+            <p className="mb-4 text-gray-300">{movie.origin_name}</p>
 
-            <div className="space-y-4">
-              {movie.view && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Lượt xem:</span>
-                  <span>{movie.view.toLocaleString()}</span>
-                </div>
+            <div className="mb-4 flex flex-wrap gap-2">
+              {movie.category && (
+                <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">
+                  {movie.category.name}
+                </span>
               )}
-
               {movie.quality && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Chất lượng:</span>
-                  <span>{movie.quality}</span>
-                </div>
+                <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">{movie.quality}</span>
               )}
-
-              {movie.lang && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Ngôn ngữ:</span>
-                  <span>{movie.lang}</span>
-                </div>
-              )}
-
-              {movie.episode_current && (
-                <div className="flex items-center justify-between">
-                  <span className="text-gray-400">Tập hiện tại:</span>
-                  <span>{movie.episode_current}</span>
-                </div>
+              {movie.year && (
+                <span className="rounded-full bg-gray-800 px-3 py-1 text-sm">{movie.year}</span>
               )}
             </div>
 
-            {/* Thể loại */}
-            {movie.genres && movie.genres.length > 0 && (
-              <div className="mt-6">
-                <h4 className="mb-2 text-lg font-semibold">Thể loại</h4>
-                <div className="flex flex-wrap gap-2">
-                  {movie.genres.map((genre) => (
+            {/* Watch Button */}
+            <div className="mt-6">
+              <Link href={`/${locale}/watch/${movie.slug}`}>
+                <Button variant="primary" size="lg" className="flex items-center gap-2">
+                  <Play size={20} fill="white" />
+                  Watch Now
+                </Button>
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Movie Info Section */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+          {/* Left Column - Movie Details */}
+          <div className="md:col-span-2">
+            <div className="mb-8 rounded-lg bg-gray-800/50 p-6">
+              <h2 className="mb-4 text-2xl font-bold">About Movie</h2>
+              <p className="text-gray-300">{movie.content}</p>
+
+              <div className="mt-6 grid grid-cols-1 gap-4 sm:grid-cols-2">
+                <div className="flex items-center gap-2">
+                  <Calendar size={18} className="text-gray-400" />
+                  <span className="text-sm text-gray-300">Year: {movie.year}</span>
+                </div>
+
+                {movie.duration && (
+                  <div className="flex items-center gap-2">
+                    <Clock size={18} className="text-gray-400" />
+                    <span className="text-sm text-gray-300">Duration: {movie.duration}</span>
+                  </div>
+                )}
+
+                {movie.country && movie.country.length > 0 && (
+                  <div className="flex items-center gap-2">
+                    <Globe size={18} className="text-gray-400" />
+                    <span className="text-sm text-gray-300">
+                      Country: {movie.country.map(c => c.name).join(', ')}
+                    </span>
+                  </div>
+                )}
+
+                {movie.status && (
+                  <div className="flex items-center gap-2">
+                    <Film size={18} className="text-gray-400" />
+                    <span className="text-sm text-gray-300">Status: {movie.status}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Danh sách tập phim */}
+            {movie.episodes && movie.episodes.length > 0 && (
+              <div className="mb-8 rounded-lg bg-gray-800/50 p-6">
+                <h2 className="mb-4 text-2xl font-bold">Danh sách tập</h2>
+                <div className="grid grid-cols-8 gap-2 md:gap-3">
+                  {movie.episodes[0]?.items.map((episode, index) => (
                     <Link
-                      key={genre.slug}
-                      href={`/${locale}/genre/${genre.slug}`}
-                      className="rounded-full bg-gray-700 px-3 py-1 text-sm transition-colors hover:bg-primary"
+                      key={`episode-${index}`}
+                      href={`/${locale}/watch/${movie.slug}?episode=${index + 1}`}
+                      className="flex items-center justify-center rounded py-2 text-center transition-colors hover:bg-primary bg-gray-700"
                     >
-                      {genre.name}
+                      {episode.name}
                     </Link>
                   ))}
                 </div>
               </div>
             )}
+          </div>
 
-            {/* Diễn viên */}
-            {movie.actors && movie.actors.length > 0 && (
-              <div className="mt-6">
-                <h4 className="mb-2 text-lg font-semibold">Diễn viên</h4>
-                <p className="text-sm text-gray-300">{movie.actors.join(', ')}</p>
-              </div>
-            )}
+          {/* Right Column - Sidebar */}
+          <div>
+            {/* Movie Poster */}
+            <div className="mb-6 overflow-hidden rounded-lg">
+              <Image
+                src={movie.thumb_url}
+                alt={movie.name}
+                width={300}
+                height={450}
+                className="w-full"
+              />
+            </div>
 
-            {/* Đạo diễn */}
-            {movie.directors && movie.directors.length > 0 && (
-              <div className="mt-4">
-                <h4 className="mb-2 text-lg font-semibold">Đạo diễn</h4>
-                <p className="text-sm text-gray-300">{movie.directors.join(', ')}</p>
+            {/* Thông tin phim */}
+            <div className="rounded-lg bg-gray-800/50 p-6">
+              <h3 className="mb-4 text-xl font-bold">Thông tin phim</h3>
+
+              <div className="space-y-4">
+                {movie.view && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Lượt xem:</span>
+                    <span>{movie.view.toLocaleString()}</span>
+                  </div>
+                )}
+
+                {movie.quality && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Chất lượng:</span>
+                    <span>{movie.quality}</span>
+                  </div>
+                )}
+
+                {movie.lang && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Ngôn ngữ:</span>
+                    <span>{movie.lang}</span>
+                  </div>
+                )}
+
+                {movie.episode_current && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-gray-400">Tập hiện tại:</span>
+                    <span>{movie.episode_current}</span>
+                  </div>
+                )}
               </div>
-            )}
+
+              {/* Thể loại */}
+              {movie.genres && movie.genres.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="mb-2 text-lg font-semibold">Thể loại</h4>
+                  <div className="flex flex-wrap gap-2">
+                    {movie.genres.map(genre => (
+                      <Link
+                        key={genre.slug}
+                        href={`/${locale}/genre/${genre.slug}`}
+                        className="rounded-full bg-gray-700 px-3 py-1 text-sm transition-colors hover:bg-primary"
+                      >
+                        {genre.name}
+                      </Link>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Diễn viên */}
+              {movie.actors && movie.actors.length > 0 && (
+                <div className="mt-6">
+                  <h4 className="mb-2 text-lg font-semibold">Diễn viên</h4>
+                  <p className="text-sm text-gray-300">{movie.actors.join(', ')}</p>
+                </div>
+              )}
+
+              {/* Đạo diễn */}
+              {movie.directors && movie.directors.length > 0 && (
+                <div className="mt-4">
+                  <h4 className="mb-2 text-lg font-semibold">Đạo diễn</h4>
+                  <p className="text-sm text-gray-300">{movie.directors.join(', ')}</p>
+                </div>
+              )}
+            </div>
           </div>
         </div>
-      </div>
       </div>
     );
   } catch (error) {
@@ -228,7 +226,9 @@ export default async function MovieDetailPage({
       <div className="container mx-auto flex min-h-[60vh] items-center justify-center px-4">
         <div className="text-center">
           <h1 className="mb-4 text-2xl font-bold">Lỗi tải phim</h1>
-          <p className="mb-6">Chúng tôi đang gặp sự cố khi tải thông tin phim. Vui lòng thử lại sau.</p>
+          <p className="mb-6">
+            Chúng tôi đang gặp sự cố khi tải thông tin phim. Vui lòng thử lại sau.
+          </p>
           <Link href={`/${locale}`}>
             <Button variant="primary">Về trang chủ</Button>
           </Link>

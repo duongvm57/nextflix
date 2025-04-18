@@ -1,18 +1,14 @@
-import type { Metadata } from "next";
-import "../globals.css";
-import { Header } from "@/components/layout/header";
-import { Footer } from "@/components/layout/footer";
+import type { Metadata } from 'next';
+import '../globals.css';
+import { Header } from '@/components/layout/header';
+import { Footer } from '@/components/layout/footer';
 import { NextIntlClientProvider } from 'next-intl';
 import { getTranslations, locales, defaultLocale } from '@/i18n/config';
 import { cookies } from 'next/headers';
 
 // Removed font declarations to avoid hydration issues
 
-export function generateMetadata({
-  params
-}: {
-  params: { locale: string }
-}): Metadata {
+export function generateMetadata({ params }: { params: { locale: string } }): Metadata {
   return {
     title: 'Nextflix',
     description: 'Watch the latest movies and TV shows online in HD quality',
@@ -34,7 +30,7 @@ export function generateStaticParams() {
 
 export default async function RootLayout({
   children,
-  params
+  params,
 }: Readonly<{
   children: React.ReactNode;
   params: { locale: string };

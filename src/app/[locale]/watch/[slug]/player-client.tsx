@@ -6,7 +6,7 @@ import { playerConfig } from '@/lib/config/player';
 
 // Dynamically import the VideoPlayer component to ensure it only runs on the client
 const VideoPlayer = dynamic(
-  () => import('@/components/player/video-player').then((mod) => mod.VideoPlayer),
+  () => import('@/components/player/video-player').then(mod => mod.VideoPlayer),
   { ssr: false }
 );
 
@@ -30,7 +30,13 @@ export function PlayerClient({ src, poster, embedSrc }: PlayerClientProps) {
   */
 
   return (
-    <Suspense fallback={<div className="h-full w-full bg-black flex items-center justify-center">Loading player...</div>}>
+    <Suspense
+      fallback={
+        <div className="h-full w-full bg-black flex items-center justify-center">
+          Loading player...
+        </div>
+      }
+    >
       {useHLS && src ? (
         // HLS Player (when enabled in config)
         <VideoPlayer src={src} poster={poster} />

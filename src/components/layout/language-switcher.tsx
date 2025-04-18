@@ -74,7 +74,8 @@ export function LanguageSwitcher() {
         aria-label="Change language"
       >
         <span className="font-medium flex items-center whitespace-nowrap">
-          <LanguageIcon /> <span className="ml-2">{localeNames[currentLocale as keyof typeof localeNames]}</span>
+          <LanguageIcon />{' '}
+          <span className="ml-2">{localeNames[currentLocale as keyof typeof localeNames]}</span>
         </span>
         <span>▼</span>
       </Button>
@@ -82,7 +83,7 @@ export function LanguageSwitcher() {
       {isOpen && (
         <div className="absolute right-0 top-full z-50 mt-2 w-[160px] rounded-2xl overflow-hidden shadow-lg border border-white/20">
           {/* Hiển thị tất cả ngôn ngữ, bao gồm cả ngôn ngữ hiện tại */}
-          {locales.map((locale) => (
+          {locales.map(locale => (
             <button
               key={locale}
               className={`block w-full px-4 py-3 text-center text-sm whitespace-nowrap ${

@@ -49,7 +49,7 @@ export function MovieCarousel({ movies, title, locale }: MovieCarouselProps) {
         className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
         style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
       >
-        {movies.map((movie) => (
+        {movies.map(movie => (
           <div
             key={movie._id}
             className="relative flex-shrink-0 overflow-hidden rounded-lg"

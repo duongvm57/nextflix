@@ -16,19 +16,25 @@ async function fetchMultiplePages<T>(
   // And so on...
   const startApiPage = (clientPage - 1) * 2 + 1;
 
-  logger.debug(`[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`);
-  logger.debug(`[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`);
+  logger.debug(
+    `[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`
+  );
+  logger.debug(
+    `[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`
+  );
 
   try {
     // Fetch two consecutive API pages
-    logger.debug(`[DEBUG] fetchMultiplePages - Fetching API pages ${startApiPage} and ${startApiPage + 1}`);
+    logger.debug(
+      `[DEBUG] fetchMultiplePages - Fetching API pages ${startApiPage} and ${startApiPage + 1}`
+    );
 
     // Fetch pages one at a time for better error handling
     const page1Response = await fetchFunction(startApiPage);
     logger.debug(`[DEBUG] fetchMultiplePages - Page ${startApiPage} response:`, {
       totalItems: page1Response.pagination.totalItems,
       totalPages: page1Response.pagination.totalPages,
-      itemCount: page1Response.data.length
+      itemCount: page1Response.data.length,
     });
 
     let page2Response;
@@ -37,7 +43,7 @@ async function fetchMultiplePages<T>(
       logger.debug(`[DEBUG] fetchMultiplePages - Page ${startApiPage + 1} response:`, {
         totalItems: page2Response.pagination.totalItems,
         totalPages: page2Response.pagination.totalPages,
-        itemCount: page2Response.data.length
+        itemCount: page2Response.data.length,
       });
     } catch (error) {
       logger.error(`[DEBUG] fetchMultiplePages - Error fetching page ${startApiPage + 1}:`, error);
@@ -55,8 +61,12 @@ async function fetchMultiplePages<T>(
     const totalApiItems = page1Response.pagination.totalItems;
     const totalClientPages = Math.ceil(totalApiItems / itemsPerClientPage);
 
-    logger.debug(`[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`);
-    logger.debug(`[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`);
+    logger.debug(
+      `[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`
+    );
+    logger.debug(
+      `[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`
+    );
 
     // Return the paginated response with client-side pagination
     return {
@@ -120,9 +130,7 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
   const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
   // Ensure API_BASE_URL doesn't end with a slash
-  const baseUrl = API_BASE_URL.endsWith('/')
-    ? API_BASE_URL.slice(0, -1)
-    : API_BASE_URL;
+  const baseUrl = API_BASE_URL.endsWith('/') ? API_BASE_URL.slice(0, -1) : API_BASE_URL;
 
   const originalUrl = `${baseUrl}${formattedEndpoint}${queryParams ? `?${queryParams}` : ''}`;
 
@@ -136,10 +144,10 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
     const response = await fetch(proxyUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       cache: 'no-store', // Disable caching to ensure fresh data
-      next: { revalidate: 0 } // Disable Next.js cache
+      next: { revalidate: 0 }, // Disable Next.js cache
     });
 
     if (!response.ok) {
@@ -173,9 +181,7 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
   const formattedEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
 
   // Ensure API_V1_BASE_URL doesn't end with a slash
-  const baseUrl = API_V1_BASE_URL.endsWith('/')
-    ? API_V1_BASE_URL.slice(0, -1)
-    : API_V1_BASE_URL;
+  const baseUrl = API_V1_BASE_URL.endsWith('/') ? API_V1_BASE_URL.slice(0, -1) : API_V1_BASE_URL;
 
   const originalUrl = `${baseUrl}${formattedEndpoint}${queryParams ? `?${queryParams}` : ''}`;
 
@@ -189,10 +195,10 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
     const response = await fetch(proxyUrl, {
       method: 'GET',
       headers: {
-        'Accept': 'application/json',
+        Accept: 'application/json',
       },
       cache: 'no-store', // Disable caching to ensure fresh data
-      next: { revalidate: 0 } // Disable Next.js cache
+      next: { revalidate: 0 }, // Disable Next.js cache
     });
 
     logger.debug(`[DEBUG] API V1 response status: ${response.status}`);
@@ -212,11 +218,11 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
               totalItems: 0,
               totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
               currentPage: parseInt(params.page || '1'),
-              totalPages: 0
-            }
+              totalPages: 0,
+            },
           },
-          APP_DOMAIN_CDN_IMAGE: ''
-        }
+          APP_DOMAIN_CDN_IMAGE: '',
+        },
       } as unknown as T;
     }
 
@@ -256,11 +262,11 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
             totalItems: 0,
             totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
             currentPage: parseInt(params.page || '1'),
-            totalPages: 0
-          }
+            totalPages: 0,
+          },
         },
-        APP_DOMAIN_CDN_IMAGE: ''
-      }
+        APP_DOMAIN_CDN_IMAGE: '',
+      },
     } as unknown as T;
   }
 }
@@ -294,15 +300,18 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
     quality: apiMovie.quality || 'HD',
     lang: apiMovie.lang || '',
     view: apiMovie.view || 0,
-    category: apiMovie.category && apiMovie.category.length > 0
-      ? { name: apiMovie.category[0].name, slug: apiMovie.category[0].slug }
-      : null,
-    country: apiMovie.country && apiMovie.country.length > 0
-      ? apiMovie.country.map((c: any) => ({ name: c.name, slug: c.slug }))
-      : [],
-    genres: apiMovie.category && apiMovie.category.length > 0
-      ? apiMovie.category.map((g: any) => ({ name: g.name, slug: g.slug }))
-      : [],
+    category:
+      apiMovie.category && apiMovie.category.length > 0
+        ? { name: apiMovie.category[0].name, slug: apiMovie.category[0].slug }
+        : null,
+    country:
+      apiMovie.country && apiMovie.country.length > 0
+        ? apiMovie.country.map((c: any) => ({ name: c.name, slug: c.slug }))
+        : [],
+    genres:
+      apiMovie.category && apiMovie.category.length > 0
+        ? apiMovie.category.map((g: any) => ({ name: g.name, slug: g.slug }))
+        : [],
     status: 'ongoing',
     actors: apiMovie.actor || [],
     directors: apiMovie.director || [],
@@ -313,7 +322,6 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
 
 // Hàm chuyển đổi dữ liệu API sang định dạng MovieDetail
 function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
-
   const movie = mapAPIMovieToMovie(apiMovie);
 
   // Chuyển đổi episodes từ API sang định dạng của ứng dụng
@@ -328,7 +336,11 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
     apiMovie.episodes.forEach((server: any) => {
       logger.debug('Processing server:', server.server_name);
       logger.debug('Processing server:', server.server_name);
-      if (server.server_data && Array.isArray(server.server_data) && server.server_data.length > 0) {
+      if (
+        server.server_data &&
+        Array.isArray(server.server_data) &&
+        server.server_data.length > 0
+      ) {
         const serverEpisodes = {
           server_name: server.server_name,
           items: server.server_data.map((item: any) => ({
@@ -339,8 +351,12 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
             link_m3u8: item.link_m3u8,
           })),
         };
-        logger.debug(`Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`);
-        logger.debug(`Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`);
+        logger.debug(
+          `Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`
+        );
+        logger.debug(
+          `Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`
+        );
         episodes.push(serverEpisodes);
       } else {
         logger.debug(`Server ${server.server_name} has no valid server_data`);
@@ -362,13 +378,16 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
 }
 
 // Get new movies
-export async function getNewMovies(page = PAGINATION_CONFIG.DEFAULT_PAGE, limit = PAGINATION_CONFIG.ITEMS_PER_PAGE): Promise<PaginatedResponse<Movie>> {
+export async function getNewMovies(
+  page = PAGINATION_CONFIG.DEFAULT_PAGE,
+  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE
+): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`Fetching new movies for page: ${page}, limit: ${limit}`);
     logger.debug(`Fetching new movies for page: ${page}, limit: ${limit}`);
     const response = await fetchAPI<any>(`${API_ENDPOINTS.NEW_MOVIES}`, {
       page: page.toString(),
-      limit: limit.toString()
+      limit: limit.toString(),
     });
     logger.debug('API Response structure:', Object.keys(response));
     logger.debug('API Response structure:', Object.keys(response));
@@ -422,7 +441,7 @@ export async function getMovieDetail(slug: string): Promise<MovieDetail | null> 
       // Create a new object with both movie data and episodes
       const movieWithEpisodes = {
         ...response.movie,
-        episodes: response.episodes || []
+        episodes: response.episodes || [],
       };
 
       logger.debug('Movie with episodes:', JSON.stringify(movieWithEpisodes.episodes, null, 2));
@@ -461,7 +480,7 @@ export async function getMoviesByCategory(
   try {
     // Set default limit if not provided in options
     const defaultOptions = {
-      limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+      limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
     };
 
     // Filter out undefined values from options
@@ -475,13 +494,17 @@ export async function getMoviesByCategory(
     const params: Record<string, string> = {
       page: page.toString(),
       ...defaultOptions,
-      ...filteredOptions
+      ...filteredOptions,
     };
 
     // Determine if this is a category, country, or a type list
     let endpoint = '';
-    const isLanguageType = ['phim-vietsub', 'phim-thuyet-minh', 'phim-long-tieng'].includes(typeOrCategorySlug);
-    const isMovieType = ['phim-bo', 'phim-le', 'tv-shows', 'hoat-hinh'].includes(typeOrCategorySlug);
+    const isLanguageType = ['phim-vietsub', 'phim-thuyet-minh', 'phim-long-tieng'].includes(
+      typeOrCategorySlug
+    );
+    const isMovieType = ['phim-bo', 'phim-le', 'tv-shows', 'hoat-hinh'].includes(
+      typeOrCategorySlug
+    );
     const isYear = /^\d{4}$/.test(typeOrCategorySlug);
 
     logger.debug(`[DEBUG] getMoviesByCategory - typeOrCategorySlug: ${typeOrCategorySlug}`);
@@ -490,7 +513,8 @@ export async function getMoviesByCategory(
     logger.debug(`[DEBUG] getMoviesByCategory - options:`, options);
 
     // Check if this is a category slug
-    const isCategorySlug = !isLanguageType && !isMovieType && !isYear && typeOrCategorySlug.includes('-');
+    const isCategorySlug =
+      !isLanguageType && !isMovieType && !isYear && typeOrCategorySlug.includes('-');
 
     // Check if we're on the category page
     if (isCategorySlug) {
@@ -532,8 +556,14 @@ export async function getMoviesByCategory(
       logger.debug(`[DEBUG] Using default type list: phim-bo`);
     }
 
-    logger.debug(`[DEBUG] Fetching from endpoint: ${endpoint} with params:`, JSON.stringify(params, null, 2));
-    logger.debug(`[DEBUG] Fetching from endpoint: ${endpoint} with params:`, JSON.stringify(params, null, 2));
+    logger.debug(
+      `[DEBUG] Fetching from endpoint: ${endpoint} with params:`,
+      JSON.stringify(params, null, 2)
+    );
+    logger.debug(
+      `[DEBUG] Fetching from endpoint: ${endpoint} with params:`,
+      JSON.stringify(params, null, 2)
+    );
     const response = await fetchAPIV1<any>(endpoint, params);
     logger.debug(`[DEBUG] Response status:`, response.status);
     logger.debug(`[DEBUG] Response data structure:`, Object.keys(response.data || {}));
@@ -543,8 +573,14 @@ export async function getMoviesByCategory(
       logger.debug(`[DEBUG] Found ${response.data.items.length} items`);
       logger.debug(`[DEBUG] Found ${response.data.items.length} items`);
       if (response.data.items.length > 0) {
-        logger.debug(`[DEBUG] First item:`, JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...');
-        logger.debug(`[DEBUG] First item:`, JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...');
+        logger.debug(
+          `[DEBUG] First item:`,
+          JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...'
+        );
+        logger.debug(
+          `[DEBUG] First item:`,
+          JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...'
+        );
       }
     } else {
       logger.debug(`[DEBUG] No items found in response:`, response);
@@ -554,7 +590,11 @@ export async function getMoviesByCategory(
     // Process the response
     if (response && response.data) {
       // Use optional chaining and default values to handle missing properties
-      const { items = [], params: responseParams = { pagination: {} }, APP_DOMAIN_CDN_IMAGE = '' } = response.data;
+      const {
+        items = [],
+        params: responseParams = { pagination: {} },
+        APP_DOMAIN_CDN_IMAGE = '',
+      } = response.data;
 
       // Log first item to check structure
       if (items && items.length > 0) {
@@ -568,7 +608,7 @@ export async function getMoviesByCategory(
         logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
 
         // Add image domain to each item
-        const processedItems = items.map((item: { thumb_url: string; poster_url: string; }) => {
+        const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
           if (item.thumb_url && !item.thumb_url.startsWith('http')) {
             item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
           }
@@ -582,7 +622,8 @@ export async function getMoviesByCategory(
           data: processedItems.map(mapAPIMovieToMovie),
           pagination: {
             totalItems: responseParams.pagination?.totalItems || 0,
-            totalItemsPerPage: responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
+            totalItemsPerPage:
+              responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
             currentPage: responseParams.pagination?.currentPage || page,
             totalPages: responseParams.pagination?.totalPages || 1,
           },
@@ -619,7 +660,7 @@ export async function getMoviesByCountry(
     const defaultOptions = {
       limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
       sort_field: 'modified.time',
-      sort_type: 'desc'
+      sort_type: 'desc',
     };
 
     // Filter out undefined values from options
@@ -633,13 +674,19 @@ export async function getMoviesByCountry(
     const params: Record<string, string> = {
       page: page.toString(),
       ...defaultOptions,
-      ...filteredOptions
+      ...filteredOptions,
     };
 
     // Use the correct API endpoint for countries
     const url = `${API_ENDPOINTS.V1_COUNTRY}/${countrySlug}`;
-    logger.debug(`[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`, JSON.stringify(params, null, 2));
-    logger.debug(`[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`, JSON.stringify(params, null, 2));
+    logger.debug(
+      `[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`,
+      JSON.stringify(params, null, 2)
+    );
+    logger.debug(
+      `[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`,
+      JSON.stringify(params, null, 2)
+    );
 
     const response = await fetchAPIV1<any>(url, params);
     logger.debug(`[DEBUG] Country response status:`, response.status);
@@ -652,8 +699,12 @@ export async function getMoviesByCountry(
       logger.debug(`[DEBUG] Country response data keys:`, Object.keys(response.data));
 
       if (response.data.items) {
-        logger.debug(`[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`);
-        logger.debug(`[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`);
+        logger.debug(
+          `[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`
+        );
+        logger.debug(
+          `[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`
+        );
         if (response.data.items.length > 0) {
           logger.debug(`[DEBUG] First country item:`, response.data.items[0]);
           logger.debug(`[DEBUG] First country item:`, response.data.items[0]);
@@ -679,7 +730,7 @@ export async function getMoviesByCountry(
         logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
 
         // Add image domain to each item
-        const processedItems = items.map((item: { thumb_url: string; poster_url: string; }) => {
+        const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
           if (item.thumb_url && !item.thumb_url.startsWith('http')) {
             item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
           }
@@ -693,7 +744,8 @@ export async function getMoviesByCountry(
           data: processedItems.map(mapAPIMovieToMovie),
           pagination: {
             totalItems: responseParams.pagination?.totalItems || 0,
-            totalItemsPerPage: responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
+            totalItemsPerPage:
+              responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
             currentPage: responseParams.pagination?.currentPage || page,
             totalPages: responseParams.pagination?.totalPages || 1,
           },
@@ -728,7 +780,7 @@ export async function getMoviesByYear(
     const defaultOptions = {
       limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
       sort_field: 'modified.time',
-      sort_type: 'desc'
+      sort_type: 'desc',
     };
 
     // Filter out undefined values from options
@@ -743,7 +795,7 @@ export async function getMoviesByYear(
       page: page.toString(),
       ...defaultOptions,
       ...filteredOptions,
-      year: year // Add year as a parameter instead of part of the URL
+      year: year, // Add year as a parameter instead of part of the URL
     };
 
     // Use the movies list API endpoint with year as a parameter
@@ -768,7 +820,7 @@ export async function getMoviesByYear(
           logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
 
           // Add image domain to each item
-          const processedItems = items.map((item: { thumb_url: string; poster_url: string; }) => {
+          const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
             if (item.thumb_url && !item.thumb_url.startsWith('http')) {
               item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
             }
@@ -782,7 +834,8 @@ export async function getMoviesByYear(
             data: processedItems.map(mapAPIMovieToMovie),
             pagination: {
               totalItems: responseParams.pagination?.totalItems || 0,
-              totalItemsPerPage: responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
+              totalItemsPerPage:
+                responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
               currentPage: responseParams.pagination?.currentPage || page,
               totalPages: responseParams.pagination?.totalPages || 1,
             },
@@ -841,7 +894,7 @@ export async function searchMovies(
     const defaultOptions = {
       limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
       sort_field: 'modified.time',
-      sort_type: 'desc'
+      sort_type: 'desc',
     };
 
     // Filter out undefined values from options
@@ -856,7 +909,7 @@ export async function searchMovies(
       keyword,
       page: page.toString(),
       ...defaultOptions,
-      ...filteredOptions
+      ...filteredOptions,
     };
 
     logger.debug(`Searching for movies with keyword: ${keyword}, params:`, params);
@@ -875,7 +928,7 @@ export async function searchMovies(
         logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
 
         // Add image domain to each item
-        const processedItems = items.map((item: { thumb_url: string; poster_url: string; }) => {
+        const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
           if (item.thumb_url && !item.thumb_url.startsWith('http')) {
             item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
           }
@@ -889,7 +942,8 @@ export async function searchMovies(
           data: processedItems.map(mapAPIMovieToMovie),
           pagination: {
             totalItems: responseParams.pagination?.totalItems || 0,
-            totalItemsPerPage: responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
+            totalItemsPerPage:
+              responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
             currentPage: responseParams.pagination?.currentPage || page,
             totalPages: responseParams.pagination?.totalPages || 1,
           },
@@ -926,8 +980,14 @@ export async function searchMovies(
 // Get categories
 export async function getCategories(): Promise<any[]> {
   try {
-    logger.debug('[DEBUG] Fetching categories from:', `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`);
-    logger.debug('[DEBUG] Fetching categories from:', `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`);
+    logger.debug(
+      '[DEBUG] Fetching categories from:',
+      `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`
+    );
+    logger.debug(
+      '[DEBUG] Fetching categories from:',
+      `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`
+    );
 
     // Use fetch directly with a timeout to avoid hanging
     const controller = new AbortController();
@@ -936,7 +996,7 @@ export async function getCategories(): Promise<any[]> {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
       signal: controller.signal,
       cache: 'no-store',
-      next: { revalidate: 0 }
+      next: { revalidate: 0 },
     });
 
     clearTimeout(timeoutId);
@@ -972,8 +1032,14 @@ export async function getCategories(): Promise<any[]> {
 // Get countries
 export async function getCountries(): Promise<any[]> {
   try {
-    logger.debug('[DEBUG] Fetching countries from:', `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`);
-    logger.debug('[DEBUG] Fetching countries from:', `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`);
+    logger.debug(
+      '[DEBUG] Fetching countries from:',
+      `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`
+    );
+    logger.debug(
+      '[DEBUG] Fetching countries from:',
+      `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`
+    );
 
     // Use fetch directly with a timeout to avoid hanging
     const controller = new AbortController();
@@ -982,7 +1048,7 @@ export async function getCountries(): Promise<any[]> {
     const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
       signal: controller.signal,
       cache: 'no-store',
-      next: { revalidate: 0 }
+      next: { revalidate: 0 },
     });
 
     clearTimeout(timeoutId);
@@ -1016,7 +1082,10 @@ export async function getCountries(): Promise<any[]> {
 }
 
 // Helper function to generate empty response
-function getEmptyResponse(page = 1, limit = PAGINATION_CONFIG.ITEMS_PER_PAGE): PaginatedResponse<Movie> {
+function getEmptyResponse(
+  page = 1,
+  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE
+): PaginatedResponse<Movie> {
   return {
     data: [],
     pagination: {
@@ -1074,11 +1143,10 @@ function getSampleCountries() {
 }
 
 // Client-side paginated versions of API functions
-export async function getNewMoviesClientPaginated(clientPage = 1): Promise<PaginatedResponse<Movie>> {
-  return fetchMultiplePages<Movie>(
-    (apiPage) => getNewMovies(apiPage),
-    clientPage
-  );
+export async function getNewMoviesClientPaginated(
+  clientPage = 1
+): Promise<PaginatedResponse<Movie>> {
+  return fetchMultiplePages<Movie>(apiPage => getNewMovies(apiPage), clientPage);
 }
 
 export async function getMoviesByCategoryClientPaginated(
@@ -1087,7 +1155,7 @@ export async function getMoviesByCategoryClientPaginated(
   options = {}
 ): Promise<PaginatedResponse<Movie>> {
   return fetchMultiplePages<Movie>(
-    (apiPage) => getMoviesByCategory(typeOrCategorySlug, apiPage, options),
+    apiPage => getMoviesByCategory(typeOrCategorySlug, apiPage, options),
     clientPage
   );
 }
@@ -1098,7 +1166,7 @@ export async function getMoviesByCountryClientPaginated(
   options = {}
 ): Promise<PaginatedResponse<Movie>> {
   return fetchMultiplePages<Movie>(
-    (apiPage) => getMoviesByCountry(countrySlug, apiPage, options),
+    apiPage => getMoviesByCountry(countrySlug, apiPage, options),
     clientPage
   );
 }
@@ -1113,7 +1181,7 @@ export async function searchMoviesClientPaginated(
   try {
     // Use real API data
     return await fetchMultiplePages<Movie>(
-      (apiPage) => searchMovies(keyword, apiPage, options),
+      apiPage => searchMovies(keyword, apiPage, options),
       clientPage
     );
   } catch (error) {
@@ -1128,12 +1196,18 @@ export async function getMoviesByYearClientPaginated(
   clientPage = 1,
   options = {}
 ): Promise<PaginatedResponse<Movie>> {
-  logger.debug(`[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`, options);
-  logger.debug(`[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`, options);
+  logger.debug(
+    `[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`,
+    options
+  );
+  logger.debug(
+    `[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`,
+    options
+  );
 
   try {
     const result = await fetchMultiplePages<Movie>(
-      (apiPage) => getMoviesByYear(year, apiPage, options),
+      apiPage => getMoviesByYear(year, apiPage, options),
       clientPage
     );
 
@@ -1141,7 +1215,7 @@ export async function getMoviesByYearClientPaginated(
       totalItems: result.pagination.totalItems,
       totalPages: result.pagination.totalPages,
       currentPage: result.pagination.currentPage,
-      movieCount: result.data.length
+      movieCount: result.data.length,
     });
 
     return result;

@@ -43,9 +43,7 @@ export const SORT_LANG = {
 
 // Base menu items
 export function getBaseMenuItems(locale: Locale): MenuItem[] {
-  return [
-    { id: 'home', label: locale === 'en' ? 'Home' : 'Trang chủ', href: `/${locale}` },
-  ];
+  return [{ id: 'home', label: locale === 'en' ? 'Home' : 'Trang chủ', href: `/${locale}` }];
 }
 
 // Movie type menu items
@@ -61,24 +59,24 @@ export function getMovieTypeMenuItems(locale: Locale): MenuItem {
       {
         id: 'phim-le',
         label: locale === 'en' ? 'Movies' : 'Phim lẻ',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LE}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LE}`,
       },
       {
         id: 'phim-bo',
         label: locale === 'en' ? 'TV Series' : 'Phim bộ',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_BO}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_BO}`,
       },
       {
         id: 'tv-shows',
         label: 'TV Shows',
-        href: `/${locale}/danh-sach/${TYPE_LIST.TV_SHOWS}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.TV_SHOWS}`,
       },
       {
         id: 'hoat-hinh',
         label: locale === 'en' ? 'Animation' : 'Hoạt hình',
-        href: `/${locale}/danh-sach/${TYPE_LIST.HOAT_HINH}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.HOAT_HINH}`,
       },
-    ]
+    ],
   };
 }
 
@@ -95,19 +93,19 @@ export function getLanguageMenuItems(locale: Locale): MenuItem {
       {
         id: 'phim-vietsub',
         label: 'Vietsub',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_VIETSUB}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_VIETSUB}`,
       },
       {
         id: 'phim-thuyet-minh',
         label: locale === 'en' ? 'Dubbed' : 'Thuyết minh',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_THUYET_MINH}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_THUYET_MINH}`,
       },
       {
         id: 'phim-long-tieng',
         label: locale === 'en' ? 'Voice Over' : 'Lồng tiếng',
-        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LONG_TIENG}`
+        href: `/${locale}/danh-sach/${TYPE_LIST.PHIM_LONG_TIENG}`,
       },
-    ]
+    ],
   };
 }
 
@@ -124,9 +122,9 @@ export function getCategoriesMenuItem(locale: Locale, categories: any[]): MenuIt
       return {
         id: category.id || category.slug,
         label: category.name,
-        href: `/${locale}/the-loai/${category.slug}`
+        href: `/${locale}/the-loai/${category.slug}`,
       };
-    })
+    }),
   };
 }
 
@@ -143,9 +141,9 @@ export function getCountriesMenuItem(locale: Locale, countries: any[]): MenuItem
       return {
         id: country.id || country.slug,
         label: country.name,
-        href: `/${locale}/quoc-gia/${country.slug}`
+        href: `/${locale}/quoc-gia/${country.slug}`,
       };
-    })
+    }),
   };
 }
 
@@ -162,8 +160,8 @@ export function getYearsMenuItem(locale: Locale): MenuItem {
     children: years.map(year => ({
       id: `year-${year}`,
       label: year.toString(),
-      href: `/${locale}/danh-sach/${year}`
-    }))
+      href: `/${locale}/danh-sach/${year}`,
+    })),
   };
 }
 
@@ -175,6 +173,6 @@ export function getAllMenuItems(locale: Locale, categories: any[], countries: an
     getLanguageMenuItems(locale),
     getCategoriesMenuItem(locale, categories),
     getCountriesMenuItem(locale, countries),
-    getYearsMenuItem(locale)
+    getYearsMenuItem(locale),
   ];
 }

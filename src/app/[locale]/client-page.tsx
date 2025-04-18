@@ -28,7 +28,7 @@ export default function HomeClientPage() {
     page,
     setIsLoading: setScrollLoading,
     hasMore,
-    setHasMore
+    setHasMore,
   } = useInfiniteScroll(containerRef, { threshold: 300 });
 
   // Initial load
@@ -103,9 +103,11 @@ export default function HomeClientPage() {
         {/* Movies Grid Skeleton */}
         <div className="mb-6 h-8 w-40 animate-pulse rounded bg-gray-800"></div>
         <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-          {Array(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2).fill(null).map((_, index) => (
-            <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
-          ))}
+          {Array(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2)
+            .fill(null)
+            .map((_, index) => (
+              <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
+            ))}
         </div>
       </div>
     );
@@ -128,11 +130,7 @@ export default function HomeClientPage() {
       <div className="container mx-auto px-4 py-8" ref={containerRef}>
         {/* Hero Carousel Section */}
         {heroMovies.length > 0 && (
-          <HeroCarousel
-            movies={heroMovies}
-            title={t('home.recentlyUpdated')}
-            locale={locale}
-          />
+          <HeroCarousel movies={heroMovies} title={t('home.recentlyUpdated')} locale={locale} />
         )}
 
         {/* New Movies Section */}
@@ -140,10 +138,7 @@ export default function HomeClientPage() {
           <h2 className="mb-6 text-2xl font-bold">{t('home.newMovies')}</h2>
           <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
             {movies.map((movie, index) => (
-              <MovieCard
-                key={`${movie._id}-${index}`}
-                movie={movie}
-              />
+              <MovieCard key={`${movie._id}-${index}`} movie={movie} />
             ))}
           </div>
 

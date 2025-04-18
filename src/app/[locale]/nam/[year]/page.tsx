@@ -43,7 +43,7 @@ export default async function YearPage({
     sort_lang: searchParams.sort_lang,
     category: searchParams.category,
     country: searchParams.country,
-    limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+    limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
   };
 
   // Add debugging information
@@ -61,22 +61,18 @@ export default async function YearPage({
     }
 
     return (
-    <>
-      <div className="container mx-auto px-4 py-8">
-        <h1 className="mb-6 text-2xl font-bold md:text-3xl">
-          {locale === 'en' ? 'Movies from' : 'Phim năm'} {year}
-        </h1>
+      <>
+        <div className="container mx-auto px-4 py-8">
+          <h1 className="mb-6 text-2xl font-bold md:text-3xl">
+            {locale === 'en' ? 'Movies from' : 'Phim năm'} {year}
+          </h1>
 
-        <MovieGrid
-          movies={movies}
-          pagination={pagination}
-          baseUrl={`/${locale}/nam/${year}`}
-        />
-      </div>
+          <MovieGrid movies={movies} pagination={pagination} baseUrl={`/${locale}/nam/${year}`} />
+        </div>
 
-      {/* Back to Top Button */}
-      <BackToTop threshold={500} />
-    </>
+        {/* Back to Top Button */}
+        <BackToTop threshold={500} />
+      </>
     );
   } catch (error) {
     console.error(`Error rendering year page for ${year}:`, error);
@@ -87,9 +83,7 @@ export default async function YearPage({
         <h1 className="mb-6 text-2xl font-bold md:text-3xl text-red-500">
           Error loading movies for year {year}
         </h1>
-        <p className="text-gray-400">
-          {error instanceof Error ? error.message : 'Unknown error'}
-        </p>
+        <p className="text-gray-400">{error instanceof Error ? error.message : 'Unknown error'}</p>
       </div>
     );
   }

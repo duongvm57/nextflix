@@ -18,9 +18,9 @@ const COUNTRY_TRANSLATION_KEYS: Record<string, string> = {
   'viet-nam': 'country.vietnamese',
   'dai-loan': 'country.daiLoan',
   'an-do': 'country.indian',
-  'anh': 'country.british',
-  'phap': 'country.french',
-  'canada': 'country.canadian',
+  anh: 'country.british',
+  phap: 'country.french',
+  canada: 'country.canadian',
   'quoc-gia-khac': 'country.other',
 };
 
@@ -46,7 +46,7 @@ export default function CountryClientPage() {
         const options = {
           sort_field: 'modified.time',
           sort_type: 'desc',
-          limit: '20'
+          limit: '20',
         };
 
         const response = await getMoviesByCountry(slug, currentPage, options);
@@ -57,7 +57,10 @@ export default function CountryClientPage() {
         const translationKey = COUNTRY_TRANSLATION_KEYS[slug];
         const name = translationKey
           ? t(translationKey)
-          : slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+          : slug
+              .split('-')
+              .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+              .join(' ');
         setCountryName(name);
       } catch (error) {
         console.error(`Error fetching movies for country ${slug}:`, error);

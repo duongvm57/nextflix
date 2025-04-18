@@ -14,9 +14,10 @@ export async function generateMetadata({
   // Use hardcoded values instead of translations for now
   const title = locale === 'en' ? 'New Movies' : 'Phim Mới';
   const siteName = 'NextFlix';
-  const description = locale === 'en'
-    ? 'Latest movies and TV shows added to our collection'
-    : 'Phim và chương trình truyền hình mới nhất được thêm vào bộ sưu tập của chúng tôi';
+  const description =
+    locale === 'en'
+      ? 'Latest movies and TV shows added to our collection'
+      : 'Phim và chương trình truyền hình mới nhất được thêm vào bộ sưu tập của chúng tôi';
 
   return {
     title: `${title} | ${siteName}`,
@@ -45,11 +46,7 @@ export default async function NewMoviesPage({
         {locale === 'en' ? 'New Movies' : 'Phim mới cập nhật'}
       </h1>
 
-      <MovieGrid
-        movies={movies}
-        pagination={pagination}
-        baseUrl={`/${locale}/new-movies`}
-      />
+      <MovieGrid movies={movies} pagination={pagination} baseUrl={`/${locale}/new-movies`} />
     </div>
   );
 }

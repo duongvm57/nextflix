@@ -1,10 +1,35 @@
 {
-  "extends": "next/core-web-vitals",
+  "extends": [
+    "next/core-web-vitals",
+    "eslint:recommended",
+    "plugin:@typescript-eslint/recommended",
+    "prettier",
+    "plugin:prettier/recommended"
+  ],
+  "plugins": ["@typescript-eslint"],
   "rules": {
-    "@typescript-eslint/no-unused-vars": "warn",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_", "varsIgnorePattern": "^_" }],
     "@typescript-eslint/no-explicit-any": "warn",
     "@typescript-eslint/no-require-imports": "warn",
+    "@typescript-eslint/consistent-type-imports": ["warn", { "prefer": "type-imports" }],
+    "@typescript-eslint/consistent-type-definitions": ["warn", "interface"],
+    "@typescript-eslint/explicit-function-return-type": ["warn", { "allowExpressions": true }],
+    "@typescript-eslint/naming-convention": [
+      "warn",
+      { "selector": "interface", "format": ["PascalCase"], "prefix": ["I"] },
+      { "selector": "typeAlias", "format": ["PascalCase"] },
+      { "selector": "enum", "format": ["PascalCase"] }
+    ],
     "react/no-unescaped-entities": "warn",
-    "react-hooks/rules-of-hooks": "warn"
-  }
+    "react-hooks/rules-of-hooks": "warn",
+    "no-console": ["warn", { "allow": ["warn", "error"] }]
+  },
+  "overrides": [
+    {
+      "files": ["*.js"],
+      "rules": {
+        "@typescript-eslint/explicit-function-return-type": "off"
+      }
+    }
+  ]
 }

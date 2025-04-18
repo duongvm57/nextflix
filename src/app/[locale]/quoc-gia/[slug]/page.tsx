@@ -49,18 +49,17 @@ export async function generateMetadata({
   }
 
   // Create title
-  const title = locale === 'en'
-    ? `Movies from ${countryName}`
-    : `Phim ${countryName}`;
+  const title = locale === 'en' ? `Movies from ${countryName}` : `Phim ${countryName}`;
 
   // Add page number to title if not on first page
   const pageTitle = page > 1 ? `${title} - ${locale === 'en' ? 'Page' : 'Trang'} ${page}` : title;
 
   return {
     title: `${pageTitle} | ${siteName}`,
-    description: locale === 'en'
-      ? `Browse our collection of movies from ${countryName}`
-      : `Duyệt bộ sưu tập phim ${countryName} của chúng tôi`,
+    description:
+      locale === 'en'
+        ? `Browse our collection of movies from ${countryName}`
+        : `Duyệt bộ sưu tập phim ${countryName} của chúng tôi`,
   };
 }
 
@@ -86,7 +85,7 @@ export default async function CountryPage({
     sort_type,
     sort_lang,
     category,
-    year
+    year,
   } = await Promise.resolve(searchParams);
   const page = pageParam ? parseInt(pageParam) : 1;
 
@@ -97,7 +96,7 @@ export default async function CountryPage({
     sort_lang,
     category,
     year,
-    limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString()
+    limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
   };
 
   console.log(`Fetching movies for country: ${slug}, page: ${page}, options:`, options);
@@ -128,7 +127,7 @@ export default async function CountryPage({
           id: movies[0]._id,
           name: movies[0].name,
           slug: movies[0].slug,
-          thumb_url: movies[0].thumb_url
+          thumb_url: movies[0].thumb_url,
         });
       }
     }
@@ -160,9 +159,7 @@ export default async function CountryPage({
     }
 
     // Create title
-    const title = locale === 'en'
-      ? `Movies from ${countryName}`
-      : `Phim ${countryName}`;
+    const title = locale === 'en' ? `Movies from ${countryName}` : `Phim ${countryName}`;
 
     return (
       <>
@@ -171,17 +168,16 @@ export default async function CountryPage({
 
           {movies && movies.length > 0 ? (
             <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {movies.map((movie) => (
-                <MovieCard
-                  key={movie._id}
-                  movie={movie}
-                />
+              {movies.map(movie => (
+                <MovieCard key={movie._id} movie={movie} />
               ))}
             </div>
           ) : (
             <div className="flex min-h-[40vh] items-center justify-center">
               <p className="text-xl text-gray-400">
-                {locale === 'en' ? 'No movies found from this country' : 'Không tìm thấy phim từ quốc gia này'}
+                {locale === 'en'
+                  ? 'No movies found from this country'
+                  : 'Không tìm thấy phim từ quốc gia này'}
               </p>
             </div>
           )}

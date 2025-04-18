@@ -8,7 +8,10 @@ async function getMoviesByGenre(slug: string, page: number = 1) {
     return await movieService.getMoviesByGenre(slug, page);
   } catch (error) {
     console.error('Error fetching movies by genre:', error);
-    return { data: [], pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 } };
+    return {
+      data: [],
+      pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 },
+    };
   }
 }
 
@@ -26,22 +29,27 @@ export default async function GenrePage({
   const { data: movies, pagination } = await getMoviesByGenre(slug, page);
 
   // Format genre name from slug
-  const genreName = t(slug as any) || slug.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  const genreName =
+    t(slug as any) ||
+    slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="mb-8 text-3xl font-bold">{genreName} {commonT('movies')}</h1>
-      
+      <h1 className="mb-8 text-3xl font-bold">
+        {genreName} {commonT('movies')}
+      </h1>
+
       {movies.length > 0 ? (
         <>
           <MovieGrid movies={movies} />
-          
+
           {pagination && pagination.totalPages > 1 && (
-            <Pagination 
-              currentPage={pagination.currentPage} 
-              totalPages={pagination.totalPages} 
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
               baseUrl={`/genre/${slug}`}
             />
           )}

@@ -11,7 +11,10 @@ export const movieService = {
   },
 
   // Get movies by category
-  getMoviesByCategory: async (slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> => {
+  getMoviesByCategory: async (
+    slug: string,
+    page: number = 1
+  ): Promise<PaginatedResponse<Movie>> => {
     logger.debug(`Using sample data for category: ${slug}`);
     // Filter sample movies by category
     const filteredMovies = sampleMovies.filter(movie => movie?.category?.slug === slug);
@@ -21,8 +24,8 @@ export const movieService = {
         totalItems: filteredMovies.length,
         totalItemsPerPage: 10,
         currentPage: page,
-        totalPages: Math.ceil(filteredMovies.length / 10)
-      }
+        totalPages: Math.ceil(filteredMovies.length / 10),
+      },
     };
   },
 
@@ -51,8 +54,8 @@ export const movieService = {
         totalItems: filteredMovies.length,
         totalItemsPerPage: 10,
         currentPage: page,
-        totalPages: Math.ceil(filteredMovies.length / 10)
-      }
+        totalPages: Math.ceil(filteredMovies.length / 10),
+      },
     };
   },
 
@@ -69,8 +72,8 @@ export const movieService = {
         totalItems: filteredMovies.length,
         totalItemsPerPage: 10,
         currentPage: page,
-        totalPages: Math.ceil(filteredMovies.length / 10)
-      }
+        totalPages: Math.ceil(filteredMovies.length / 10),
+      },
     };
   },
 
@@ -85,8 +88,8 @@ export const movieService = {
         totalItems: filteredMovies.length,
         totalItemsPerPage: 10,
         currentPage: page,
-        totalPages: Math.ceil(filteredMovies.length / 10)
-      }
+        totalPages: Math.ceil(filteredMovies.length / 10),
+      },
     };
   },
 
@@ -95,12 +98,13 @@ export const movieService = {
     logger.debug(`Using sample data for search: ${keyword}`);
     // Search in sample movies
     const searchTerm = keyword.toLowerCase();
-    const filteredMovies = sampleMovies.filter(movie =>
-      movie.name.toLowerCase().includes(searchTerm) ||
-      movie.origin_name.toLowerCase().includes(searchTerm) ||
-      movie.content.toLowerCase().includes(searchTerm) ||
-      movie.actors.some(actor => actor.toLowerCase().includes(searchTerm)) ||
-      movie.directors.some(director => director.toLowerCase().includes(searchTerm))
+    const filteredMovies = sampleMovies.filter(
+      movie =>
+        movie.name.toLowerCase().includes(searchTerm) ||
+        movie.origin_name.toLowerCase().includes(searchTerm) ||
+        movie.content.toLowerCase().includes(searchTerm) ||
+        movie.actors.some(actor => actor.toLowerCase().includes(searchTerm)) ||
+        movie.directors.some(director => director.toLowerCase().includes(searchTerm))
     );
     return {
       data: filteredMovies,
@@ -108,8 +112,8 @@ export const movieService = {
         totalItems: filteredMovies.length,
         totalItemsPerPage: 10,
         currentPage: page,
-        totalPages: Math.ceil(filteredMovies.length / 10)
-      }
+        totalPages: Math.ceil(filteredMovies.length / 10),
+      },
     };
   },
 };

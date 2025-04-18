@@ -68,8 +68,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
           href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
           aria-disabled={currentPage <= 1}
           className={cn(
-            "inline-flex h-10 w-10 items-center justify-center rounded-md border",
-            currentPage <= 1 ? "pointer-events-none opacity-50" : "hover:bg-gray-100"
+            'inline-flex h-10 w-10 items-center justify-center rounded-md border',
+            currentPage <= 1 ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
           )}
         >
           <ChevronLeft size={16} />
@@ -103,10 +103,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             key={`link-page-${page}-${index}`}
             href={`${baseUrl}?page=${page}`}
             className={cn(
-              "inline-flex h-10 w-10 items-center justify-center rounded-md",
-              currentPage === page
-                ? "bg-blue-500 text-white"
-                : "border hover:bg-gray-100"
+              'inline-flex h-10 w-10 items-center justify-center rounded-md',
+              currentPage === page ? 'bg-blue-500 text-white' : 'border hover:bg-gray-100'
             )}
           >
             {page}
@@ -114,12 +112,9 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         ) : (
           <Button
             key={`button-page-${page}-${index}`}
-            variant={currentPage === page ? "default" : "outline"}
+            variant={currentPage === page ? 'default' : 'outline'}
             onClick={() => onPageChange?.(page as number)}
-            className={cn(
-              "h-10 w-10",
-              currentPage === page && "bg-blue-500 text-white"
-            )}
+            className={cn('h-10 w-10', currentPage === page && 'bg-blue-500 text-white')}
           >
             {page}
           </Button>
@@ -132,8 +127,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
           href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
           aria-disabled={currentPage >= totalPages}
           className={cn(
-            "inline-flex h-10 w-10 items-center justify-center rounded-md border",
-            currentPage >= totalPages ? "pointer-events-none opacity-50" : "hover:bg-gray-100"
+            'inline-flex h-10 w-10 items-center justify-center rounded-md border',
+            currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
           )}
         >
           <ChevronRight size={16} />

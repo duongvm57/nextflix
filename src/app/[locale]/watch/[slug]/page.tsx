@@ -26,7 +26,9 @@ export default async function WatchPage({
         <div className="container mx-auto flex min-h-[70vh] items-center justify-center px-4">
           <div className="text-center">
             <h1 className="mb-4 text-2xl font-bold">Movie Not Found</h1>
-            <p className="mb-6">The movie you are looking for might have been removed or is temporarily unavailable.</p>
+            <p className="mb-6">
+              The movie you are looking for might have been removed or is temporarily unavailable.
+            </p>
             <Link href={`/${locale}`}>
               <Button variant="primary">Back to Home</Button>
             </Link>
@@ -48,15 +50,17 @@ export default async function WatchPage({
               slug: 'trailer',
               filename: `${movie.slug}-trailer`,
               link_embed: `https://www.youtube.com/embed/dQw4w9WgXcQ`, // Default video if none available
-              link_m3u8: `https://www.youtube.com/watch?v=dQw4w9WgXcQ`
-            }
-          ]
-        }
+              link_m3u8: `https://www.youtube.com/watch?v=dQw4w9WgXcQ`,
+            },
+          ],
+        },
       ];
     } else {
       console.log(`WatchPage: Found ${movie.episodes.length} servers with episodes`);
       movie.episodes.forEach((server, index) => {
-        console.log(`WatchPage: Server ${index + 1}: ${server.server_name} with ${server.items.length} episodes`);
+        console.log(
+          `WatchPage: Server ${index + 1}: ${server.server_name} with ${server.items.length} episodes`
+        );
         if (server.items.length > 0) {
           console.log(`WatchPage: First episode link_embed: ${server.items[0].link_embed}`);
         }
@@ -84,14 +88,17 @@ export default async function WatchPage({
           <h1 className="text-xl font-bold md:text-2xl">{movie.name}</h1>
           {selectedServer.items.length > 1 && (
             <span className="rounded-full bg-primary px-3 py-1 text-xs">
-              {selectedServer.server_name}: {currentEpisode.name} ({episodeIndex + 1}/{selectedServer.items.length})
+              {selectedServer.server_name}: {currentEpisode.name} ({episodeIndex + 1}/
+              {selectedServer.items.length})
             </span>
           )}
         </div>
 
         {/* Trình phát video */}
         <div className="mb-8 w-full overflow-hidden rounded-lg bg-black">
-          <div className="relative" style={{ paddingTop: '56.25%' }}> {/* 16:9 Aspect Ratio */}
+          <div className="relative" style={{ paddingTop: '56.25%' }}>
+            {' '}
+            {/* 16:9 Aspect Ratio */}
             <div className="absolute inset-0">
               {/* Use client component for embed to avoid hydration issues */}
               <EmbedClient src={currentEpisode.link_embed} />

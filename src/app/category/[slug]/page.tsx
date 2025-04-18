@@ -7,7 +7,10 @@ async function getMoviesByCategory(slug: string, page: number = 1) {
     return await movieService.getMoviesByCategory(slug, page);
   } catch (error) {
     console.error('Error fetching movies by category:', error);
-    return { data: [], pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 } };
+    return {
+      data: [],
+      pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 },
+    };
   }
 }
 
@@ -32,22 +35,25 @@ export default async function CategoryPage({
   const { data: movies, pagination } = await getMoviesByCategory(slug, page);
 
   // Get category display name or use slug if not found
-  const categoryName = CATEGORY_NAMES[slug] || slug.split('-').map(word => 
-    word.charAt(0).toUpperCase() + word.slice(1)
-  ).join(' ');
+  const categoryName =
+    CATEGORY_NAMES[slug] ||
+    slug
+      .split('-')
+      .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
 
   return (
     <div className="container mx-auto px-4 py-8">
       <h1 className="mb-8 text-3xl font-bold">{categoryName}</h1>
-      
+
       {movies.length > 0 ? (
         <>
           <MovieGrid movies={movies} />
-          
+
           {pagination && pagination.totalPages > 1 && (
-            <Pagination 
-              currentPage={pagination.currentPage} 
-              totalPages={pagination.totalPages} 
+            <Pagination
+              currentPage={pagination.currentPage}
+              totalPages={pagination.totalPages}
               baseUrl={`/category/${slug}`}
             />
           )}
