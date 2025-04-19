@@ -22,15 +22,34 @@ export function CacheStatus() {
     if (typeof window === 'undefined') return;
 
     try {
-      const keys = Object.keys(localStorage).filter(key => key.startsWith('cache_'));
+      // Safely get keys from localStorage
+      let keys: string[] = [];
+      try {
+        // Get all keys that start with 'cache_'
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('cache_')) {
+            keys.push(key);
+          }
+        }
+      } catch (storageError) {
+        console.error('Error accessing localStorage keys:', storageError);
+        keys = [];
+      }
+
       let totalSize = 0;
 
-      keys.forEach(key => {
-        const item = localStorage.getItem(key);
-        if (item) {
-          totalSize += item.length;
+      // Safely get size of each item
+      for (const key of keys) {
+        try {
+          const item = localStorage.getItem(key);
+          if (item) {
+            totalSize += item.length;
+          }
+        } catch (itemError) {
+          console.error(`Error getting item ${key}:`, itemError);
         }
-      });
+      }
 
       setCacheInfo({
         totalItems: keys.length,
@@ -39,6 +58,11 @@ export function CacheStatus() {
       });
     } catch (error) {
       console.error('Error getting cache info:', error);
+      setCacheInfo({
+        totalItems: 0,
+        keys: [],
+        totalSize: 0,
+      });
     }
   };
 
@@ -63,6 +87,7 @@ export function CacheStatus() {
       const interval = setInterval(getCacheInfo, 5000);
       return () => clearInterval(interval);
     }
+    return () => {}; // Empty cleanup function when not visible
   }, [isVisible]);
 
   if (!isVisible) {

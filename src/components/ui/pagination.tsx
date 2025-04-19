@@ -1,6 +1,5 @@
 import { Button } from './button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
-import { MenuLink } from './menu-link';
 import { cn } from '@/lib/utils';
 
 interface PaginationProps {
@@ -64,7 +63,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
     <div className="flex items-center justify-center gap-2 py-8">
       {/* Previous button */}
       {baseUrl ? (
-        <MenuLink
+        <a
           href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
@@ -73,14 +72,13 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronLeft size={16} />
           <span className="sr-only">Previous Page</span>
-        </MenuLink>
+        </a>
       ) : (
         <Button
           variant="outline"
-          size="icon"
           onClick={() => onPageChange?.(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="h-10 w-10"
+          className="h-10 w-10 p-0"
         >
           <ChevronLeft size={16} />
           <span className="sr-only">Previous Page</span>
@@ -98,7 +96,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         }
 
         return baseUrl ? (
-          <MenuLink
+          <a
             key={`link-page-${page}-${index}`}
             href={`${baseUrl}?page=${page}`}
             className={cn(
@@ -107,13 +105,13 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             )}
           >
             {page}
-          </MenuLink>
+          </a>
         ) : (
           <Button
             key={`button-page-${page}-${index}`}
             variant={currentPage === page ? 'default' : 'outline'}
             onClick={() => onPageChange?.(page as number)}
-            className={cn('h-10 w-10', currentPage === page && 'bg-blue-500 text-white')}
+            className={cn('h-10 w-10 p-0', currentPage === page && 'bg-blue-500 text-white')}
           >
             {page}
           </Button>
@@ -122,7 +120,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
 
       {/* Next button */}
       {baseUrl ? (
-        <MenuLink
+        <a
           href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
@@ -131,14 +129,13 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronRight size={16} />
           <span className="sr-only">Next Page</span>
-        </MenuLink>
+        </a>
       ) : (
         <Button
           variant="outline"
-          size="icon"
           onClick={() => onPageChange?.(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="h-10 w-10"
+          className="h-10 w-10 p-0"
         >
           <ChevronRight size={16} />
           <span className="sr-only">Next Page</span>

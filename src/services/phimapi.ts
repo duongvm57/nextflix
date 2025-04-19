@@ -4,6 +4,22 @@ import { Movie, MovieDetail, PaginatedResponse, Episode } from '@/types';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { logger } from '@/utils/logger';
 
+// Helper function to generate empty response
+function getEmptyResponse(
+  page = 1,
+  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE
+): PaginatedResponse<Movie> {
+  return {
+    data: [],
+    pagination: {
+      totalItems: 0,
+      totalItemsPerPage: limit,
+      currentPage: page,
+      totalPages: 0,
+    },
+  };
+}
+
 // Helper function to fetch multiple pages and combine results
 async function fetchMultiplePages<T>(
   fetchFunction: (page: number) => Promise<PaginatedResponse<T>>,
@@ -12,10 +28,11 @@ async function fetchMultiplePages<T>(
 ): Promise<PaginatedResponse<T>> {
   // Calculate which API pages we need to fetch
   // For example, if we want 20 items per client page:
-  // Client page 1 -> API pages 1 and 2
-  // Client page 2 -> API pages 3 and 4
+  // Client page 1 -> API pages 1
+  // Client page 2 -> API pages 2
   // And so on...
-  const startApiPage = (clientPage - 1) * 2 + 1;
+  // Since the API already returns 20 items per page, we can just use the client page directly
+  const startApiPage = clientPage;
 
   logger.debug(
     `[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`
@@ -58,9 +75,48 @@ async function fetchMultiplePages<T>(
     logger.debug(`[DEBUG] fetchMultiplePages - Combined ${combinedItems.length} items`);
     logger.debug(`[DEBUG] fetchMultiplePages - Combined ${combinedItems.length} items`);
 
-    // Calculate total client pages based on total items and items per client page
-    const totalApiItems = page1Response.pagination.totalItems;
-    const totalClientPages = Math.ceil(totalApiItems / itemsPerClientPage);
+    // First, let's fetch page 1 to get the accurate total pages from the API
+    let firstPageResponse;
+    try {
+      // Only fetch page 1 if we're not already on page 1
+      if (startApiPage !== 1) {
+        firstPageResponse = await fetchFunction(1);
+        logger.debug(`[DEBUG] fetchMultiplePages - First page response:`, {
+          totalItems: firstPageResponse.pagination.totalItems,
+          totalPages: firstPageResponse.pagination.totalPages,
+          itemCount: firstPageResponse.data.length,
+        });
+      } else {
+        // If we're already on page 1, use the page1Response
+        firstPageResponse = page1Response;
+      }
+    } catch (error) {
+      logger.error(`[DEBUG] fetchMultiplePages - Error fetching first page:`, error);
+      // If first page fails, use the current page response
+      firstPageResponse = page1Response;
+    }
+
+    // Get the total items and pages from the API response of page 1
+    // This is the most reliable source for total pages
+    const totalApiItems = firstPageResponse.pagination.totalItems;
+    const apiTotalPages = firstPageResponse.pagination.totalPages;
+
+    logger.debug(`[DEBUG] fetchMultiplePages - API reports ${totalApiItems} total items and ${apiTotalPages} total pages`);
+
+    // Use the API's reported total pages directly
+    // This is more reliable than calculating based on items per page
+    let totalClientPages = apiTotalPages;
+
+    // Adjust totalClientPages based on actual data availability
+    if (combinedItems.length === 0 && clientPage > 1) {
+      // If we're on a page beyond page 1 and there are no items, the previous page was the last one
+      totalClientPages = clientPage - 1;
+      logger.debug(`[DEBUG] fetchMultiplePages - Adjusting totalClientPages to ${totalClientPages} because current page ${clientPage} has no items`);
+    } else if (combinedItems.length > 0) {
+      // If we have items, make sure totalClientPages is at least the current page
+      totalClientPages = Math.max(totalClientPages, clientPage);
+      logger.debug(`[DEBUG] fetchMultiplePages - Ensuring totalClientPages is at least ${clientPage}`);
+    }
 
     logger.debug(
       `[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`
@@ -141,39 +197,78 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
   logger.debug(`[DEBUG] Fetching API: ${originalUrl}`);
   logger.debug(`[DEBUG] Using proxy: ${proxyUrl}`);
 
-  try {
-    const response = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      // Use cache for better performance
-      cache:
-        endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
-        endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-          ? 'force-cache'
-          : 'no-store',
-      // Revalidate categories and countries every hour, otherwise disable cache
-      next:
-        endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
-        endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-          ? { revalidate: 3600 }
-          : { revalidate: 0 },
-    });
+  // Maximum number of retries
+  const MAX_RETRIES = 3;
+  let retries = 0;
+  let lastError: Error | null = null;
 
-    if (!response.ok) {
-      logger.error(`[DEBUG] API error: ${response.status}`);
-      throw new Error(`API error: ${response.status}`);
+  while (retries < MAX_RETRIES) {
+    try {
+      // Use a longer timeout for API calls
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
+
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+        // Use cache for better performance
+        cache:
+          endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
+          endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+            ? 'force-cache'
+            : 'no-store',
+        // Revalidate categories and countries every hour, otherwise disable cache
+        next:
+          endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
+          endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+            ? { revalidate: 3600 }
+            : { revalidate: 0 },
+      });
+
+      clearTimeout(timeoutId);
+
+      if (!response.ok) {
+        logger.error(`[DEBUG] API error: ${response.status}`);
+        // For 503 errors, retry
+        if (response.status === 503) {
+          lastError = new Error(`API error: ${response.status}`);
+          retries++;
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+          continue;
+        }
+        throw new Error(`API error: ${response.status}`);
+      }
+
+      const data = await response.json();
+      logger.debug(`[DEBUG] API response:`, data);
+      logger.debug(`[DEBUG] API response:`, data);
+      return data;
+    } catch (error) {
+      lastError = error instanceof Error ? error : new Error(String(error));
+      logger.error(`[DEBUG] Error fetching from ${originalUrl} (attempt ${retries + 1}):`, error);
+
+      // If it's an AbortError (timeout) or a 503, retry
+      if (
+        (error instanceof Error && error.name === 'AbortError') ||
+        (error instanceof Error && error.message.includes('503'))
+      ) {
+        retries++;
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+        continue;
+      }
+
+      // For other errors, throw immediately
+      throw error;
     }
-
-    const data = await response.json();
-    logger.debug(`[DEBUG] API response:`, data);
-    logger.debug(`[DEBUG] API response:`, data);
-    return data;
-  } catch (error) {
-    logger.error(`[DEBUG] Error fetching from ${originalUrl}:`, error);
-    throw error;
   }
+
+  // If we've exhausted all retries, throw the last error
+  throw lastError || new Error(`Failed after ${MAX_RETRIES} retries`);
 }
 
 // Hàm gọi API V1
@@ -200,30 +295,100 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
   const proxyUrl = originalUrl;
 
   logger.debug(`[DEBUG] Fetching API V1: ${originalUrl}`);
-  logger.debug(`[DEBUG] Using proxy: ${proxyUrl}`);
 
-  try {
-    const response = await fetch(proxyUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-      },
-      // Use cache for better performance
-      cache: 'no-store',
-      // Disable Next.js cache for dynamic data
-      next: { revalidate: 0 },
-    });
+  // Maximum number of retries
+  const MAX_RETRIES = 3;
+  let retries = 0;
 
-    logger.debug(`[DEBUG] API V1 response status: ${response.status}`);
-    logger.debug(`[DEBUG] API V1 response status: ${response.status}`);
+  while (retries < MAX_RETRIES) {
+    try {
+      // Use a longer timeout for API calls
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-    if (!response.ok) {
-      logger.error(`[DEBUG] API V1 error: ${response.status}`);
-      logger.error(`[DEBUG] API V1 error: ${response.status}`);
-      // Instead of throwing an error, return a default response
+      const response = await fetch(proxyUrl, {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+        signal: controller.signal,
+        // Use cache for better performance
+        cache: 'no-store',
+        // Disable Next.js cache for dynamic data
+        next: { revalidate: 0 },
+      });
+
+      clearTimeout(timeoutId);
+
+      logger.debug(`[DEBUG] API V1 response status: ${response.status}`);
+
+      if (!response.ok) {
+        logger.error(`[DEBUG] API V1 error: ${response.status}`);
+
+        // For 503 errors, retry
+        if (response.status === 503) {
+          retries++;
+          // Wait before retrying (exponential backoff)
+          await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+          continue;
+        }
+
+        // For other errors, return a default response
+        return {
+          status: 'error',
+          message: `API error: ${response.status}`,
+          data: {
+            items: [],
+            params: {
+              pagination: {
+                totalItems: 0,
+                totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+                currentPage: parseInt(params.page || '1'),
+                totalPages: 0,
+              },
+            },
+            APP_DOMAIN_CDN_IMAGE: '',
+          },
+        } as unknown as T;
+      }
+
+      const data = await response.json();
+      logger.debug(`[DEBUG] API V1 response data:`, data);
+
+      // Log detailed information about the response structure
+      if (data) {
+        logger.debug(`[DEBUG] API V1 response keys:`, Object.keys(data));
+        if (data.data) {
+          logger.debug(`[DEBUG] API V1 response data keys:`, Object.keys(data.data));
+          if (data.data.items) {
+            logger.debug(`[DEBUG] API V1 found ${data.data.items.length} items`);
+            if (data.data.items.length > 0) {
+              logger.debug(`[DEBUG] First item:`, data.data.items[0]);
+            }
+          }
+        }
+      }
+
+      return data;
+    } catch (error) {
+      logger.error(`[DEBUG] Error fetching from ${originalUrl} (attempt ${retries + 1}):`, error);
+
+      // If it's an AbortError (timeout) or a network error, retry
+      if (
+        (error instanceof Error && error.name === 'AbortError') ||
+        (error instanceof Error && error.message.includes('network')) ||
+        (error instanceof Error && error.message.includes('503'))
+      ) {
+        retries++;
+        // Wait before retrying (exponential backoff)
+        await new Promise(resolve => setTimeout(resolve, 1000 * retries));
+        continue;
+      }
+
+      // For other errors, return a default response
       return {
         status: 'error',
-        message: `API error: ${response.status}`,
+        message: `Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`,
         data: {
           items: [],
           params: {
@@ -238,50 +403,25 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
         },
       } as unknown as T;
     }
-
-    const data = await response.json();
-    logger.debug(`[DEBUG] API V1 response data:`, data);
-    logger.debug(`[DEBUG] API V1 response data:`, data);
-
-    // Log detailed information about the response structure
-    if (data) {
-      logger.debug(`[DEBUG] API V1 response keys:`, Object.keys(data));
-      logger.debug(`[DEBUG] API V1 response keys:`, Object.keys(data));
-      if (data.data) {
-        logger.debug(`[DEBUG] API V1 response data keys:`, Object.keys(data.data));
-        logger.debug(`[DEBUG] API V1 response data keys:`, Object.keys(data.data));
-        if (data.data.items) {
-          logger.debug(`[DEBUG] API V1 found ${data.data.items.length} items`);
-          logger.debug(`[DEBUG] API V1 found ${data.data.items.length} items`);
-          if (data.data.items.length > 0) {
-            logger.debug(`[DEBUG] First item:`, data.data.items[0]);
-            logger.debug(`[DEBUG] First item:`, data.data.items[0]);
-          }
-        }
-      }
-    }
-
-    return data;
-  } catch (error) {
-    logger.error(`[DEBUG] Error fetching from ${originalUrl}:`, error);
-    // Return a default response instead of throwing an error
-    return {
-      status: 'error',
-      message: `Error fetching data: ${error instanceof Error ? error.message : 'Unknown error'}`,
-      data: {
-        items: [],
-        params: {
-          pagination: {
-            totalItems: 0,
-            totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
-            currentPage: parseInt(params.page || '1'),
-            totalPages: 0,
-          },
-        },
-        APP_DOMAIN_CDN_IMAGE: '',
-      },
-    } as unknown as T;
   }
+
+  // If we've exhausted all retries, return a default response
+  return {
+    status: 'error',
+    message: `Failed after ${MAX_RETRIES} retries`,
+    data: {
+      items: [],
+      params: {
+        pagination: {
+          totalItems: 0,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+          currentPage: parseInt(params.page || '1'),
+          totalPages: 0,
+        },
+      },
+      APP_DOMAIN_CDN_IMAGE: '',
+    },
+  } as unknown as T;
 }
 
 // Hàm chuyển đổi dữ liệu API sang định dạng Movie
@@ -293,15 +433,20 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
     return `https://phimimg.com/${url}`;
   };
 
+  // Use a stable ID for sample movies to avoid hydration errors
+  const sampleId = apiMovie._id ? apiMovie._id : 'sample-movie';
+  // Sử dụng năm hiện tại từ server để tránh lỗi hydration
+  const currentYear = new Date().getFullYear();
+
   return {
-    _id: apiMovie._id || `sample-${Math.random().toString(36).substring(7)}`,
+    _id: sampleId,
     name: apiMovie.name || 'Unknown Movie',
     origin_name: apiMovie.origin_name || '',
     slug: apiMovie.slug || '',
     type: apiMovie.type || 'movie',
     thumb_url: fixImageUrl(apiMovie.thumb_url),
     poster_url: fixImageUrl(apiMovie.poster_url),
-    year: apiMovie.year || new Date().getFullYear(),
+    year: apiMovie.year || currentYear,
     time: apiMovie.time || '',
     episode_current: apiMovie.episode_current || '',
     quality: apiMovie.quality || 'HD',
@@ -391,19 +536,15 @@ export async function getNewMovies(
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`Fetching new movies for page: ${page}, limit: ${limit}`);
-    logger.debug(`Fetching new movies for page: ${page}, limit: ${limit}`);
     const response = await fetchAPI<any>(`${API_ENDPOINTS.NEW_MOVIES}`, {
       page: page.toString(),
       limit: limit.toString(),
     });
     logger.debug('API Response structure:', Object.keys(response));
-    logger.debug('API Response structure:', Object.keys(response));
 
     if (response && response.status === true) {
       // Check if there are items
       if (response.items && response.items.length > 0) {
-        logger.debug(`Found ${response.items.length} movies`);
-        logger.debug('Pagination data:', response.pagination);
         logger.debug(`Found ${response.items.length} movies`);
         logger.debug('Pagination data:', response.pagination);
 
@@ -418,17 +559,14 @@ export async function getNewMovies(
         };
       } else {
         logger.debug('No items found in API response');
-        logger.debug('No items found in API response');
       }
     } else {
-      logger.debug('API response status is not true');
       logger.debug('API response status is not true');
     }
 
     logger.debug('API response not successful, returning empty response');
     return getEmptyResponse(page);
   } catch (error) {
-    logger.error('Error fetching new movies:', error);
     logger.error('Error fetching new movies:', error);
     // Return empty response in case of error
     return getEmptyResponse(page);
@@ -439,9 +577,7 @@ export async function getNewMovies(
 export async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
     logger.debug(`Fetching movie detail for slug: ${slug}`);
-    logger.debug(`Fetching movie detail for slug: ${slug}`);
     const response = await fetchAPI<any>(`${API_ENDPOINTS.MOVIE_DETAIL}/${slug}`);
-    logger.debug('API Response:', JSON.stringify(response, null, 2));
     logger.debug('API Response:', JSON.stringify(response, null, 2));
 
     if (response && response.status === true && response.movie) {
@@ -452,19 +588,15 @@ export async function getMovieDetail(slug: string): Promise<MovieDetail | null> 
       };
 
       logger.debug('Movie with episodes:', JSON.stringify(movieWithEpisodes.episodes, null, 2));
-      logger.debug('Movie with episodes:', JSON.stringify(movieWithEpisodes.episodes, null, 2));
 
       const movieDetail = mapAPIMovieToMovieDetail(movieWithEpisodes);
-      logger.debug('Mapped movie detail:', JSON.stringify(movieDetail, null, 2));
       logger.debug('Mapped movie detail:', JSON.stringify(movieDetail, null, 2));
       return movieDetail;
     }
 
     logger.error('Empty or invalid response from API');
-    logger.error('Empty or invalid response from API');
     throw new Error('Empty or invalid response from API');
   } catch (error) {
-    logger.error(`Error fetching movie with slug ${slug}:`, error);
     logger.error(`Error fetching movie with slug ${slug}:`, error);
     throw error; // Throw error instead of returning sample data
   }
@@ -996,37 +1128,42 @@ export async function getCategories(): Promise<any[]> {
       `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`
     );
 
-    // Use fetch directly with a timeout to avoid hanging
+    // Use fetch directly with a longer timeout to avoid AbortError
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
-      signal: controller.signal,
-      cache: 'force-cache', // Use cache for categories
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
+        signal: controller.signal,
+        cache: 'force-cache', // Use cache for categories
+        next: { revalidate: 3600 }, // Revalidate every hour
+      });
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      logger.error(`[DEBUG] Categories API error: ${response.status}`);
-      logger.error(`[DEBUG] Categories API error: ${response.status}`);
-      return getSampleCategories();
-    }
+      if (!response.ok) {
+        logger.error(`[DEBUG] Categories API error: ${response.status}`);
+        logger.error(`[DEBUG] Categories API error: ${response.status}`);
+        return getSampleCategories();
+      }
 
-    const data = await response.json();
-    logger.debug('[DEBUG] Categories response:', data);
-    logger.debug('[DEBUG] Categories response:', data);
+      const data = await response.json();
+      logger.debug('[DEBUG] Categories response:', data);
+      logger.debug('[DEBUG] Categories response:', data);
 
-    if (Array.isArray(data)) {
-      return data.map(category => ({
-        id: category._id,
-        name: category.name,
-        slug: category.slug,
-      }));
-    } else {
-      logger.error('[DEBUG] Categories response is not an array:', data);
-      logger.error('[DEBUG] Categories response is not an array:', data);
+      if (Array.isArray(data)) {
+        return data.map(category => ({
+          id: category._id,
+          name: category.name,
+          slug: category.slug,
+        }));
+      } else {
+        logger.error('[DEBUG] Categories response is not an array:', data);
+        logger.error('[DEBUG] Categories response is not an array:', data);
+        return getSampleCategories();
+      }
+    } catch (fetchError) {
+      logger.error('Error fetching categories (fetch error):', fetchError);
       return getSampleCategories();
     }
   } catch (error) {
@@ -1048,37 +1185,42 @@ export async function getCountries(): Promise<any[]> {
       `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`
     );
 
-    // Use fetch directly with a timeout to avoid hanging
+    // Use fetch directly with a longer timeout to avoid AbortError
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000); // 5 second timeout
+    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
-      signal: controller.signal,
-      cache: 'force-cache', // Use cache for countries
-      next: { revalidate: 3600 }, // Revalidate every hour
-    });
+    try {
+      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
+        signal: controller.signal,
+        cache: 'force-cache', // Use cache for countries
+        next: { revalidate: 3600 }, // Revalidate every hour
+      });
 
-    clearTimeout(timeoutId);
+      clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      logger.error(`[DEBUG] Countries API error: ${response.status}`);
-      logger.error(`[DEBUG] Countries API error: ${response.status}`);
-      return getSampleCountries();
-    }
+      if (!response.ok) {
+        logger.error(`[DEBUG] Countries API error: ${response.status}`);
+        logger.error(`[DEBUG] Countries API error: ${response.status}`);
+        return getSampleCountries();
+      }
 
-    const data = await response.json();
-    logger.debug('[DEBUG] Countries response:', data);
-    logger.debug('[DEBUG] Countries response:', data);
+      const data = await response.json();
+      logger.debug('[DEBUG] Countries response:', data);
+      logger.debug('[DEBUG] Countries response:', data);
 
-    if (Array.isArray(data)) {
-      return data.map(country => ({
-        id: country._id,
-        name: country.name,
-        slug: country.slug,
-      }));
-    } else {
-      logger.error('[DEBUG] Countries response is not an array:', data);
-      logger.error('[DEBUG] Countries response is not an array:', data);
+      if (Array.isArray(data)) {
+        return data.map(country => ({
+          id: country._id,
+          name: country.name,
+          slug: country.slug,
+        }));
+      } else {
+        logger.error('[DEBUG] Countries response is not an array:', data);
+        logger.error('[DEBUG] Countries response is not an array:', data);
+        return getSampleCountries();
+      }
+    } catch (fetchError) {
+      logger.error('Error fetching countries (fetch error):', fetchError);
       return getSampleCountries();
     }
   } catch (error) {
@@ -1088,21 +1230,7 @@ export async function getCountries(): Promise<any[]> {
   }
 }
 
-// Helper function to generate empty response
-function getEmptyResponse(
-  page = 1,
-  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE
-): PaginatedResponse<Movie> {
-  return {
-    data: [],
-    pagination: {
-      totalItems: 0,
-      totalItemsPerPage: limit,
-      currentPage: page,
-      totalPages: 0,
-    },
-  };
-}
+
 
 // Helper function to generate sample categories
 function getSampleCategories() {

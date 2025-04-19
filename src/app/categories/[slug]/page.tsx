@@ -146,6 +146,11 @@ export default async function ListingPage({
     movies = result.data;
     pagination = result.pagination;
 
+    // Redirect to the last page if current page is greater than total pages
+    if (pagination.totalPages > 0 && page > pagination.totalPages) {
+      return Response.redirect(`/categories/${slug}?page=${pagination.totalPages}`);
+    }
+
     // First check if it's a special category
     if (SPECIAL_CATEGORY_NAMES[slug]) {
       title = SPECIAL_CATEGORY_NAMES[slug];

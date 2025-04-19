@@ -2,6 +2,7 @@ import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { getCategories } from '@/services/phimapi';
+import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 
 async function getMoviesByGenre(slug: string, page: number = 1) {
   try {
@@ -26,6 +27,11 @@ export default async function GenrePage({
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
   const { data: movies, pagination } = await getMoviesByGenre(slug, page);
 
+  // Redirect to the last page if current page is greater than total pages
+  if (pagination.totalPages > 0 && page > pagination.totalPages) {
+    return Response.redirect(`/genres/${slug}?page=${pagination.totalPages}`);
+  }
+
   // Get genre name from API
   const categories = await getCategories();
   const genre = categories.find(cat => cat.slug === slug);
@@ -40,6 +46,12 @@ export default async function GenrePage({
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <BreadcrumbSchema
+        items={[
+          { name: 'Thể loại', url: '/genres' },
+          { name: genreName, url: `/genres/${slug}` },
+        ]}
+      />
       <h1 className="mb-8 text-3xl font-bold">Thể loại: {genreName}</h1>
 
       {movies.length > 0 ? (

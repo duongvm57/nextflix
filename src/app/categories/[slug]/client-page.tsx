@@ -162,7 +162,6 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
               baseUrl={`/categories/${slug}`}
-              onPageChange={handlePageChange}
             />
           )}
         </>

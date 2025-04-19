@@ -11,6 +11,9 @@ import { fetchMenuData } from '@/lib/cache/api-cache';
 import Image from 'next/image';
 import { MenuSkeleton } from '@/components/ui/menu-skeleton';
 
+// Sử dụng năm cố định để tránh lỗi hydration
+const CURRENT_YEAR = 2024;
+
 // Tạo menu cơ bản để hiển thị ngay từ đầu
 const getFixedMenuItems = (): MenuItem[] => {
   return [
@@ -62,14 +65,14 @@ const getFixedMenuItems = (): MenuItem[] => {
       children: [],
     },
 
-    // Năm
+    // Năm - sử dụng năm cố định để tránh lỗi hydration
     {
       id: 'years',
       label: 'Năm',
       href: '#years',
       isDropdown: true,
       children: Array.from({ length: 10 }, (_, i) => {
-        const year = new Date().getFullYear() - i;
+        const year = CURRENT_YEAR - i;
         return {
           id: `year-${year}`,
           label: year.toString(),
@@ -104,7 +107,8 @@ export function Header() {
         const { categories, countries } = await fetchMenuData();
 
         // Chỉ cập nhật menu con của thể loại và quốc gia
-        if (categories?.length > 0 && countries?.length > 0) {
+        if (categories && Array.isArray(categories) && categories.length > 0 &&
+            countries && Array.isArray(countries) && countries.length > 0) {
           // Tạo bản sao của menu hiện tại
           const updatedMenuItems = [...menuItems];
 
@@ -126,7 +130,7 @@ export function Header() {
           if (countryMenuIndex !== -1) {
             updatedMenuItems[countryMenuIndex] = {
               ...updatedMenuItems[countryMenuIndex],
-              children: countries.map(country => ({
+              children: countries.map((country: any) => ({
                 id: country.id || country.slug,
                 label: country.name,
                 href: `/countries/${country.slug}`,

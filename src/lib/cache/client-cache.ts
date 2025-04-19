@@ -27,7 +27,15 @@ export const clientCache = {
       // Skip cache in server-side rendering
       if (typeof window === 'undefined') return null;
 
-      const item = localStorage.getItem(`cache_${key}`);
+      // Use a try-catch block specifically for localStorage access
+      let item: string | null = null;
+      try {
+        item = localStorage.getItem(`cache_${key}`);
+      } catch (storageError) {
+        console.error('Error accessing localStorage:', storageError);
+        return null;
+      }
+
       if (!item) return null;
 
       const cacheItem: CacheItem<T> = JSON.parse(item);
@@ -36,7 +44,11 @@ export const clientCache = {
       // Check if cache is expired
       if (now - cacheItem.timestamp > cacheItem.expiry) {
         console.log(`Cache expired for ${key}`);
-        localStorage.removeItem(`cache_${key}`);
+        try {
+          localStorage.removeItem(`cache_${key}`);
+        } catch (removeError) {
+          console.error('Error removing from localStorage:', removeError);
+        }
         return null;
       }
 
@@ -65,8 +77,37 @@ export const clientCache = {
         expiry,
       };
 
-      localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
-      console.log(`Cache set for ${key}, expires in ${expiry / 1000} seconds`);
+      try {
+        localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
+        console.log(`Cache set for ${key}, expires in ${expiry / 1000} seconds`);
+      } catch (storageError) {
+        console.error('Error writing to localStorage:', storageError);
+        // Try to clear some space in localStorage
+        try {
+          // Remove oldest items first
+          const keys = Object.keys(localStorage)
+            .filter(k => k.startsWith('cache_'))
+            .sort((a, b) => {
+              try {
+                const itemA = JSON.parse(localStorage.getItem(a) || '{}');
+                const itemB = JSON.parse(localStorage.getItem(b) || '{}');
+                return (itemA.timestamp || 0) - (itemB.timestamp || 0);
+              } catch (e) {
+                return 0;
+              }
+            });
+
+          // Remove up to 5 oldest items
+          for (let i = 0; i < Math.min(5, keys.length); i++) {
+            localStorage.removeItem(keys[i]);
+          }
+
+          // Try again
+          localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
+        } catch (e) {
+          console.error('Failed to make space in localStorage:', e);
+        }
+      }
     } catch (error) {
       console.error('Error setting cache:', error);
     }
@@ -81,7 +122,11 @@ export const clientCache = {
       // Skip cache in server-side rendering
       if (typeof window === 'undefined') return;
 
-      localStorage.removeItem(`cache_${key}`);
+      try {
+        localStorage.removeItem(`cache_${key}`);
+      } catch (storageError) {
+        console.error('Error removing from localStorage:', storageError);
+      }
     } catch (error) {
       console.error('Error removing from cache:', error);
     }
@@ -95,12 +140,27 @@ export const clientCache = {
       // Skip cache in server-side rendering
       if (typeof window === 'undefined') return;
 
-      // Only clear items with our cache prefix
-      Object.keys(localStorage).forEach(key => {
-        if (key.startsWith('cache_')) {
-          localStorage.removeItem(key);
+      try {
+        // Only clear items with our cache prefix
+        const keysToRemove = [];
+        for (let i = 0; i < localStorage.length; i++) {
+          const key = localStorage.key(i);
+          if (key && key.startsWith('cache_')) {
+            keysToRemove.push(key);
+          }
         }
-      });
+
+        // Remove items in a separate loop to avoid issues with changing indices
+        keysToRemove.forEach(key => {
+          try {
+            localStorage.removeItem(key);
+          } catch (removeError) {
+            console.error(`Error removing key ${key}:`, removeError);
+          }
+        });
+      } catch (storageError) {
+        console.error('Error accessing localStorage:', storageError);
+      }
     } catch (error) {
       console.error('Error clearing cache:', error);
     }
