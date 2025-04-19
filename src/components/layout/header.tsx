@@ -146,7 +146,7 @@ export function Header() {
     };
 
     checkCacheAndFetch();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Close dropdown when clicking outside
@@ -209,7 +209,9 @@ export function Header() {
                           <ChevronDown size={16} className="ml-1" />
                         </button>
                         {openDropdown === item.label && (
-                          <div className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}>
+                          <div
+                            className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}
+                          >
                             {item.id === 'categories' || item.id === 'countries' ? (
                               <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
                                 {item.children?.map(child => (

@@ -18,18 +18,10 @@ const CACHE_TIMES = {
 // Memoized API functions
 export const cachedAPI = {
   // Get categories with caching
-  getCategories: memoize(
-    getCategories,
-    () => 'categories',
-    CACHE_TIMES.CATEGORIES
-  ),
+  getCategories: memoize(getCategories, () => 'categories', CACHE_TIMES.CATEGORIES),
 
   // Get countries with caching
-  getCountries: memoize(
-    getCountries,
-    () => 'countries',
-    CACHE_TIMES.COUNTRIES
-  ),
+  getCountries: memoize(getCountries, () => 'countries', CACHE_TIMES.COUNTRIES),
 };
 
 /**

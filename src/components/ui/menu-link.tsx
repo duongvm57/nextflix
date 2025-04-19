@@ -60,12 +60,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
   }, [href, handleNavigation]);
 
   return (
-    <Link
-      ref={linkRef}
-      href={href}
-      className={`relative block ${className}`}
-      onClick={handleClick}
-    >
+    <Link ref={linkRef} href={href} className={`relative block ${className}`} onClick={handleClick}>
       {children}
       <RippleEffect />
     </Link>

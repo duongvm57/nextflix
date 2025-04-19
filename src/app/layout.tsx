@@ -5,13 +5,15 @@ import { Footer } from '@/components/layout/footer';
 import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
 import { LoadingProvider } from '@/providers/loading-provider';
 import { Suspense } from 'react';
+import { SITE_NAME, SITE_DESCRIPTION } from '@/lib/constants';
+import { WebsiteSchema } from '@/components/schema/website-schema';
 
 // Removed font declarations to avoid hydration issues
 
 export function generateMetadata(): Metadata {
   return {
-    title: 'Nextflix',
-    description: 'Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD',
+    title: SITE_NAME,
+    description: SITE_DESCRIPTION,
     icons: {
       icon: '/favicon.svg',
       shortcut: '/favicon.svg',
@@ -39,6 +41,9 @@ export default async function RootLayout({
         className="antialiased bg-black text-white min-h-screen flex flex-col"
         suppressHydrationWarning
       >
+        {/* Thêm Schema.org structured data cho website */}
+        <WebsiteSchema />
+
         <Suspense fallback={<div>Loading...</div>}>
           <LoadingProvider>
             <Header />

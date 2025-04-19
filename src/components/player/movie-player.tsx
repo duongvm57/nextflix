@@ -15,7 +15,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
   // State for selected server and episode
   const [selectedServer, setSelectedServer] = useState<number>(0);
   const [selectedEpisode, setSelectedEpisode] = useState<EpisodeItem | null>(
-    initialEpisode || (movie.episodes?.[0]?.items?.[0] || null)
+    initialEpisode || movie.episodes?.[0]?.items?.[0] || null
   );
 
   // Handle episode selection
@@ -59,11 +59,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
           </div>
         ) : videoSrc ? (
           <div className="relative aspect-video overflow-hidden rounded-lg">
-            <VideoPlayer
-              src={videoSrc}
-              poster={movie.thumb_url}
-              className="rounded-lg"
-            />
+            <VideoPlayer src={videoSrc} poster={movie.thumb_url} className="rounded-lg" />
           </div>
         ) : (
           <div className="relative aspect-video flex items-center justify-center overflow-hidden rounded-lg bg-gray-800">
@@ -94,7 +90,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
         {/* Episodes grid - Điều chỉnh hiển thị dựa vào số lượng tập */}
         <div className="rounded-lg bg-gray-800 p-4">
           {movie.episodes[selectedServer]?.items.length === 1 &&
-           movie.episodes[selectedServer]?.items[0].name.toLowerCase() === "full" ? (
+          movie.episodes[selectedServer]?.items[0].name.toLowerCase() === 'full' ? (
             // Nếu chỉ có 1 tập "Full", hiển thị nút nhỏ
             <div className="flex justify-start">
               <div className="w-24">

@@ -148,13 +148,17 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
         Accept: 'application/json',
       },
       // Use cache for better performance
-      cache: endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) || endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-        ? 'force-cache'
-        : 'no-store',
+      cache:
+        endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
+        endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+          ? 'force-cache'
+          : 'no-store',
       // Revalidate categories and countries every hour, otherwise disable cache
-      next: endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) || endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-        ? { revalidate: 3600 }
-        : { revalidate: 0 },
+      next:
+        endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
+        endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
+          ? { revalidate: 3600 }
+          : { revalidate: 0 },
     });
 
     if (!response.ok) {

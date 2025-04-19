@@ -36,38 +36,41 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
   const page = searchParams?.get('page') ? parseInt(searchParams.get('page')!) : 1;
 
   // Fetch movies with caching
-  const fetchMoviesWithCache = useCallback(async (pageNum: number) => {
-    const cacheKey = `category_${slug}_page_${pageNum}`;
-    const cachedData = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
+  const fetchMoviesWithCache = useCallback(
+    async (pageNum: number) => {
+      const cacheKey = `category_${slug}_page_${pageNum}`;
+      const cachedData = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
 
-    if (cachedData) {
-      console.log(`Using cached data for ${slug} page ${pageNum}`);
-      return cachedData;
-    }
+      if (cachedData) {
+        console.log(`Using cached data for ${slug} page ${pageNum}`);
+        return cachedData;
+      }
 
-    console.log(`Fetching fresh data for ${slug} page ${pageNum}`);
+      console.log(`Fetching fresh data for ${slug} page ${pageNum}`);
 
-    // Determine which API endpoint to use based on isYear flag
-    let response;
-    if (isYear) {
-      // Fetch movies by year
-      response = await fetch(`/api/movies/year/${slug}?page=${pageNum}`);
-    } else {
-      // Fetch movies by category
-      response = await fetch(`/api/movies/category/${slug}?page=${pageNum}`);
-    }
+      // Determine which API endpoint to use based on isYear flag
+      let response;
+      if (isYear) {
+        // Fetch movies by year
+        response = await fetch(`/api/movies/year/${slug}?page=${pageNum}`);
+      } else {
+        // Fetch movies by category
+        response = await fetch(`/api/movies/category/${slug}?page=${pageNum}`);
+      }
 
-    if (!response.ok) {
-      throw new Error(`Error fetching movies: ${response.statusText}`);
-    }
+      if (!response.ok) {
+        throw new Error(`Error fetching movies: ${response.statusText}`);
+      }
 
-    const data = await response.json();
+      const data = await response.json();
 
-    // Cache for 5 minutes
-    clientCache.set(cacheKey, data, 5 * 60 * 1000);
+      // Cache for 5 minutes
+      clientCache.set(cacheKey, data, 5 * 60 * 1000);
 
-    return data;
-  }, [slug, isYear]);
+      return data;
+    },
+    [slug, isYear]
+  );
 
   // Update data when page changes
   useEffect(() => {
@@ -144,9 +147,11 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
 
       {isLoading ? (
         <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-          {Array(10).fill(null).map((_, index) => (
-            <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
-          ))}
+          {Array(10)
+            .fill(null)
+            .map((_, index) => (
+              <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
+            ))}
         </div>
       ) : movies.length > 0 ? (
         <>
