@@ -25,7 +25,7 @@ export function Footer() {
 
           {/* Categories */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-white">Danh mục</h3>
+            <h1 className="mb-4 text-lg font-semibold text-white">Danh mục</h1>
             <ul className="space-y-2">
               <li>
                 <Link href="/categories/phim-le" className="hover:text-primary">
@@ -47,7 +47,7 @@ export function Footer() {
 
           {/* Genres */}
           <div>
-            <h3 className="mb-4 text-lg font-semibold text-white">Thể loại</h3>
+            <h1 className="mb-4 text-lg font-semibold text-white">Thể loại</h1>
             <ul className="space-y-2">
               <li>
                 <MenuLink href="/genres/hanh-dong" className="hover:text-primary">

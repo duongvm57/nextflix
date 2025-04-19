@@ -7,6 +7,7 @@ import { LoadingProvider } from '@/providers/loading-provider';
 import { Suspense } from 'react';
 import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
 import { WebsiteSchema } from '@/components/schema/website-schema';
+import { SpeedInsights } from '@vercel/speed-insights/next';
 
 // Removed font declarations to avoid hydration issues
 
@@ -95,6 +96,7 @@ export default async function RootLayout({
             <CacheStatusWrapper />
           </LoadingProvider>
         </Suspense>
+        <SpeedInsights />
       </body>
     </html>
   );
