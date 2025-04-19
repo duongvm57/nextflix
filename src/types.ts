@@ -28,6 +28,7 @@ export interface Movie {
 // Movie detail type
 export interface MovieDetail extends Movie {
   episodes: Episode[];
+  trailer_url?: string;
 }
 
 // Episode type

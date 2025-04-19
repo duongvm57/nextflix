@@ -1,10 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { movieService } from '@/lib/services/api';
 
-export async function GET(
-  request: NextRequest,
-  { params }: { params: { slug: string } }
-) {
+export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   const { slug } = params;
   const searchParams = request.nextUrl.searchParams;
   const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;

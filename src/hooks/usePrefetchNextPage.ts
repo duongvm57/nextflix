@@ -38,7 +38,7 @@ export function usePrefetchNextPage<T>(
       try {
         console.log(`Prefetching data for page ${nextPage}`);
         const data = await fetchFn(nextPage);
-        
+
         // Cache dữ liệu với thời gian 5 phút
         clientCache.set(cacheKey, data, 5 * 60 * 1000);
         console.log(`Cached data for page ${nextPage}`);

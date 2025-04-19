@@ -66,7 +66,7 @@ export const clientCache = {
       };
 
       localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
-      console.log(`Cache set for ${key}, expires in ${expiry/1000} seconds`);
+      console.log(`Cache set for ${key}, expires in ${expiry / 1000} seconds`);
     } catch (error) {
       console.error('Error setting cache:', error);
     }
