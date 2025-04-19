@@ -42,7 +42,7 @@ export function BackToTop({ threshold = 300, smooth = true }: BackToTopProps) {
   return (
     <button
       onClick={scrollToTop}
-      className="fixed bottom-6 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+      className="fixed bottom-20 right-6 z-50 flex h-12 w-12 items-center justify-center rounded-full bg-primary text-white shadow-lg transition-all hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
       aria-label="Back to top"
     >
       <ChevronUp size={24} />

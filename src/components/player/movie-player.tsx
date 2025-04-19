@@ -43,11 +43,14 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
       ? selectedEpisode?.link_m3u8 || ''
       : selectedEpisode?.link_embed || '';
 
+  // Fallback to embed if m3u8 is not available
+  const useEmbed = playerConfig.defaultSourceType === 'embed' || !selectedEpisode?.link_m3u8;
+
   return (
     <div className="mb-8">
       {/* Video Player */}
       <div className="mb-6">
-        {playerConfig.defaultSourceType === 'embed' && videoSrc ? (
+        {useEmbed && videoSrc ? (
           <div className="relative aspect-video overflow-hidden rounded-lg">
             <iframe
               src={videoSrc}

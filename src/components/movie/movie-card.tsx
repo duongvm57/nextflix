@@ -28,7 +28,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
           <Image
-            src={getImageUrl(isFeatured ? movie.poster_url : movie.thumb_url)}
+            src={getImageUrl(movie.poster_url || movie.thumb_url)}
             alt={movie.name}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"

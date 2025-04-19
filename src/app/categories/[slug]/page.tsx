@@ -181,7 +181,6 @@ export default async function ListingPage({
     <>
       <BreadcrumbSchema
         items={[
-          { name: isYear ? 'Năm' : 'Thể loại', url: '/categories' },
           { name: title, url: `/categories/${slug}` },
         ]}
       />

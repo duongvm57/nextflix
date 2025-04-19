@@ -1,6 +1,7 @@
 import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { getCategories } from '@/services/phimapi';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 
@@ -48,9 +49,14 @@ export default async function GenrePage({
     <div className="container mx-auto px-4 py-8">
       <BreadcrumbSchema
         items={[
-          { name: 'Thể loại', url: '/genres' },
           { name: genreName, url: `/genres/${slug}` },
         ]}
+      />
+      <Breadcrumb
+        items={[
+          { name: genreName, url: `/genres/${slug}` },
+        ]}
+        className="mt-4"
       />
       <h1 className="mb-8 text-3xl font-bold">Thể loại: {genreName}</h1>
 

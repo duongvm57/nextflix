@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef } from 'react';
+import { useRef, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
@@ -28,7 +28,16 @@ export function MovieCarousel({ movies, title }: MovieCarouselProps) {
       <div
         ref={scrollContainerRef}
         className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide"
-        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
+        style={{
+          scrollbarWidth: 'none',
+          msOverflowStyle: 'none',
+          WebkitOverflowScrolling: 'touch',
+          overscrollBehavior: 'auto',
+          scrollSnapType: 'x proximity',
+          scrollBehavior: 'smooth',
+          touchAction: 'pan-x',
+          cursor: 'grab'
+        }}
       >
         {movies.map(movie => (
           <div

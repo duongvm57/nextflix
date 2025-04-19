@@ -5,6 +5,7 @@ import { useRouter, usePathname, useSearchParams } from 'next/navigation';
 import { triggerLoading } from '@/components/ui/loading-indicator';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Movie, PaginatedResponse } from '@/types';
 import { clientCache } from '@/lib/cache/client-cache';
 
@@ -143,6 +144,12 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
 
   return (
     <div className="container mx-auto px-4 py-8">
+      <Breadcrumb
+        items={[
+          { name: title, url: `/categories/${slug}` },
+        ]}
+        className="mt-4 mb-4"
+      />
       <h1 className="mb-8 text-3xl font-bold">{title}</h1>
 
       {isLoading ? (

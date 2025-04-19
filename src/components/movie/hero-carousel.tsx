@@ -1,11 +1,13 @@
 'use client';
 
-import { useRef, useState, useEffect, useCallback, TouchEvent } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
+import { useRouter } from 'next/navigation';
 import { MenuLink } from '@/components/ui/menu-link';
 import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
 import { Movie } from '@/types';
 import { Button } from '@/components/ui/button';
+import useEmblaCarousel from 'embla-carousel-react';
 
 interface HeroCarouselProps {
   movies: Movie[];
@@ -13,92 +15,57 @@ interface HeroCarouselProps {
 }
 
 export function HeroCarousel({ movies, title }: HeroCarouselProps) {
-  const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [isAnimating, setIsAnimating] = useState(false);
-  const [touchStart, setTouchStart] = useState(0);
-  const [touchEnd, setTouchEnd] = useState(0);
 
-  const scrollLeft = () => {
-    if (isAnimating || !scrollContainerRef.current) return;
+  // Sử dụng Embla Carousel
+  const [emblaRef, emblaApi] = useEmblaCarousel({
+    loop: true,
+    align: 'center',
+    containScroll: 'trimSnaps',
+    dragFree: false,
+    skipSnaps: false
+  });
 
-    setIsAnimating(true);
-    const newIndex = (currentIndex - 1 + movies.length) % movies.length;
-    setCurrentIndex(newIndex);
+  // Các hàm điều khiển carousel
+  const scrollPrev = useCallback(() => {
+    if (emblaApi) emblaApi.scrollPrev();
+  }, [emblaApi]);
 
-    scrollContainerRef.current.scrollTo({
-      left: newIndex * scrollContainerRef.current.offsetWidth,
-      behavior: 'smooth',
-    });
+  const scrollNext = useCallback(() => {
+    if (emblaApi) emblaApi.scrollNext();
+  }, [emblaApi]);
 
-    setTimeout(() => setIsAnimating(false), 500);
-  };
+  // Cập nhật currentIndex khi slide thay đổi
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setCurrentIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
 
-  const scrollRight = useCallback(() => {
-    if (isAnimating || !scrollContainerRef.current) return;
+  // Thiết lập sự kiện onSelect
+  useEffect(() => {
+    if (!emblaApi) return;
 
-    setIsAnimating(true);
-    const newIndex = (currentIndex + 1) % movies.length;
-    setCurrentIndex(newIndex);
+    emblaApi.on('select', onSelect);
+    onSelect(); // Cập nhật index ban đầu
 
-    scrollContainerRef.current.scrollTo({
-      left: newIndex * scrollContainerRef.current.offsetWidth,
-      behavior: 'smooth',
-    });
-
-    setTimeout(() => setIsAnimating(false), 500);
-  }, [currentIndex, isAnimating, movies.length]);
-
-  // Handle touch events for mobile swipe
-  const handleTouchStart = (e: TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchMove = (e: TouchEvent) => {
-    setTouchEnd(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = () => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe) {
-      scrollRight();
-    }
-    if (isRightSwipe) {
-      scrollLeft();
-    }
-
-    // Reset values
-    setTouchStart(0);
-    setTouchEnd(0);
-  };
+    return () => {
+      emblaApi.off('select', onSelect);
+    };
+  }, [emblaApi, onSelect]);
 
   // Auto-scroll every 5 seconds
   useEffect(() => {
+    if (!emblaApi) return;
+
     const interval = setInterval(() => {
-      if (!isAnimating && document.visibilityState === 'visible') {
-        scrollRight();
+      if (document.visibilityState === 'visible') {
+        emblaApi.scrollNext();
       }
     }, 5000);
 
     return () => clearInterval(interval);
-  }, [currentIndex, isAnimating, scrollRight]);
-
-  // Handle manual scroll
-  const handleScroll = () => {
-    if (isAnimating || !scrollContainerRef.current) return;
-
-    const scrollLeft = scrollContainerRef.current.scrollLeft;
-    const itemWidth = scrollContainerRef.current.offsetWidth;
-    const newIndex = Math.round(scrollLeft / itemWidth);
-
-    if (newIndex !== currentIndex) {
-      setCurrentIndex(newIndex);
-    }
-  };
+  }, [emblaApi]);
 
   if (!movies || movies.length === 0) {
     return null;
@@ -111,119 +78,127 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
       </div>
 
       <div className="relative">
-        {/* Large navigation buttons on sides */}
+        {/* Large navigation buttons on sides - hidden on mobile */}
         <button
-          onClick={scrollLeft}
-          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:left-4"
+          onClick={scrollPrev}
+          className="absolute left-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:left-4 hidden md:block"
           aria-label="Previous movie"
         >
           <ChevronLeft className="h-6 w-6 md:h-8 md:w-8" />
         </button>
 
         <button
-          onClick={scrollRight}
-          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:right-4"
+          onClick={scrollNext}
+          className="absolute right-2 top-1/2 z-10 -translate-y-1/2 rounded-full bg-black/50 p-2 text-white backdrop-blur-sm transition-all hover:bg-black/70 md:right-4 hidden md:block"
           aria-label="Next movie"
         >
           <ChevronRight className="h-6 w-6 md:h-8 md:w-8" />
         </button>
 
-        <div
-          ref={scrollContainerRef}
-          className="relative flex touch-pan-x snap-x snap-mandatory overflow-x-auto scrollbar-hide"
-          style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}
-          onScroll={handleScroll}
-          onTouchStart={handleTouchStart}
-          onTouchMove={handleTouchMove}
-          onTouchEnd={handleTouchEnd}
-        >
-          {movies.map((movie, index) => (
-            <div
-              key={movie._id}
-              className="relative flex-shrink-0 w-full snap-center overflow-hidden rounded-xl"
-            >
-              <div className="relative aspect-video w-full overflow-hidden">
-                <Image
-                  src={movie.poster_url || movie.thumb_url}
-                  alt={movie.name}
-                  fill
-                  className="object-cover"
-                  priority={index === 0}
+        {/* Embla Carousel Viewport */}
+        <div className="overflow-hidden no-select" ref={emblaRef}>
+          {/* Embla Carousel Container */}
+          <div className="flex">
+            {movies.map((movie, index) => (
+              <div
+                key={movie._id}
+                className="relative flex-shrink-0 w-full overflow-hidden rounded-xl"
+              >
+                {/* Thêm button phủ toàn bộ banner trên mobile */}
+                <button
+                  onClick={() => router.push(`/watch/${movie.slug}`)}
+                  className="absolute inset-0 z-10 md:hidden"
+                  aria-label={`Xem phim ${movie.name}`}
                 />
-                <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-              </div>
 
-              <div className="absolute bottom-0 left-0 p-4 md:p-12 md:w-2/3 lg:w-1/2">
-                <h1 className="mb-2 text-2xl font-bold md:text-4xl lg:text-5xl">{movie.name}</h1>
-                <p className="mb-2 text-sm text-gray-300 md:mb-4 md:text-base">
-                  {movie.origin_name}
-                </p>
-
-                <div className="mb-2 flex flex-wrap gap-2 md:mb-4">
-                  {movie.category && (
-                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs md:px-3 md:py-1 md:text-sm">
-                      {movie.category.name}
-                    </span>
-                  )}
-                  {movie.quality && (
-                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs md:px-3 md:py-1 md:text-sm">
-                      {movie.quality}
-                    </span>
-                  )}
-                  {movie.year && (
-                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs md:px-3 md:py-1 md:text-sm">
-                      {movie.year}
-                    </span>
-                  )}
+                <div className="relative aspect-video w-full overflow-hidden">
+                  <Image
+                    src={movie.thumb_url || movie.poster_url}
+                    alt={movie.name}
+                    fill
+                    className="object-cover"
+                    priority={index === 0}
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
+                  
+                  {/* Thêm link phủ toàn bộ banner trên mobile */}
+                  <MenuLink 
+                    href={`/watch/${movie.slug}`} 
+                    className="absolute inset-0 md:hidden"
+                  />
                 </div>
 
-                <p className="mb-4 line-clamp-2 text-xs text-gray-300 md:mb-6 md:line-clamp-3 md:text-base">
-                  {movie.content}
-                </p>
+                <div className="absolute bottom-0 left-0 p-4 md:p-12 w-full md:w-2/3 lg:w-1/2">
+                  <h1 className="mb-1 text-xl font-bold md:text-4xl lg:text-5xl line-clamp-2 md:line-clamp-none md:mb-2">{movie.name}</h1>
+                  <p className="mb-1 text-xs text-gray-300 md:mb-4 md:text-base line-clamp-1">
+                    {movie.origin_name}
+                  </p>
 
-                <div className="flex flex-wrap gap-2 md:gap-4">
-                  <MenuLink href={`/watch/${movie.slug}`}>
-                    <Button
-                      variant="primary"
-                      size="sm"
-                      className="flex items-center gap-1 md:gap-2 md:text-base md:px-4 md:py-2"
-                    >
-                      <Play size={16} fill="white" className="md:h-5 md:w-5" />
-                      Xem ngay
-                    </Button>
-                  </MenuLink>
-                  <MenuLink href={`/watch/${movie.slug}`}>
-                    <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
-                      Thông tin thêm
-                    </Button>
-                  </MenuLink>
+                  <div className="mb-1 flex flex-wrap gap-1 md:gap-2 md:mb-4">
+                    {movie.category && (
+                      <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
+                        {movie.category.name}
+                      </span>
+                    )}
+                    {movie.quality && (
+                      <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
+                        {movie.quality}
+                      </span>
+                    )}
+                    {movie.year && (
+                      <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
+                        {movie.year}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="hidden md:block mb-4 line-clamp-2 text-xs text-gray-300 md:mb-6 md:line-clamp-3 md:text-base">
+                    {movie.content}
+                  </p>
+
+                  {/* Ẩn buttons trên mobile */}
+                  <div className="hidden md:flex flex-wrap gap-4">
+                    <MenuLink href={`/watch/${movie.slug}`}>
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        className="flex items-center gap-2 md:text-base md:px-4 md:py-2"
+                      >
+                        <Play size={16} fill="white" className="md:h-5 md:w-5" />
+                        Xem ngay
+                      </Button>
+                    </MenuLink>
+                    <MenuLink href={`/watch/${movie.slug}`}>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="md:text-base md:px-4 md:py-2"
+                      >
+                        Thông tin thêm
+                      </Button>
+                    </MenuLink>
+                  </div>
                 </div>
               </div>
-            </div>
-          ))}
+            ))}
+          </div>
         </div>
-      </div>
 
-      {/* Pagination dots */}
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-2">
+      {/* Thu nhỏ pagination dots */}
+      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1">
         {movies.map((_, index) => (
           <button
             key={index}
-            className={`h-2 w-2 rounded-full ${
+            className={`h-1 w-1 md:h-1.5 md:w-1.5 rounded-full ${
               index === currentIndex ? 'bg-white' : 'bg-white/30'
             }`}
             onClick={() => {
-              if (scrollContainerRef.current) {
-                setCurrentIndex(index);
-                scrollContainerRef.current.scrollTo({
-                  left: index * scrollContainerRef.current.offsetWidth,
-                  behavior: 'smooth',
-                });
-              }
+              if (emblaApi) emblaApi.scrollTo(index);
             }}
             aria-label={`Go to slide ${index + 1}`}
           />
         ))}
+      </div>
       </div>
     </div>
   );

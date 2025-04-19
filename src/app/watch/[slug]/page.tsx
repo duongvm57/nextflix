@@ -106,10 +106,6 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
       <MovieSchema movie={movie} />
       <BreadcrumbSchema
         items={[
-          {
-            name: movie.type === 'movie' ? 'Phim lẻ' : 'Phim bộ',
-            url: `/categories/${movie.type === 'movie' ? 'phim-le' : 'phim-bo'}`,
-          },
           { name: movie.name, url: `/watch/${movie.slug}` },
         ]}
       />

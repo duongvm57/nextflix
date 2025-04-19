@@ -1,6 +1,7 @@
 import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { getCountries } from '@/services/phimapi';
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
@@ -91,9 +92,14 @@ export default async function CountryPage({
     <div className="container mx-auto px-4 py-8">
       <BreadcrumbSchema
         items={[
-          { name: 'Quốc gia', url: '/countries' },
           { name: countryName, url: `/countries/${slug}` },
         ]}
+      />
+      <Breadcrumb
+        items={[
+          { name: countryName, url: `/countries/${slug}` },
+        ]}
+        className="mt-4"
       />
       <h1 className="mb-8 text-3xl font-bold">Quốc gia: {countryName}</h1>
 

@@ -25,6 +25,8 @@ const config: Config = {
         'loading-bar': 'loading-bar 1.5s ease-in-out infinite',
         'pulse-blue': 'pulse-blue 1.5s ease-in-out infinite',
         'spin': 'spin 0.8s linear infinite',
+        'popup-in': 'popup-in 0.2s ease-out forwards',
+        'popup-out': 'popup-out 0.2s ease-out forwards',
       },
       keyframes: {
         ripple: {
@@ -40,6 +42,26 @@ const config: Config = {
           '0%, 100%': { backgroundColor: 'rgba(59, 130, 246, 0.2)' },
           '50%': { backgroundColor: 'rgba(59, 130, 246, 0.5)' },
         },
+        'popup-in': {
+          '0%': { 
+            opacity: '0',
+            transform: 'translateY(10px) scale(0.95)'
+          },
+          '100%': {
+            opacity: '1',
+            transform: 'translateY(0) scale(1)'
+          }
+        },
+        'popup-out': {
+          '0%': {
+            opacity: '1',
+            transform: 'translateY(0) scale(1)'
+          },
+          '100%': {
+            opacity: '0',
+            transform: 'translateY(10px) scale(0.95)'
+          }
+        }
       },
     },
   },

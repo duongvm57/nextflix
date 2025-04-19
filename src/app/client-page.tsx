@@ -2,17 +2,20 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { getNewMoviesClientPaginated } from '@/services/phimapi';
+import { getNewMoviesClientPaginated, getCategories } from '@/services/phimapi';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { Movie, PaginatedResponse } from '@/types';
 import { MovieCard } from '@/components/movie/movie-card';
 import { HeroCarousel } from '@/components/movie/hero-carousel';
 import { BackToTop } from '@/components/ui/back-to-top';
+import { InternalLinks } from '@/components/ui/internal-links';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { clientCache } from '@/lib/cache/client-cache';
+import { FeaturedCountriesSection } from '@/components/movie/featured-countries-section';
 
 export default function HomeClientPage() {
   const [movies, setMovies] = useState<Movie[]>([]);
+  const [popularTopics, setPopularTopics] = useState<Array<{name: string; url: string}>>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -53,21 +56,71 @@ export default function HomeClientPage() {
 
   // Initial load
   useEffect(() => {
-    const fetchInitialMovies = async () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
       try {
+        // Fetch movies
         const response = await fetchMoviesWithCache(1);
         setMovies(response.data);
 
+        // Fetch categories for topics
+        const categories = await getCategories();
+
+        // Danh sách thể loại ưu tiên
+        const priorityGenres = ['Tình cảm', 'Hành động', 'Cổ trang', 'Tâm lý', 'Viễn tưởng', 'Kinh dị'];
+
+        // Lọc ra các thể loại ưu tiên
+        const priorityCategories: Array<{name: string; url: string}> = [];
+
+        // Thêm các thể loại ưu tiên theo thứ tự đã định
+        for (const genreName of priorityGenres) {
+          const found = categories.find(cat =>
+            cat.name.toLowerCase() === genreName.toLowerCase() ||
+            cat.name.toLowerCase().includes(genreName.toLowerCase())
+          );
+
+          if (found) {
+            priorityCategories.push({
+              name: found.name,
+              url: `/genres/${found.slug}`
+            });
+          }
+        }
+
+        // Nếu chưa đủ 6 thể loại, bổ sung thêm từ danh sách gốc
+        const remainingCount = 6 - priorityCategories.length;
+        if (remainingCount > 0) {
+          const remainingCategories = categories
+            .filter(cat => !priorityCategories.some(p => p.name === cat.name))
+            .slice(0, remainingCount)
+            .map(cat => ({
+              name: cat.name,
+              url: `/genres/${cat.slug}`
+            }));
+
+          priorityCategories.push(...remainingCategories);
+        }
+
+        // Thêm một số chủ đề tìm kiếm phổ biến
+        const searchTopics = [
+          { name: 'Marvel', url: '/search?keyword=marvel' },
+          { name: '4K', url: '/search?keyword=4k' },
+          { name: 'Sitcom', url: '/search?keyword=sitcom' },
+          { name: 'Lồng Tiếng', url: '/categories/phim-long-tieng' },
+          { name: 'Xuyên Không', url: '/search?keyword=xuyen-khong' },
+          { name: 'Cổ Trang', url: '/search?keyword=co-trang' },
+        ];
+
+        setPopularTopics([...priorityCategories, ...searchTopics]);
         setInitialLoadComplete(true);
       } catch (error) {
-        console.error('Error fetching initial movies:', error);
+        console.error('Error fetching initial data:', error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInitialMovies();
+    fetchInitialData();
   }, [fetchMoviesWithCache]);
 
   // Prefetch next page
@@ -177,8 +230,26 @@ export default function HomeClientPage() {
         {/* SEO H1 heading - ẩn khỏi giao diện nhưng vẫn hiển thị cho search engines */}
         <h1 className="sr-only">Nextflix - Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD</h1>
 
+        {/* Thêm nội dung văn bản cho SEO - ẩn khỏi giao diện nhưng vẫn hiển thị cho search engines */}
+        <div className="sr-only">
+          <p>Nextflix là trang web xem phim trực tuyến hàng đầu Việt Nam, cung cấp kho phim đa dạng với chất lượng HD. Tại đây, bạn có thể tìm thấy các bộ phim mới nhất, phim lẻ, phim bộ, phim hoạt hình, phim chiếu rạp và các chương trình truyền hình được cập nhật liên tục.</p>
+          <p>Với giao diện thân thiện, dễ sử dụng, Nextflix giúp bạn dễ dàng tìm kiếm và thưởng thức các bộ phim yêu thích. Chúng tôi cung cấp nhiều thể loại phim đa dạng từ hành động, tình cảm, hài hước, kinh dị, viễn tưởng đến phim hoạt hình và tài liệu.</p>
+          <p>Tất cả các phim trên Nextflix đều được cung cấp với phụ đề tiếng Việt hoặc thuyết minh chất lượng cao, giúp bạn có trải nghiệm xem phim tuyệt vời nhất. Hãy khám phá kho tàng phim phong phú của chúng tôi ngay hôm nay!</p>
+        </div>
+
         {/* Hero Carousel Section */}
         {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} title="" />}
+
+        {/* Liên kết nội bộ - Bạn đang quan tâm gì? */}
+        <InternalLinks
+          title="Bạn đang quan tâm gì?"
+          allTopicsUrl="/topics"
+          links={popularTopics}
+          className="mt-8"
+        />
+
+        {/* Featured Countries Section */}
+        <FeaturedCountriesSection className="mt-8" />
 
         {/* New Movies Section */}
         <section className="py-6">

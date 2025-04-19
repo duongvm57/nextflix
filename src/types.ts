@@ -41,8 +41,9 @@ export interface Episode {
 export interface EpisodeItem {
   name: string;
   slug: string;
-  embed: string;
-  m3u8: string;
+  filename?: string;
+  link_embed: string;
+  link_m3u8: string;
 }
 
 // Pagination type

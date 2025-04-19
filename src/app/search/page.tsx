@@ -1,6 +1,7 @@
 import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
+import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
@@ -93,6 +94,20 @@ export default async function SearchPage({
               ]
             : []),
         ]}
+      />
+      <Breadcrumb
+        items={[
+          { name: 'Tìm kiếm', url: '/search' },
+          ...(keyword
+            ? [
+                {
+                  name: `Kết quả cho "${keyword}"`,
+                  url: `/search?keyword=${encodeURIComponent(keyword)}`,
+                },
+              ]
+            : []),
+        ]}
+        className="mt-4 mb-4"
       />
       <h1 className="mb-8 text-3xl font-bold">
         {keyword ? `Kết quả tìm kiếm cho "${keyword}"` : 'Tìm kiếm phim'}
