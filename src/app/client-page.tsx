@@ -174,6 +174,9 @@ export default function HomeClientPage() {
   return (
     <>
       <div className="container mx-auto px-4 py-8" ref={containerRef}>
+        {/* SEO H1 heading - ẩn khỏi giao diện nhưng vẫn hiển thị cho search engines */}
+        <h1 className="sr-only">Nextflix - Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD</h1>
+
         {/* Hero Carousel Section */}
         {heroMovies.length > 0 && <HeroCarousel movies={heroMovies} title="" />}
 
