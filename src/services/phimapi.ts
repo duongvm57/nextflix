@@ -289,12 +289,6 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
     return `https://phimimg.com/${url}`;
   };
 
-  // Log image URLs for debugging
-  logger.debug('Original thumb_url:', apiMovie.thumb_url);
-  logger.debug('Fixed thumb_url:', fixImageUrl(apiMovie.thumb_url));
-  logger.debug('Original thumb_url:', apiMovie.thumb_url);
-  logger.debug('Fixed thumb_url:', fixImageUrl(apiMovie.thumb_url));
-
   return {
     _id: apiMovie._id || `sample-${Math.random().toString(36).substring(7)}`,
     name: apiMovie.name || 'Unknown Movie',
