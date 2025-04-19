@@ -122,11 +122,29 @@ export interface IApiResponse<T> {
 /**
  * For backward compatibility with existing code
  */
-export type Movie = IMovie;
+export interface Movie {
+  id: string;
+  name: string;
+  originalName: string;
+  slug: string;
+  year: string;
+  thumbnail: string;
+  // Thêm các field khác nếu cần
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  pagination: {
+    totalItems: number;
+    totalItemsPerPage: number;
+    currentPage: number;
+    totalPages: number;
+  };
+}
+
 export type MovieDetail = IMovieDetail;
 export type Episode = IEpisode;
 export type EpisodeItem = IEpisodeItem;
-export type PaginatedResponse<T> = IPaginatedResponse<T>;
 export type Category = ICategory;
 export type Country = ICountry;
 export type Genre = IGenre;

@@ -3,8 +3,8 @@
 import { Movie } from '@/types';
 import { MovieCard } from './movie-card';
 import { Pagination } from '../ui/pagination';
-
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
+import { memo, useMemo } from 'react';
 
 interface MovieGridProps {
   movies: Movie[];
@@ -16,7 +16,7 @@ interface MovieGridProps {
   isLoading?: boolean;
 }
 
-export function MovieGrid({
+export const MovieGrid = memo(function MovieGrid({
   movies,
   title,
   featuredIndex = [],
@@ -25,6 +25,9 @@ export function MovieGrid({
   onPageChange,
   isLoading = false,
 }: MovieGridProps) {
+  // Memoize movies để tránh re-render không cần thiết
+  const memoizedMovies = useMemo(() => movies, [movies]);
+
   if (isLoading) {
     return (
       <section className="py-6">
@@ -40,7 +43,7 @@ export function MovieGrid({
     );
   }
 
-  if (!movies || movies.length === 0) {
+  if (!memoizedMovies || memoizedMovies.length === 0) {
     return (
       <div className="py-10 text-center">
         <h2 className="text-xl font-semibold">Không tìm thấy phim nào</h2>
@@ -52,7 +55,7 @@ export function MovieGrid({
     <section className="py-6">
       {title && <h2 className="mb-6 text-2xl font-bold">{title}</h2>}
       <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-        {movies.slice(0, PAGINATION_CONFIG.ITEMS_PER_PAGE).map((movie, index) => (
+        {memoizedMovies.slice(0, PAGINATION_CONFIG.ITEMS_PER_PAGE).map((movie, index) => (
           <MovieCard
             key={movie._id}
             movie={movie}
@@ -72,4 +75,6 @@ export function MovieGrid({
       )}
     </section>
   );
-}
+});
+
+MovieGrid.displayName = 'MovieGrid';

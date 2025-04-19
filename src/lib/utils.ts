@@ -22,13 +22,16 @@ export function formatViewCount(count?: number): string {
 export function getImageUrl(url: string, fallback: string = '/placeholder.jpg'): string {
   if (!url) return fallback;
 
-  // Handle relative URLs from API
-  if (!url.startsWith('http') && !url.startsWith('/')) {
-    console.log('Fixing image URL:', url);
-    return `https://phimimg.com/${url}`;
+  // If URL already starts with http, return as is
+  if (url.startsWith('http')) return url;
+
+  // If URL starts with slash, append to base domain
+  if (url.startsWith('/')) {
+    return `https://img.phimapi.com${url}`;
   }
 
-  return url;
+  // For relative URLs from API, use the CDN domain
+  return `https://img.phimapi.com/${url}`;
 }
 
 // Truncate text with ellipsis

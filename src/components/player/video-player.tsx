@@ -1,11 +1,8 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
-import dynamic from 'next/dynamic';
+import { useEffect, useRef } from 'react';
+import type Hls from 'hls.js';
 import { playerConfig } from '@/lib/config/player';
-
-// Sử dụng dynamic import để tránh lỗi khi build
-const Hls = dynamic(() => import('hls.js'), { ssr: false });
 
 interface VideoPlayerProps {
   src: string;
@@ -17,25 +14,20 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
   const videoRef = useRef<HTMLVideoElement>(null);
 
   useEffect(() => {
-    // Kiểm tra xem có đang chạy trên client không
     if (typeof window === 'undefined') return;
 
     const video = videoRef.current;
     if (!video) return;
 
-    let hls = null;
+    let hls: Hls | null = null;
 
     const setupHls = async () => {
-      // Kiểm tra xem Hls có tồn tại không
-      if (!Hls) {
-        console.error('HLS.js module not loaded');
-        return;
-      }
+      try {
+        // Dynamic import Hls only when needed
+        const { default: HlsPlayer } = await import('hls.js');
 
-      // Kiểm tra xem Hls có hỗ trợ không
-      if (Hls.isSupported && Hls.isSupported()) {
-        try {
-          hls = new Hls({
+        if (HlsPlayer.isSupported()) {
+          hls = new HlsPlayer({
             maxBufferLength: playerConfig.hls.maxBufferLength,
             maxMaxBufferLength: playerConfig.hls.maxMaxBufferLength,
             maxBufferSize: playerConfig.hls.maxBufferSize,
@@ -46,20 +38,20 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
           hls.loadSource(src);
           hls.attachMedia(video);
 
-          hls.on(Hls.Events.MANIFEST_PARSED, () => {
+          hls.on(HlsPlayer.Events.MANIFEST_PARSED, () => {
             video.play().catch(error => {
               console.error('Error attempting to play video:', error);
             });
           });
 
-          hls.on(Hls.Events.ERROR, (event, data) => {
+          hls.on(HlsPlayer.Events.ERROR, (_event, data) => {
             if (data.fatal) {
               switch (data.type) {
-                case Hls.ErrorTypes.NETWORK_ERROR:
+                case HlsPlayer.ErrorTypes.NETWORK_ERROR:
                   console.error('Network error, trying to recover...');
                   hls?.startLoad();
                   break;
-                case Hls.ErrorTypes.MEDIA_ERROR:
+                case HlsPlayer.ErrorTypes.MEDIA_ERROR:
                   console.error('Media error, trying to recover...');
                   hls?.recoverMediaError();
                   break;
@@ -70,19 +62,19 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
               }
             }
           });
-        } catch (error) {
-          console.error('Error initializing HLS:', error);
-        }
-      } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
-        // For Safari, which has native HLS support
-        video.src = src;
-        video.addEventListener('loadedmetadata', () => {
-          video.play().catch(error => {
-            console.error('Error attempting to play video:', error);
+        } else if (video.canPlayType('application/vnd.apple.mpegurl')) {
+          // For Safari, which has native HLS support
+          video.src = src;
+          video.addEventListener('loadedmetadata', () => {
+            video.play().catch(error => {
+              console.error('Error attempting to play video:', error);
+            });
           });
-        });
-      } else {
-        console.error('HLS is not supported in this browser and no native support available');
+        } else {
+          console.error('HLS is not supported in this browser and no native support available');
+        }
+      } catch (error) {
+        console.error('Error initializing HLS:', error);
       }
     };
 
@@ -99,7 +91,7 @@ export function VideoPlayer({ src, poster, className = '' }: VideoPlayerProps) {
         video.load();
       }
     };
-  }, [src, Hls]);
+  }, [src]);
 
   return (
     <video

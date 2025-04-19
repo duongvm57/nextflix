@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useRef } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { Play } from 'lucide-react';
@@ -36,7 +36,7 @@ export function MovieCarousel({ movies, title }: MovieCarouselProps) {
           scrollSnapType: 'x proximity',
           scrollBehavior: 'smooth',
           touchAction: 'pan-x',
-          cursor: 'grab'
+          cursor: 'grab',
         }}
       >
         {movies.map(movie => (

@@ -5,9 +5,12 @@ import { Footer } from '@/components/layout/footer';
 import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
 import { LoadingProvider } from '@/providers/loading-provider';
 import { Suspense } from 'react';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
 import { WebsiteSchema } from '@/components/schema/website-schema';
 import { SpeedInsights } from '@vercel/speed-insights/next';
+// Removed prefetch imports
+import Script from 'next/script';
 
 // Removed font declarations to avoid hydration issues
 
@@ -22,7 +25,15 @@ export function generateMetadata(): Metadata {
     applicationName: SITE_NAME,
     authors: [{ name: SITE_NAME }],
     generator: 'Next.js',
-    keywords: ['phim online', 'phim HD', 'phim lẻ', 'phim bộ', 'phim vietsub', 'phim thuyết minh', 'phim chiếu rạp'],
+    keywords: [
+      'phim online',
+      'phim HD',
+      'phim lẻ',
+      'phim bộ',
+      'phim vietsub',
+      'phim thuyết minh',
+      'phim chiếu rạp',
+    ],
     referrer: 'origin-when-cross-origin',
     creator: SITE_NAME,
     publisher: SITE_NAME,
@@ -75,11 +86,87 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Prefetch removed
   return (
     <html lang="vi" suppressHydrationWarning>
       <head>
         <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <Script
+          id="bundle-optimizer-loader"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Khởi tạo cache từ sessionStorage
+              (function() {
+                try {
+                  // Tạo container cho optimizer
+                  const container = document.createElement('div');
+                  container.id = 'bundle-optimizer-container';
+                  container.style.display = 'none';
+                  document.body.appendChild(container);
+
+                  // Đánh dấu các trang đã prefetch
+                  window.__PREFETCHED_PAGES = new Set();
+                  window.__PREFETCHED_MOVIES = new Set();
+                  window.__RSC_CACHE = {};
+
+                  // Chặn các yêu cầu RSC trùng lặp
+                  const originalFetch = window.fetch;
+                  window.fetch = function(input, init) {
+                    const url = typeof input === 'string' ? input : input instanceof URL ? input.href : input.url;
+
+                    // Kiểm tra xem có phải là yêu cầu RSC không
+                    if (url.includes('_rsc=')) {
+                      const urlObj = new URL(url, window.location.origin);
+                      const path = urlObj.pathname;
+
+                      // Kiểm tra xem đã prefetch chưa
+                      if (window.__PREFETCHED_PAGES.has(path)) {
+                        console.log('[OPTIMIZER] Blocked duplicate RSC request:', path);
+                        return Promise.resolve(new Response('{}', {
+                          status: 200,
+                          headers: {
+                            'Content-Type': 'application/json'
+                          }
+                        }));
+                      }
+
+                      // Đánh dấu đã prefetch
+                      window.__PREFETCHED_PAGES.add(path);
+
+                      // Kiểm tra xem có phải là yêu cầu phim không
+                      if (path.startsWith('/watch/')) {
+                        const movieSlug = path.replace('/watch/', '');
+                        if (window.__PREFETCHED_MOVIES.has(movieSlug)) {
+                          console.log('[OPTIMIZER] Blocked duplicate movie request:', movieSlug);
+                          return Promise.resolve(new Response('{}', {
+                            status: 200,
+                            headers: {
+                              'Content-Type': 'application/json'
+                            }
+                          }));
+                        }
+                        window.__PREFETCHED_MOVIES.add(movieSlug);
+                      }
+                    }
+
+                    // Gọi fetch gốc
+                    return originalFetch.call(window, input, init);
+                  };
+
+                  // Tải BundleOptimizer
+                  const script = document.createElement('script');
+                  script.src = '/bundle-optimizer.js';
+                  script.async = true;
+                  document.body.appendChild(script);
+                } catch (error) {
+                  console.error('[OPTIMIZER] Error initializing:', error);
+                }
+              })();
+            `,
+          }}
+        />
       </head>
       <body
         className="antialiased bg-black text-white min-h-screen flex flex-col"
@@ -88,7 +175,7 @@ export default async function RootLayout({
         {/* Thêm Schema.org structured data cho website */}
         <WebsiteSchema />
 
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<LoadingSpinner fullPage={true} />}>
           <LoadingProvider>
             <Header />
             <main className="flex-grow">{children}</main>
@@ -97,6 +184,7 @@ export default async function RootLayout({
           </LoadingProvider>
         </Suspense>
         <SpeedInsights />
+        {/* Bundle Optimizer is loaded via a script tag */}
       </body>
     </html>
   );

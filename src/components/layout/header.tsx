@@ -2,7 +2,7 @@
 
 import Link from 'next/link';
 import { MenuLink } from '@/components/ui/menu-link';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, memo } from 'react';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
@@ -10,6 +10,9 @@ import { MenuItem } from '@/lib/menu/phimapi-menu';
 import { fetchMenuData } from '@/lib/cache/api-cache';
 import Image from 'next/image';
 import { MenuSkeleton } from '@/components/ui/menu-skeleton';
+import { clientCache, CACHE_DURATION } from '@/lib/cache/client-cache';
+import { CACHE_CONFIG } from '@/lib/config/cache-config';
+import { Category, Country } from '@/types';
 
 // Sử dụng năm cố định để tránh lỗi hydration
 const CURRENT_YEAR = 2024;
@@ -83,74 +86,244 @@ const getFixedMenuItems = (): MenuItem[] => {
   ];
 };
 
+// Tách MenuItems thành component riêng và memo
+const MenuItems = memo(function MenuItems({
+  items,
+  openDropdown,
+  setOpenDropdown,
+  setIsMenuOpen,
+}: {
+  items: MenuItem[];
+  openDropdown: string | null;
+  setOpenDropdown: (value: string | null) => void;
+  setIsMenuOpen: (value: boolean) => void;
+}) {
+  return (
+    <ul className="flex space-x-8">
+      {items.map(item => (
+        <li key={item.id} className="relative">
+          {item.isDropdown ? (
+            <>
+              <button
+                onClick={() => setOpenDropdown(openDropdown === item.label ? null : item.label)}
+                className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
+              >
+                {item.label}
+                <ChevronDown size={16} className="ml-1" />
+              </button>
+              {openDropdown === item.label && (
+                <div
+                  className={`absolute ${
+                    item.id === 'categories' || item.id === 'countries'
+                      ? 'left-1/2 -translate-x-1/2 w-[600px]'
+                      : 'left-0 w-48'
+                  } top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}
+                >
+                  {item.id === 'categories' || item.id === 'countries' ? (
+                    <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
+                      {item.children?.map(child => (
+                        <MenuLink
+                          key={child.href}
+                          href={child.href}
+                          className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors text-center mx-auto"
+                          onClick={() => {
+                            setOpenDropdown(null);
+                            setIsMenuOpen(false);
+                          }}
+                        >
+                          {child.label}
+                        </MenuLink>
+                      ))}
+                    </div>
+                  ) : (
+                    <div>
+                      {item.children?.map(child => (
+                        <MenuLink
+                          key={child.href}
+                          href={child.href}
+                          className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                          onClick={() => {
+                            setOpenDropdown(null);
+                            setIsMenuOpen(false);
+                          }}
+                        >
+                          {child.label}
+                        </MenuLink>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </>
+          ) : (
+            <MenuLink
+              href={item.href}
+              className="text-gray-300 font-medium transition-colors hover:text-blue-500"
+              onClick={() => setIsMenuOpen(false)}
+            >
+              {item.label}
+            </MenuLink>
+          )}
+        </li>
+      ))}
+    </ul>
+  );
+});
+
 export function Header() {
+  const [menuState, setMenuState] = useState({
+    items: getFixedMenuItems(),
+    isLoading: false,
+    error: null as string | null,
+  });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
-  // Khởi tạo với menu cứng để tránh hiệu ứng nháy
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(getFixedMenuItems());
-  const [isMenuLoading, setIsMenuLoading] = useState(false);
 
   const router = useRouter();
-
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // Fetch menu items with caching
+  // Fetch menu data with improved error handling and loading states
   useEffect(() => {
-    // Kiểm tra xem đã có dữ liệu cache chưa
-    const checkCacheAndFetch = async () => {
+    let mounted = true;
+
+    const loadMenuData = async () => {
+      // Check if we have cached menu data
+      const cachedMenu = clientCache.get<MenuItem[]>('full_menu');
+      if (cachedMenu) {
+        setMenuState(prev => ({
+          ...prev,
+          items: cachedMenu,
+          isLoading: false,
+        }));
+        return;
+      }
+
+      setMenuState(prev => ({ ...prev, isLoading: true }));
       try {
-        // Không hiển thị loading nếu đã có menu cơ bản
-        // setIsMenuLoading(true);
+        // Use API calls
+        const response = await fetchMenuData();
+        const { categories = [], countries = [] } = response as {
+          categories: Category[];
+          countries: Country[];
+        };
 
-        // Fetch categories and countries from API with caching
-        const { categories, countries } = await fetchMenuData();
+        if (!mounted) return;
 
-        // Chỉ cập nhật menu con của thể loại và quốc gia
-        if (categories && Array.isArray(categories) && categories.length > 0 &&
-            countries && Array.isArray(countries) && countries.length > 0) {
-          // Tạo bản sao của menu hiện tại
-          const updatedMenuItems = [...menuItems];
+        if (categories.length > 0 && countries.length > 0) {
+          // Sử dụng callback trong setMenuState để tránh phụ thuộc vào menuState.items
+          setMenuState(prev => {
+            const updatedItems = [...prev.items];
 
-          // Tìm và cập nhật menu thể loại
-          const categoryMenuIndex = updatedMenuItems.findIndex(item => item.id === 'categories');
-          if (categoryMenuIndex !== -1) {
-            updatedMenuItems[categoryMenuIndex] = {
-              ...updatedMenuItems[categoryMenuIndex],
-              children: categories.map(category => ({
-                id: category.id || category.slug,
-                label: category.name,
-                href: `/genres/${category.slug}`,
-              })),
+            // Update categories
+            const categoryIndex = updatedItems.findIndex(item => item.id === 'categories');
+            if (categoryIndex !== -1) {
+              updatedItems[categoryIndex] = {
+                ...updatedItems[categoryIndex],
+                children: categories.map(category => ({
+                  id: category.id || category.slug,
+                  label: category.name,
+                  href: `/genres/${category.slug}`,
+                })),
+              };
+            }
+
+            // Update countries
+            const countryIndex = updatedItems.findIndex(item => item.id === 'countries');
+            if (countryIndex !== -1) {
+              updatedItems[countryIndex] = {
+                ...updatedItems[countryIndex],
+                children: countries.map(country => ({
+                  id: country.id || country.slug,
+                  label: country.name,
+                  href: `/countries/${country.slug}`,
+                })),
+              };
+            }
+
+            // Cache the full menu with longer duration
+            clientCache.set('full_menu', updatedItems, CACHE_CONFIG.CLIENT.NAVIGATION);
+
+            return {
+              items: updatedItems,
+              isLoading: false,
+              error: null,
             };
-          }
+          });
 
-          // Tìm và cập nhật menu quốc gia
-          const countryMenuIndex = updatedMenuItems.findIndex(item => item.id === 'countries');
-          if (countryMenuIndex !== -1) {
-            updatedMenuItems[countryMenuIndex] = {
-              ...updatedMenuItems[countryMenuIndex],
-              children: countries.map((country: any) => ({
-                id: country.id || country.slug,
-                label: country.name,
-                href: `/countries/${country.slug}`,
-              })),
-            };
-          }
-
-          // Cập nhật menu
-          setMenuItems(updatedMenuItems);
+          // Cache is already set above
         }
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
       } catch (error) {
-        console.error('Error getting menu items:', error);
-        // Không cần fallback vì đã có menu cơ bản từ đầu
-      } finally {
-        setIsMenuLoading(false);
+        if (!mounted) return;
+
+        // Fallback to original fetchMenuData if batch fails
+        try {
+          const response = await fetchMenuData();
+          const { categories = [], countries = [] } = response as {
+            categories: Category[];
+            countries: Country[];
+          };
+
+          if (!mounted) return;
+
+          if (categories.length > 0 && countries.length > 0) {
+            setMenuState(prev => {
+              const updatedItems = [...prev.items];
+
+              // Update categories
+              const categoryIndex = updatedItems.findIndex(item => item.id === 'categories');
+              if (categoryIndex !== -1) {
+                updatedItems[categoryIndex] = {
+                  ...updatedItems[categoryIndex],
+                  children: categories.map(category => ({
+                    id: category.id || category.slug,
+                    label: category.name,
+                    href: `/genres/${category.slug}`,
+                  })),
+                };
+              }
+
+              // Update countries
+              const countryIndex = updatedItems.findIndex(item => item.id === 'countries');
+              if (countryIndex !== -1) {
+                updatedItems[countryIndex] = {
+                  ...updatedItems[countryIndex],
+                  children: countries.map(country => ({
+                    id: country.id || country.slug,
+                    label: country.name,
+                    href: `/countries/${country.slug}`,
+                  })),
+                };
+              }
+
+              // Cache the full menu
+              clientCache.set('full_menu', updatedItems, CACHE_DURATION.MENU);
+
+              return {
+                items: updatedItems,
+                isLoading: false,
+                error: null,
+              };
+            });
+          }
+        } catch (fallbackError) {
+          if (!mounted) return;
+
+          setMenuState(prev => ({
+            ...prev,
+            isLoading: false,
+            error: `Failed to load menu data: ${fallbackError}`,
+          }));
+        }
       }
     };
 
-    checkCacheAndFetch();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    loadMenuData();
+
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // Close dropdown when clicking outside
@@ -167,8 +340,6 @@ export function Header() {
     };
   }, []);
 
-  // Use the menu items from phimapi-menu.ts
-
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
@@ -182,7 +353,7 @@ export function Header() {
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
           {/* Logo */}
-          <Link href="/" className="flex items-center cursor-pointer">
+          <Link href="/" className="flex items-center">
             <Image
               src="/images/logo.png"
               alt="Nextflix"
@@ -195,74 +366,22 @@ export function Header() {
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block" ref={dropdownRef}>
-            {isMenuLoading ? (
+            {menuState.isLoading ? (
               <MenuSkeleton />
+            ) : menuState.error ? (
+              <div className="text-red-500">{menuState.error}</div>
             ) : (
-              <ul className="flex space-x-8">
-                {menuItems.map(item => (
-                  <li key={item.id} className="relative">
-                    {item.isDropdown ? (
-                      <>
-                        <button
-                          onClick={() =>
-                            setOpenDropdown(openDropdown === item.label ? null : item.label)
-                          }
-                          className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
-                        >
-                          {item.label}
-                          <ChevronDown size={16} className="ml-1" />
-                        </button>
-                        {openDropdown === item.label && (
-                          <div
-                            className={`absolute ${item.id === 'categories' || item.id === 'countries' ? 'left-1/2 -translate-x-1/2 w-[600px]' : 'left-0 w-48'} top-full z-50 mt-2 rounded-md bg-black/90 py-3 px-4 shadow-lg`}
-                          >
-                            {item.id === 'categories' || item.id === 'countries' ? (
-                              <div className="grid grid-cols-4 gap-x-4 gap-y-1 text-center">
-                                {item.children?.map(child => (
-                                  <MenuLink
-                                    key={child.href}
-                                    href={child.href}
-                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors text-center mx-auto"
-                                    onClick={() => setOpenDropdown(null)}
-                                  >
-                                    {child.label}
-                                  </MenuLink>
-                                ))}
-                              </div>
-                            ) : (
-                              <div>
-                                {item.children?.map(child => (
-                                  <MenuLink
-                                    key={child.href}
-                                    href={child.href}
-                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
-                                    onClick={() => setOpenDropdown(null)}
-                                  >
-                                    {child.label}
-                                  </MenuLink>
-                                ))}
-                              </div>
-                            )}
-                          </div>
-                        )}
-                      </>
-                    ) : (
-                      <MenuLink
-                        href={item.href}
-                        className="text-gray-300 font-medium transition-colors hover:text-blue-500"
-                      >
-                        {item.label}
-                      </MenuLink>
-                    )}
-                  </li>
-                ))}
-              </ul>
+              <MenuItems
+                items={menuState.items}
+                openDropdown={openDropdown}
+                setOpenDropdown={setOpenDropdown}
+                setIsMenuOpen={setIsMenuOpen}
+              />
             )}
           </nav>
 
           {/* Search and Mobile Menu Toggle */}
           <div className="flex items-center gap-4">
-            {/* Language switcher removed */}
             <form onSubmit={handleSearch} className="relative hidden md:block">
               <input
                 type="text"
@@ -279,7 +398,6 @@ export function Header() {
               </button>
             </form>
 
-            {/* Mobile Menu Toggle */}
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               className="text-white md:hidden"
@@ -295,71 +413,56 @@ export function Header() {
       {isMenuOpen && (
         <div className="absolute left-0 right-0 bg-black/95 px-4 py-4 shadow-lg md:hidden">
           <nav className="mb-4">
-            <div className="mb-4">{/* Language switcher removed */}</div>
-            <ul className="space-y-4">
-              {menuItems.map(item => (
-                <li key={item.id}>
-                  {item.isDropdown ? (
-                    <div className="space-y-2">
-                      <button
-                        onClick={() =>
-                          setOpenDropdown(openDropdown === item.label ? null : item.label)
-                        }
-                        className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
+            {menuState.isLoading ? (
+              <MenuSkeleton />
+            ) : menuState.error ? (
+              <div className="text-red-500">{menuState.error}</div>
+            ) : (
+              <ul className="space-y-4">
+                {menuState.items.map(item => (
+                  <li key={item.id}>
+                    {item.isDropdown ? (
+                      <div className="space-y-2">
+                        <button
+                          onClick={() =>
+                            setOpenDropdown(openDropdown === item.label ? null : item.label)
+                          }
+                          className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
+                        >
+                          {item.label}
+                          <ChevronDown size={16} className="ml-1" />
+                        </button>
+                        {openDropdown === item.label && (
+                          <div className="ml-4 border-l border-gray-700 pl-4">
+                            {item.children?.map(child => (
+                              <MenuLink
+                                key={child.href}
+                                href={child.href}
+                                className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                                onClick={() => {
+                                  setOpenDropdown(null);
+                                  setIsMenuOpen(false);
+                                }}
+                              >
+                                {child.label}
+                              </MenuLink>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    ) : (
+                      <MenuLink
+                        href={item.href}
+                        className="block text-gray-300 font-medium transition-colors hover:text-blue-500"
+                        onClick={() => setIsMenuOpen(false)}
                       >
                         {item.label}
-                        <ChevronDown size={16} className="ml-1" />
-                      </button>
-                      {openDropdown === item.label && (
-                        <div className="ml-4 border-l border-gray-700 pl-4">
-                          {item.id === 'categories' || item.id === 'countries' ? (
-                            <div className="grid grid-cols-2 gap-x-4 gap-y-1 py-2 text-center">
-                              {item.children?.map(child => (
-                                <MenuLink
-                                  key={child.href}
-                                  href={child.href}
-                                  className="block text-sm text-gray-400 font-medium hover:text-blue-500 py-2 transition-colors text-center"
-                                  onClick={() => {
-                                    setOpenDropdown(null);
-                                    setIsMenuOpen(false);
-                                  }}
-                                >
-                                  {child.label}
-                                </MenuLink>
-                              ))}
-                            </div>
-                          ) : (
-                            <div className="space-y-2 py-2">
-                              {item.children?.map(child => (
-                                <MenuLink
-                                  key={child.href}
-                                  href={child.href}
-                                  className="block text-sm text-gray-400 font-medium hover:text-blue-500"
-                                  onClick={() => {
-                                    setOpenDropdown(null);
-                                    setIsMenuOpen(false);
-                                  }}
-                                >
-                                  {child.label}
-                                </MenuLink>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  ) : (
-                    <MenuLink
-                      href={item.href}
-                      className="block text-gray-300 font-medium transition-colors hover:text-blue-500"
-                      onClick={() => setIsMenuOpen(false)}
-                    >
-                      {item.label}
-                    </MenuLink>
-                  )}
-                </li>
-              ))}
-            </ul>
+                      </MenuLink>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            )}
           </nav>
           <form onSubmit={handleSearch} className="relative">
             <input

@@ -5,7 +5,8 @@
 
 import { clientCache, memoize } from './client-cache';
 import { getCategories, getCountries } from '@/services/phimapi';
-
+import { CACHE_CONFIG, CACHE_KEYS } from '@/lib/config/cache-config';
+import { Category, Country } from '@/types';
 // Cache expiration times (in milliseconds)
 const CACHE_TIMES = {
   // Categories and countries rarely change, cache for 1 hour
@@ -28,43 +29,43 @@ export const cachedAPI = {
  * Fetch multiple API calls in parallel with caching
  * @returns Object with categories and countries
  */
-export async function fetchMenuData() {
+export async function fetchMenuData(): Promise<{
+  categories: Category[];
+  countries: Country[];
+}> {
   try {
-    // Check if we have cached data
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cachedCategories = clientCache.get<any[]>('categories');
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const cachedCountries = clientCache.get<any[]>('countries');
-
-    // If both are cached, return them immediately
-    if (cachedCategories && cachedCountries) {
-      console.log('Using cached menu data');
-      return {
-        categories: cachedCategories,
-        countries: cachedCountries,
-      };
+    // Check memory and session storage cache first
+    const cachedMenu = clientCache.get<{ categories: Category[]; countries: Country[] }>(
+      CACHE_KEYS.MENU
+    );
+    if (cachedMenu) {
+      return cachedMenu;
     }
 
-    console.log('Fetching fresh menu data');
-    // Otherwise fetch them in parallel
-    const [categories, countries] = await Promise.all([
-      cachedAPI.getCategories(),
-      cachedAPI.getCountries(),
-    ]);
+    // If no cache, fetch data in parallel
+    const [categories, countries] = await Promise.all([getCategories(), getCountries()]);
 
-    // Cache the results for future use
-    if (categories?.length > 0) {
-      clientCache.set('categories', categories, CACHE_TIMES.CATEGORIES);
+    const menuData = {
+      categories,
+      countries,
+    };
+
+    // Cache the complete menu data
+    if (
+      Array.isArray(categories) &&
+      Array.isArray(countries) &&
+      categories.length > 0 &&
+      countries.length > 0
+    ) {
+      clientCache.set(CACHE_KEYS.MENU, menuData, CACHE_CONFIG.CLIENT.MENU);
     }
 
-    if (countries?.length > 0) {
-      clientCache.set('countries', countries, CACHE_TIMES.COUNTRIES);
-    }
-
-    return { categories, countries };
+    return {
+      categories: (categories as Category[]) || [],
+      countries: (countries as Country[]) || [],
+    };
   } catch (error) {
     console.error('Error fetching menu data:', error);
-    // Return empty arrays as fallback
     return {
       categories: [],
       countries: [],

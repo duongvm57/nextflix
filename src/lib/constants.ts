@@ -2,7 +2,8 @@
 export const DOMAIN = process.env.NEXT_PUBLIC_DOMAIN || 'https://nextflix.lol';
 
 // Thông tin cơ bản về website từ biến môi trường
-export const SITE_NAME = process.env.NEXT_PUBLIC_SITE_NAME || 'Nextflix - Xem Phim HD Online, Phim Mới';
+export const SITE_NAME =
+  process.env.NEXT_PUBLIC_SITE_NAME || 'Nextflix - Xem Phim HD Online, Phim Mới';
 export const SITE_DESCRIPTION =
   process.env.NEXT_PUBLIC_SITE_DESCRIPTION ||
   'Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD';

@@ -24,7 +24,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
     align: 'center',
     containScroll: 'trimSnaps',
     dragFree: false,
-    skipSnaps: false
+    skipSnaps: false,
   });
 
   // Các hàm điều khiển carousel
@@ -120,16 +120,15 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                     priority={index === 0}
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-                  
+
                   {/* Thêm link phủ toàn bộ banner trên mobile */}
-                  <MenuLink 
-                    href={`/watch/${movie.slug}`} 
-                    className="absolute inset-0 md:hidden"
-                  />
+                  <MenuLink href={`/watch/${movie.slug}`} className="absolute inset-0 md:hidden" />
                 </div>
 
                 <div className="absolute bottom-0 left-0 p-4 md:p-12 w-full md:w-2/3 lg:w-1/2">
-                  <h1 className="mb-1 text-xl font-bold md:text-4xl lg:text-5xl line-clamp-2 md:line-clamp-none md:mb-2">{movie.name}</h1>
+                  <h1 className="mb-1 text-xl font-bold md:text-4xl lg:text-5xl line-clamp-2 md:line-clamp-none md:mb-2">
+                    {movie.name}
+                  </h1>
                   <p className="mb-1 text-xs text-gray-300 md:mb-4 md:text-base line-clamp-1">
                     {movie.origin_name}
                   </p>
@@ -169,11 +168,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                       </Button>
                     </MenuLink>
                     <MenuLink href={`/watch/${movie.slug}`}>
-                      <Button 
-                        variant="outline" 
-                        size="sm" 
-                        className="md:text-base md:px-4 md:py-2"
-                      >
+                      <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
                         Thông tin thêm
                       </Button>
                     </MenuLink>
@@ -184,21 +179,21 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
           </div>
         </div>
 
-      {/* Thu nhỏ pagination dots */}
-      <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1">
-        {movies.map((_, index) => (
-          <button
-            key={index}
-            className={`h-1 w-1 md:h-1.5 md:w-1.5 rounded-full ${
-              index === currentIndex ? 'bg-white' : 'bg-white/30'
-            }`}
-            onClick={() => {
-              if (emblaApi) emblaApi.scrollTo(index);
-            }}
-            aria-label={`Go to slide ${index + 1}`}
-          />
-        ))}
-      </div>
+        {/* Thu nhỏ pagination dots */}
+        <div className="absolute bottom-4 left-1/2 flex -translate-x-1/2 gap-1">
+          {movies.map((_, index) => (
+            <button
+              key={index}
+              className={`h-1 w-1 md:h-1.5 md:w-1.5 rounded-full ${
+                index === currentIndex ? 'bg-white' : 'bg-white/30'
+              }`}
+              onClick={() => {
+                if (emblaApi) emblaApi.scrollTo(index);
+              }}
+              aria-label={`Go to slide ${index + 1}`}
+            />
+          ))}
+        </div>
       </div>
     </div>
   );

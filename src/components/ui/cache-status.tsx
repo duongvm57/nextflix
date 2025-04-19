@@ -3,17 +3,56 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientCache } from '@/lib/cache/client-cache';
 
+interface MemoryCache {
+  cache: Map<string, unknown>;
+}
+
+interface InternalClientCache {
+  memoryCache: MemoryCache;
+}
+
 interface CacheInfo {
-  totalItems: number;
-  keys: string[];
-  totalSize: number;
+  client: {
+    memory: {
+      totalItems: number;
+      keys: string[];
+    };
+    session: {
+      totalItems: number;
+      keys: string[];
+      totalSize: number;
+    };
+  };
+  server: {
+    status: 'active' | 'inactive';
+    lastRevalidated?: Date;
+  };
+}
+
+function getMemoryCacheKeys(cache: unknown): string[] {
+  const internalCache = cache as InternalClientCache;
+  if (internalCache?.memoryCache?.cache instanceof Map) {
+    return Array.from(internalCache.memoryCache.cache.keys());
+  }
+  return [];
 }
 
 export function CacheStatus() {
   const [cacheInfo, setCacheInfo] = useState<CacheInfo>({
-    totalItems: 0,
-    keys: [],
-    totalSize: 0,
+    client: {
+      memory: {
+        totalItems: 0,
+        keys: [],
+      },
+      session: {
+        totalItems: 0,
+        keys: [],
+        totalSize: 0,
+      },
+    },
+    server: {
+      status: 'active',
+    },
   });
   const [isVisible, setIsVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -21,75 +60,99 @@ export function CacheStatus() {
 
   useEffect(() => {
     function handleClickOutside(event: MouseEvent) {
-      if (isVisible && 
-          popupRef.current && 
-          buttonRef.current && 
-          !popupRef.current.contains(event.target as Node) &&
-          !buttonRef.current.contains(event.target as Node)) {
+      if (
+        isVisible &&
+        popupRef.current &&
+        buttonRef.current &&
+        !popupRef.current.contains(event.target as Node) &&
+        !buttonRef.current.contains(event.target as Node)
+      ) {
         setIsVisible(false);
       }
     }
 
     document.addEventListener('mousedown', handleClickOutside);
-    
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isVisible]);
 
-  // Get cache info
   const getCacheInfo = () => {
     if (typeof window === 'undefined') return;
 
     try {
-      // Safely get keys from localStorage
-      let keys: string[] = [];
+      // Get session storage info
+      const sessionKeys: string[] = [];
+      let sessionTotalSize = 0;
+
       try {
-        // Get all keys that start with 'cache_'
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
           if (key && key.startsWith('cache_')) {
-            keys.push(key);
+            sessionKeys.push(key);
+            const item = sessionStorage.getItem(key);
+            if (item) {
+              sessionTotalSize += item.length;
+            }
           }
         }
       } catch (storageError) {
-        console.error('Error accessing localStorage keys:', storageError);
-        keys = [];
+        console.error('Error accessing sessionStorage:', storageError);
       }
 
-      let totalSize = 0;
+      // Get memory cache info
+      const memoryKeys = getMemoryCacheKeys(clientCache);
 
-      // Safely get size of each item
-      for (const key of keys) {
-        try {
-          const item = localStorage.getItem(key);
-          if (item) {
-            totalSize += item.length;
-          }
-        } catch (itemError) {
-          console.error(`Error getting item ${key}:`, itemError);
-        }
-      }
-
-      setCacheInfo({
-        totalItems: keys.length,
-        keys,
-        totalSize: Math.round(totalSize / 1024), // Convert to KB
-      });
+      setCacheInfo(prev => ({
+        ...prev,
+        client: {
+          memory: {
+            totalItems: memoryKeys.length,
+            keys: memoryKeys as string[],
+          },
+          session: {
+            totalItems: sessionKeys.length,
+            keys: sessionKeys,
+            totalSize: Math.round(sessionTotalSize / 1024),
+          },
+        },
+      }));
     } catch (error) {
       console.error('Error getting cache info:', error);
-      setCacheInfo({
-        totalItems: 0,
-        keys: [],
-        totalSize: 0,
-      });
     }
   };
 
-  // Clear cache
-  const clearCache = () => {
+  // Clear client cache only
+  const clearClientCache = () => {
     clientCache.clear();
     getCacheInfo();
+  };
+
+  // Revalidate server cache through API
+  const revalidateServerCache = async () => {
+    try {
+      const response = await fetch('/api/revalidate', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          tags: ['categories', 'countries', 'menu'],
+        }),
+      });
+
+      if (response.ok) {
+        setCacheInfo(prev => ({
+          ...prev,
+          server: {
+            status: 'active',
+            lastRevalidated: new Date(),
+          },
+        }));
+      }
+    } catch (error) {
+      console.error('Error revalidating cache:', error);
+    }
   };
 
   // Toggle visibility
@@ -102,16 +165,17 @@ export function CacheStatus() {
 
   // Update cache info when visible
   useEffect(() => {
-    if (isVisible) {
-      getCacheInfo();
-      const interval = setInterval(getCacheInfo, 5000);
-      return () => clearInterval(interval);
+    if (!isVisible) {
+      return;
     }
-    return () => {}; // Empty cleanup function when not visible
+    
+    getCacheInfo();
+    const interval = setInterval(getCacheInfo, 5000);
+    return () => clearInterval(interval);
   }, [isVisible]);
 
   return (
-    <>
+    <div className="fixed bottom-4 right-4 z-50">
       <button
         ref={buttonRef}
         onClick={toggleVisibility}
@@ -133,58 +197,84 @@ export function CacheStatus() {
         </svg>
       </button>
 
-      <div
-        ref={popupRef}
-        className={`fixed bottom-20 right-6 z-50 w-80 rounded-lg bg-gray-800 p-4 text-white shadow-lg ${isVisible ? 'animate-popup-in' : 'animate-popup-out hidden'}`}
-      >
-        <div className="mb-2 flex items-center justify-between">
-          <h3 className="text-lg font-semibold">Trạng thái Cache</h3>
-          <button
-            onClick={toggleVisibility}
-            className="rounded-full p-1 text-gray-400 hover:bg-gray-700 hover:text-white
-                     transition-colors duration-200"
-          >
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="20"
-              height="20"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="mb-3 space-y-1 text-sm">
-          <p>Số lượng item: {cacheInfo.totalItems}</p>
-          <p>Kích thước: {cacheInfo.totalSize} KB</p>
-        </div>
-
-        <div className="mb-3 max-h-40 overflow-y-auto text-xs">
-          <p className="mb-1 font-semibold">Cache keys:</p>
-          <ul className="space-y-1">
-            {cacheInfo.keys.map(key => (
-              <li key={key} className="truncate">
-                {key.replace('cache_', '')}
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <button
-          onClick={clearCache}
-          className="w-full rounded bg-red-500 px-4 py-2 text-sm font-medium text-white 
-                   hover:bg-red-600 transition-colors duration-200"
+      {isVisible && (
+        <div
+          ref={popupRef}
+          className="absolute bottom-20 right-0 bg-gray-800 text-white p-4 rounded-lg shadow-xl w-96"
         >
-          Xóa tất cả cache
-        </button>
-      </div>
-    </>
+          <h3 className="text-lg font-semibold mb-4">Cache Status</h3>
+
+          {/* Client Cache Section */}
+          <div className="mb-6">
+            <h4 className="font-medium text-blue-400 mb-2">Client Cache</h4>
+
+            {/* Memory Cache */}
+            <div className="mb-3">
+              <h5 className="text-sm font-medium mb-1">Memory Cache:</h5>
+              <p className="text-sm">Items: {cacheInfo.client.memory.totalItems}</p>
+              <div className="mt-1">
+                <p className="text-xs text-gray-400">Cached Keys:</p>
+                <div className="max-h-20 overflow-y-auto text-xs">
+                  {cacheInfo.client.memory.keys.map(key => (
+                    <div key={key} className="truncate text-gray-300">
+                      {key}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* Session Storage */}
+            <div className="mb-3">
+              <h5 className="text-sm font-medium mb-1">Session Storage:</h5>
+              <p className="text-sm">
+                Items: {cacheInfo.client.session.totalItems} ({cacheInfo.client.session.totalSize}{' '}
+                KB)
+              </p>
+              <div className="mt-1">
+                <p className="text-xs text-gray-400">Cached Keys:</p>
+                <div className="max-h-20 overflow-y-auto text-xs">
+                  {cacheInfo.client.session.keys.map(key => (
+                    <div key={key} className="truncate text-gray-300">
+                      {key.replace('cache_', '')}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            <button
+              onClick={clearClientCache}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm mt-2"
+            >
+              Clear Client Cache
+            </button>
+          </div>
+
+          {/* Server Cache Section */}
+          <div className="mb-4">
+            <h4 className="font-medium text-green-400 mb-2">Server Cache</h4>
+            <p className="text-sm">
+              Status: <span className="text-green-500">●</span> {cacheInfo.server.status}
+            </p>
+            {cacheInfo.server.lastRevalidated && (
+              <p className="text-sm">
+                Last Revalidated: {cacheInfo.server.lastRevalidated.toLocaleString()}
+              </p>
+            )}
+            <button
+              onClick={revalidateServerCache}
+              className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm mt-2"
+            >
+              Revalidate Server Cache
+            </button>
+          </div>
+
+          <div className="text-xs text-gray-400 mt-4">
+            <p>Note: Browser HTTP Cache can be cleared from browser settings</p>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }

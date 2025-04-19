@@ -6,7 +6,8 @@ import { TYPE_LIST } from '@/lib/menu/phimapi-menu';
 
 export function generateMetadata(): Metadata {
   const title = 'Tất cả chủ đề | ' + SITE_NAME;
-  const description = 'Khám phá tất cả các chủ đề phim và chương trình truyền hình trên ' + SITE_NAME;
+  const description =
+    'Khám phá tất cả các chủ đề phim và chương trình truyền hình trên ' + SITE_NAME;
 
   return {
     title,
@@ -27,13 +28,13 @@ export function generateMetadata(): Metadata {
 
 // Predefined gradient colors for cards - dark monochrome with gradient from left to right
 const gradients = [
-  'from-gray-900/95 to-gray-800/95',     // Darkest gray
-  'from-gray-800/90 to-gray-700/90',     // Dark gray
-  'from-gray-700/85 to-gray-600/85',     // Medium-dark gray
-  'from-gray-600/80 to-gray-500/80',     // Medium gray
-  'from-gray-500/75 to-gray-400/75',     // Medium-light gray
-  'from-gray-400/70 to-gray-300/70',     // Light gray
-  'from-gray-300/65 to-gray-200/65',     // Lightest gray
+  'from-gray-900/95 to-gray-800/95', // Darkest gray
+  'from-gray-800/90 to-gray-700/90', // Dark gray
+  'from-gray-700/85 to-gray-600/85', // Medium-dark gray
+  'from-gray-600/80 to-gray-500/80', // Medium gray
+  'from-gray-500/75 to-gray-400/75', // Medium-light gray
+  'from-gray-400/70 to-gray-300/70', // Light gray
+  'from-gray-300/65 to-gray-200/65', // Lightest gray
 ];
 
 // Các chủ đề tìm kiếm phổ biến
@@ -76,20 +77,17 @@ const recentYears = () => {
 
 export default async function TopicsPage() {
   // Lấy danh sách thể loại và quốc gia từ API
-  const [categories, countries] = await Promise.all([
-    getCategories(),
-    getCountries()
-  ]);
+  const [categories, countries] = await Promise.all([getCategories(), getCountries()]);
 
   // Chuyển đổi thể loại và quốc gia thành định dạng topic
   const genreTopics = categories.map(category => ({
     name: category.name,
-    url: `/genres/${category.slug}`
+    url: `/genres/${category.slug}`,
   }));
 
   const countryTopics = countries.map(country => ({
     name: country.name,
-    url: `/countries/${country.slug}`
+    url: `/countries/${country.slug}`,
   }));
 
   return (

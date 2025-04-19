@@ -179,11 +179,7 @@ export default async function ListingPage({
 
   return (
     <>
-      <BreadcrumbSchema
-        items={[
-          { name: title, url: `/categories/${slug}` },
-        ]}
-      />
+      <BreadcrumbSchema items={[{ name: title, url: `/categories/${slug}` }]} />
       <CategoryClientPage initialData={initialData} isYear={isYear} />
     </>
   );

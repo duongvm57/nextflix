@@ -59,6 +59,16 @@ body {
   scrollbar-width: none;  /* Firefox */
 }
 
+/* Loading bar animation */
+@keyframes loading-bar {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(400%); }
+}
+
+.animate-loading-bar {
+  animation: loading-bar 1.5s ease-in-out infinite;
+}
+
 /* Prevent text selection */
 .no-select {
   -webkit-user-select: none;

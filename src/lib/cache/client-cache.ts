@@ -3,163 +3,136 @@
  * This helps reduce API calls by storing responses in localStorage
  */
 
-// Default cache expiration time (1 hour in milliseconds)
-const DEFAULT_CACHE_TIME = 60 * 60 * 1000;
+import { CACHE_CONFIG } from '@/lib/config/cache-config';
+
+// Check if we're on the client side
+const isClient = typeof window !== 'undefined';
 
 // Cache item interface
 interface CacheItem<T> {
   data: T;
-  timestamp: number;
   expiry: number;
 }
+
+class MemoryCache {
+  private cache: Map<string, CacheItem<unknown>>;
+
+  constructor() {
+    this.cache = new Map();
+  }
+
+  get<T>(key: string): T | null {
+    const item = this.cache.get(key);
+    if (!item) {
+      return null;
+    }
+
+    if (Date.now() > item.expiry) {
+      this.cache.delete(key);
+      return null;
+    }
+
+    return item.data as T;
+  }
+
+  getKeys(): string[] {
+    return Array.from(this.cache.keys());
+  }
+
+  set<T>(key: string, data: T, duration: number): void {
+    this.cache.set(key, {
+      data,
+      expiry: Date.now() + duration,
+    });
+  }
+
+  delete(key: string): void {
+    this.cache.delete(key);
+  }
+
+  clear(): void {
+    this.cache.clear();
+  }
+}
+
+// Shared memory cache instance
+const memoryCache = new MemoryCache();
 
 /**
  * Client-side cache utility
  */
 export const clientCache = {
-  /**
-   * Get item from cache
-   * @param key Cache key
-   * @returns Cached data or null if not found or expired
-   */
   get<T>(key: string): T | null {
     try {
-      // Skip cache in server-side rendering
-      if (typeof window === 'undefined') return null;
-
-      // Use a try-catch block specifically for localStorage access
-      let item: string | null = null;
-      try {
-        item = localStorage.getItem(`cache_${key}`);
-      } catch (storageError) {
-        console.error('Error accessing localStorage:', storageError);
-        return null;
+      // Always try memory cache first (works in both client & server)
+      const memoryData = memoryCache.get<T>(key);
+      if (memoryData) {
+        return memoryData;
       }
 
-      if (!item) return null;
-
-      const cacheItem: CacheItem<T> = JSON.parse(item);
-      const now = Date.now();
-
-      // Check if cache is expired
-      if (now - cacheItem.timestamp > cacheItem.expiry) {
-        console.log(`Cache expired for ${key}`);
-        try {
-          localStorage.removeItem(`cache_${key}`);
-        } catch (removeError) {
-          console.error('Error removing from localStorage:', removeError);
+      // Only try sessionStorage if we're on the client
+      if (isClient) {
+        const item = sessionStorage.getItem(`cache_${key}`);
+        if (!item) {
+          return null;
         }
-        return null;
+
+        const cacheItem: CacheItem<T> = JSON.parse(item);
+        if (Date.now() > cacheItem.expiry) {
+          sessionStorage.removeItem(`cache_${key}`);
+          return null;
+        }
+
+        // Cache in memory for faster subsequent access
+        memoryCache.set(key, cacheItem.data, cacheItem.expiry - Date.now());
+        return cacheItem.data;
       }
 
-      console.log(`Cache hit for ${key}`);
-      return cacheItem.data;
+      return null;
     } catch (error) {
-      console.error('Error getting from cache:', error);
+      console.error('Error reading from cache:', error);
       return null;
     }
   },
 
-  /**
-   * Set item in cache
-   * @param key Cache key
-   * @param data Data to cache
-   * @param expiry Cache expiration time in milliseconds (default: 1 hour)
-   */
-  set<T>(key: string, data: T, expiry: number = DEFAULT_CACHE_TIME): void {
+  set<T>(key: string, data: T, duration: number): void {
     try {
-      // Skip cache in server-side rendering
-      if (typeof window === 'undefined') return;
+      // Always set in memory cache (works in both client & server)
+      memoryCache.set(key, data, duration);
 
-      const cacheItem: CacheItem<T> = {
-        data,
-        timestamp: Date.now(),
-        expiry,
-      };
-
-      try {
-        localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
-        console.log(`Cache set for ${key}, expires in ${expiry / 1000} seconds`);
-      } catch (storageError) {
-        console.error('Error writing to localStorage:', storageError);
-        // Try to clear some space in localStorage
-        try {
-          // Remove oldest items first
-          const keys = Object.keys(localStorage)
-            .filter(k => k.startsWith('cache_'))
-            .sort((a, b) => {
-              try {
-                const itemA = JSON.parse(localStorage.getItem(a) || '{}');
-                const itemB = JSON.parse(localStorage.getItem(b) || '{}');
-                return (itemA.timestamp || 0) - (itemB.timestamp || 0);
-              } catch (e) {
-                return 0;
-              }
-            });
-
-          // Remove up to 5 oldest items
-          for (let i = 0; i < Math.min(5, keys.length); i++) {
-            localStorage.removeItem(keys[i]);
-          }
-
-          // Try again
-          localStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
-        } catch (e) {
-          console.error('Failed to make space in localStorage:', e);
-        }
+      // Only set in sessionStorage if we're on the client
+      if (isClient) {
+        const cacheItem: CacheItem<T> = {
+          data,
+          expiry: Date.now() + duration,
+        };
+        sessionStorage.setItem(`cache_${key}`, JSON.stringify(cacheItem));
       }
     } catch (error) {
-      console.error('Error setting cache:', error);
+      console.error('Error writing to cache:', error);
     }
   },
 
-  /**
-   * Remove item from cache
-   * @param key Cache key
-   */
   remove(key: string): void {
     try {
-      // Skip cache in server-side rendering
-      if (typeof window === 'undefined') return;
-
-      try {
-        localStorage.removeItem(`cache_${key}`);
-      } catch (storageError) {
-        console.error('Error removing from localStorage:', storageError);
+      memoryCache.delete(key);
+      if (isClient) {
+        sessionStorage.removeItem(`cache_${key}`);
       }
     } catch (error) {
       console.error('Error removing from cache:', error);
     }
   },
 
-  /**
-   * Clear all cache items
-   */
   clear(): void {
     try {
-      // Skip cache in server-side rendering
-      if (typeof window === 'undefined') return;
-
-      try {
-        // Only clear items with our cache prefix
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-          const key = localStorage.key(i);
-          if (key && key.startsWith('cache_')) {
-            keysToRemove.push(key);
-          }
-        }
-
-        // Remove items in a separate loop to avoid issues with changing indices
-        keysToRemove.forEach(key => {
-          try {
-            localStorage.removeItem(key);
-          } catch (removeError) {
-            console.error(`Error removing key ${key}:`, removeError);
+      memoryCache.clear();
+      if (isClient) {
+        Object.keys(sessionStorage).forEach(key => {
+          if (key.startsWith('cache_')) {
+            sessionStorage.removeItem(key);
           }
         });
-      } catch (storageError) {
-        console.error('Error accessing localStorage:', storageError);
       }
     } catch (error) {
       console.error('Error clearing cache:', error);
@@ -167,35 +140,43 @@ export const clientCache = {
   },
 };
 
+// Cache duration constants
+export const CACHE_DURATION = {
+  MENU: 60 * 60 * 1000, // 1 hour
+  CATEGORIES: 60 * 60 * 1000, // 1 hour
+  COUNTRIES: 60 * 60 * 1000, // 1 hour
+  MOVIES: 5 * 60 * 1000, // 5 minutes
+};
+
 /**
  * Memoize a function with caching
  * @param fn Function to memoize
  * @param keyFn Function to generate cache key from arguments
- * @param expiry Cache expiration time in milliseconds
+ * @param duration Cache duration in milliseconds
  * @returns Memoized function
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function memoize<T, Args extends any[]>(
   fn: (...args: Args) => Promise<T>,
   keyFn: (...args: Args) => string = (...args) => JSON.stringify(args),
-  expiry: number = DEFAULT_CACHE_TIME
+  duration: number = CACHE_DURATION.MENU
 ): (...args: Args) => Promise<T> {
   return async (...args: Args): Promise<T> => {
     const key = keyFn(...args);
     const cached = clientCache.get<T>(key);
 
     if (cached !== null) {
-      console.log(`Using memoized result for ${key}`);
       return cached;
     }
 
-    console.log(`Fetching fresh data for ${key}`);
     const result = await fn(...args);
-
     if (result) {
-      clientCache.set(key, result, expiry);
+      clientCache.set(key, result, duration);
     }
 
     return result;
   };
 }
+
+// Re-export cache durations
+export { CACHE_CONFIG };

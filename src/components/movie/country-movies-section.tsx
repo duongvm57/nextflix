@@ -1,11 +1,10 @@
 'use client';
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { Movie } from '@/types';
-import { getMoviesByCountry } from '@/services/phimapi';
 import { getImageUrl } from '@/lib/utils';
 import { MenuLink } from '@/components/ui/menu-link';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -13,21 +12,24 @@ import useEmblaCarousel from 'embla-carousel-react';
 interface CountryMoviesSectionProps {
   countrySlug: string;
   countryName: string;
+  initialMovies: Movie[];
   className?: string;
 }
 
-export function CountryMoviesSection({ countrySlug, countryName, className = '' }: CountryMoviesSectionProps) {
-  const [movies, setMovies] = useState<Movie[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+export function CountryMoviesSection({
+  countrySlug,
+  countryName,
+  initialMovies,
+  className = '',
+}: CountryMoviesSectionProps) {
+  const [movies] = useState<Movie[]>(initialMovies);
 
   // Sử dụng Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({
     dragFree: true,
     containScroll: 'trimSnaps',
     align: 'start',
-    slidesToScroll: 1
+    slidesToScroll: 1,
   });
 
   // Các hàm điều khiển carousel
@@ -38,67 +40,6 @@ export function CountryMoviesSection({ countrySlug, countryName, className = '' 
   const scrollNext = useCallback(() => {
     if (emblaApi) emblaApi.scrollNext();
   }, [emblaApi]);
-
-  useEffect(() => {
-    const fetchMovies = async () => {
-      setIsLoading(true);
-      try {
-        const response = await getMoviesByCountry(countrySlug, currentPage, {
-          limit: '20', // Tải sẵn 20 phim
-        });
-
-        setMovies(response.data);
-        setTotalPages(response.pagination.totalPages);
-      } catch (error) {
-        console.error(`Error fetching movies for country ${countrySlug}:`, error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchMovies();
-  }, [countrySlug, currentPage]);
-
-  // Function to load next page of movies
-  const loadNextPage = () => {
-    if (currentPage < totalPages) {
-      setCurrentPage(prev => prev + 1);
-    } else {
-      // Quay lại trang đầu tiên khi đã đến trang cuối
-      setCurrentPage(1);
-    }
-  };
-
-  // Button scroll handlers
-  const scrollLeftBtn = scrollPrev;
-  const scrollRightBtn = scrollNext;
-
-  if (isLoading) {
-    return (
-      <div className={`mb-12 ${className}`}>
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-2xl font-bold">Phim {countryName} mới</h2>
-          <div className="flex items-center gap-2">
-            <div className="hidden md:flex items-center gap-1 mr-2">
-              <div className="p-1 rounded-full bg-gray-800 w-8 h-8 animate-pulse"></div>
-              <div className="p-1 rounded-full bg-gray-800 w-8 h-8 animate-pulse"></div>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="px-3 py-1 bg-gray-800 rounded-full w-20 h-8 animate-pulse"></div>
-              <div className="px-3 py-1 bg-gray-800 rounded-full w-24 h-8 animate-pulse"></div>
-            </div>
-          </div>
-        </div>
-        <div className="relative">
-          <div className="flex gap-4 overflow-x-auto pb-4 scrollbar-hide">
-            {Array(8).fill(null).map((_, index) => (
-              <div key={index} className="flex-shrink-0 w-[180px] h-[270px] animate-pulse rounded-lg bg-gray-800" />
-            ))}
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   if (!movies || movies.length === 0) {
     return null;
@@ -111,14 +52,14 @@ export function CountryMoviesSection({ countrySlug, countryName, className = '' 
         <div className="flex items-center gap-2">
           <div className="hidden md:flex items-center gap-1 mr-2">
             <button
-              onClick={scrollLeftBtn}
+              onClick={scrollPrev}
               className="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
               aria-label="Scroll left"
             >
               <ChevronLeft size={18} />
             </button>
             <button
-              onClick={scrollRightBtn}
+              onClick={scrollNext}
               className="p-1 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
               aria-label="Scroll right"
             >
@@ -141,7 +82,7 @@ export function CountryMoviesSection({ countrySlug, countryName, className = '' 
         <div className="overflow-hidden no-select" ref={emblaRef}>
           {/* Embla Carousel Container */}
           <div className="flex gap-4 pb-4">
-            {movies.map((movie) => (
+            {movies.map(movie => (
               <div
                 key={movie._id}
                 className="flex-shrink-0 group relative overflow-hidden rounded-lg w-[180px] h-[270px]"

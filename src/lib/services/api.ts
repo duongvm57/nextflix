@@ -8,6 +8,7 @@ import {
   searchMovies,
   getMovieBySlug,
 } from '@/services/phimapi';
+import { PAGINATION_CONFIG } from '../config/pagination';
 
 // API functions using real API
 export const movieService = {
@@ -22,7 +23,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },
@@ -44,7 +45,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },
@@ -78,7 +79,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },
@@ -97,7 +98,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },
@@ -116,7 +117,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },
@@ -135,7 +136,7 @@ export const movieService = {
         data: [],
         pagination: {
           totalItems: 0,
-          totalItemsPerPage: 10,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
           totalPages: 0,
         },

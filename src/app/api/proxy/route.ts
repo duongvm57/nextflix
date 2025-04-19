@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { CACHE_CONFIG } from '@/lib/config/cache-config';
 
 export async function GET(request: NextRequest) {
   const urlParam = request.nextUrl.searchParams.get('url');
@@ -13,16 +14,18 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid domain' }, { status: 403 });
     }
 
+    // Determine if this is a static route that should be cached
+    const isStaticRoute =
+      urlParam.includes('/categories') ||
+      urlParam.includes('/countries') ||
+      urlParam.includes('/genres');
+
     console.log('Fetching URL:', urlParam);
 
     // Construct URL parts manually to avoid URL parsing issues
     const baseUrl = 'https://phimapi.com';
     const path = urlParam.replace(/^https?:\/\/phimapi\.com/i, '');
-
-    // Make sure path starts with a slash
     const formattedPath = path.startsWith('/') ? path : `/${path}`;
-
-    // Construct the final URL
     const finalUrl = `${baseUrl}${formattedPath}`;
 
     console.log('Final URL:', finalUrl);
@@ -34,7 +37,14 @@ export async function GET(request: NextRequest) {
         'User-Agent':
           'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
       },
-      cache: 'no-store',
+      // Use appropriate cache strategy based on route type
+      cache: isStaticRoute ? 'force-cache' : 'no-store',
+      next: isStaticRoute
+        ? {
+            revalidate: CACHE_CONFIG.SERVER.CATEGORIES,
+            tags: ['categories', 'countries'],
+          }
+        : undefined,
     });
 
     if (!response.ok) {
@@ -42,31 +52,19 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data);
+
+    // Add appropriate cache headers
+    const headers = new Headers();
+    headers.set(
+      'Cache-Control',
+      isStaticRoute
+        ? `public, max-age=${CACHE_CONFIG.HTTP.STATIC}, s-maxage=${CACHE_CONFIG.SERVER.CATEGORIES}`
+        : 'no-cache'
+    );
+
+    return NextResponse.json(data, { headers });
   } catch (error) {
     console.error('Proxy error:', error);
-    // Return a more useful error response
-    return NextResponse.json(
-      {
-        status: 'error',
-        error: 'Failed to fetch data',
-        message: error instanceof Error ? error.message : 'Unknown error',
-        url: urlParam,
-        // Return empty data structure to prevent client-side errors
-        data: {
-          items: [],
-          params: {
-            pagination: {
-              totalItems: 0,
-              totalItemsPerPage: 20,
-              currentPage: 1,
-              totalPages: 0,
-            },
-          },
-          APP_DOMAIN_CDN_IMAGE: '',
-        },
-      },
-      { status: 500 }
-    );
+    return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }
