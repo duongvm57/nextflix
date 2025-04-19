@@ -26,63 +26,65 @@ const nextConfig = {
   async headers() {
     return [
       {
-        source: '/_next/:path*',
-        headers: [
-          { key: 'Access-Control-Allow-Origin', value: '*' },
-        ],
-      },
-      {
         source: '/:path*',
         headers: [
-          // Cache control for better performance
-          { key: 'Cache-Control', value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000' },
-          { key: 'X-Content-Type-Options', value: 'nosniff' },
-          { key: 'X-Frame-Options', value: 'SAMEORIGIN' },
-          { key: 'X-XSS-Protection', value: '1; mode=block' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+          }
         ],
       },
       {
         source: '/api/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=60, s-maxage=300, stale-while-revalidate=3600' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=300, s-maxage=3600, stale-while-revalidate=86400'
+          }
         ],
       },
       {
-        source: '/:path*.jpg',
+        source: '/api/batch/:path*',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=600, s-maxage=7200, stale-while-revalidate=86400'
+          }
         ],
       },
       {
-        source: '/:path*.png',
+        // Add cache headers for RSC requests
+        source: '/:path*',
+        has: [
+          {
+            type: 'header',
+            key: 'RSC',
+            value: '1'
+          }
+        ],
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+          }
         ],
       },
       {
-        source: '/:path*.svg',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+        // Add cache headers for RSC requests with _rsc parameter
+        source: '/:path*',
+        has: [
+          {
+            type: 'query',
+            key: '_rsc'
+          }
         ],
-      },
-      {
-        source: '/:path*.webp',
         headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+          }
         ],
-      },
-      {
-        source: '/:path*.js',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
-      {
-        source: '/:path*.css',
-        headers: [
-          { key: 'Cache-Control', value: 'public, max-age=31536000, immutable' },
-        ],
-      },
+      }
     ];
   },
   images: {
@@ -118,9 +120,21 @@ const nextConfig = {
   // Performance optimizations
   experimental: {
     optimizeCss: true,
-    optimizeServerReact: true,
     scrollRestoration: true,
+    workerThreads: false,
+    // Optimize for static rendering where possible
+    serverMinification: true,
+    // Optimize RSC payload size
+    optimizePackageImports: ['react', 'react-dom', 'next', 'embla-carousel-react'],
+    // Optimize RSC
+    optimizeServerReact: true,
   },
+
+  // External packages for server components
+  serverExternalPackages: [],
+
+  // Thêm cấu hình cho static generation
+  staticPageGenerationTimeout: 180,
 
   // Cấu hình webpack để xử lý các thư viện
   webpack: (config, { isServer }) => {

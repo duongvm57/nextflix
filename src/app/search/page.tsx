@@ -77,7 +77,9 @@ export default async function SearchPage({
 
   // Redirect to the last page if current page is greater than total pages
   if (pagination && pagination.totalPages > 0 && page > pagination.totalPages) {
-    return Response.redirect(`/search?keyword=${encodeURIComponent(keyword)}&page=${pagination.totalPages}`);
+    return Response.redirect(
+      `/search?keyword=${encodeURIComponent(keyword)}&page=${pagination.totalPages}`
+    );
   }
 
   return (

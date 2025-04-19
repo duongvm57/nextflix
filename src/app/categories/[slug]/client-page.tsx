@@ -1,8 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
-import { useRouter, usePathname, useSearchParams } from 'next/navigation';
-import { triggerLoading } from '@/components/ui/loading-indicator';
+import { useSearchParams } from 'next/navigation';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
@@ -31,8 +30,6 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
   const [pagination, setPagination] = useState(initialPagination);
   const [isLoading, setIsLoading] = useState(false);
 
-  const router = useRouter();
-  const pathname = usePathname();
   const searchParams = useSearchParams();
   const page = searchParams?.get('page') ? parseInt(searchParams.get('page')!) : 1;
 
@@ -122,34 +119,9 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
     };
   }, [page, isLoading, pagination.totalPages, slug, fetchMoviesWithCache]);
 
-  // Handle page change
-  const handlePageChange = (newPage: number) => {
-    // Show loading immediately
-    setIsLoading(true);
-    triggerLoading();
-
-    // Create new search params
-    const params = new URLSearchParams(searchParams?.toString());
-
-    if (newPage === 1) {
-      params.delete('page');
-    } else {
-      params.set('page', newPage.toString());
-    }
-
-    // Update URL without reloading page
-    const newUrl = `${pathname}${params.toString() ? `?${params.toString()}` : ''}`;
-    router.push(newUrl);
-  };
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumb
-        items={[
-          { name: title, url: `/categories/${slug}` },
-        ]}
-        className="mt-4 mb-4"
-      />
+      <Breadcrumb items={[{ name: title, url: `/categories/${slug}` }]} className="mt-4 mb-4" />
       <h1 className="mb-8 text-3xl font-bold">{title}</h1>
 
       {isLoading ? (

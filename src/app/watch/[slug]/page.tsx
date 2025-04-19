@@ -104,11 +104,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
     <div className="container mx-auto px-4 py-8">
       {/* Thêm Schema.org structured data */}
       <MovieSchema movie={movie} />
-      <BreadcrumbSchema
-        items={[
-          { name: movie.name, url: `/watch/${movie.slug}` },
-        ]}
-      />
+      <BreadcrumbSchema items={[{ name: movie.name, url: `/watch/${movie.slug}` }]} />
 
       {/* Video player and episode selection */}
       {movie.episodes && movie.episodes.length > 0 && (

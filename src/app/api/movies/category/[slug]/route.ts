@@ -1,22 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { movieService } from '@/lib/services/api';
+import { getMoviesByCategory } from '@/services/phimapi';
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
-  const { slug } = params;
-  const searchParams = request.nextUrl.searchParams;
-  const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
-
   try {
-    const result = await movieService.getMoviesByCategory(slug, page);
-    return NextResponse.json(result);
+    const { searchParams } = new URL(request.url);
+    const page = parseInt(searchParams.get('page') || '1');
+    const { slug } = params;
+
+    const response = await getMoviesByCategory(slug, page);
+
+    // If no data, return empty response with 404
+    if (!response.data || response.data.length === 0) {
+      return NextResponse.json(
+        {
+          data: [],
+          pagination: {
+            totalItems: 0,
+            totalItemsPerPage: 20,
+            currentPage: page,
+            totalPages: 0,
+          },
+        },
+        { status: 404 }
+      );
+    }
+
+    return NextResponse.json(response);
   } catch (error) {
-    console.error('Error fetching movies by category:', error);
-    return NextResponse.json(
-      {
-        data: [],
-        pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: page, totalPages: 1 },
-      },
-      { status: 500 }
-    );
+    console.error(`Error in category API route for ${params.slug}:`, error);
+    return NextResponse.json({ error: 'Failed to fetch movies' }, { status: 500 });
   }
 }

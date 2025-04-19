@@ -3,6 +3,21 @@
 import { Movie, MovieDetail, PaginatedResponse, Episode } from '@/types';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { logger } from '@/utils/logger';
+import { clientCache } from '@/lib/cache/client-cache';
+import { CACHE_CONFIG, CACHE_KEYS } from '@/lib/config/cache-config';
+
+// Import logApiCall if we're on the server
+let logApiCall: (url: string, method: string, cache: string) => void;
+if (typeof window === 'undefined') {
+  // Only import on server-side
+  import('../app/api/debug/route')
+    .then(module => {
+      logApiCall = module.logApiCall;
+    })
+    .catch(err => {
+      console.error('Failed to import logApiCall:', err);
+    });
+}
 
 // Helper function to generate empty response
 function getEmptyResponse(
@@ -37,9 +52,6 @@ async function fetchMultiplePages<T>(
   logger.debug(
     `[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`
   );
-  logger.debug(
-    `[DEBUG] fetchMultiplePages - clientPage: ${clientPage}, startApiPage: ${startApiPage}`
-  );
 
   try {
     // Fetch two consecutive API pages
@@ -65,14 +77,12 @@ async function fetchMultiplePages<T>(
       });
     } catch (error) {
       logger.error(`[DEBUG] fetchMultiplePages - Error fetching page ${startApiPage + 1}:`, error);
-      logger.error(`[DEBUG] fetchMultiplePages - Error fetching page ${startApiPage + 1}:`, error);
       // If second page fails, just use the first page
       page2Response = { data: [], pagination: page1Response.pagination };
     }
 
     // Combine the items from both pages
     const combinedItems = [...page1Response.data, ...page2Response.data];
-    logger.debug(`[DEBUG] fetchMultiplePages - Combined ${combinedItems.length} items`);
     logger.debug(`[DEBUG] fetchMultiplePages - Combined ${combinedItems.length} items`);
 
     // First, let's fetch page 1 to get the accurate total pages from the API
@@ -101,7 +111,9 @@ async function fetchMultiplePages<T>(
     const totalApiItems = firstPageResponse.pagination.totalItems;
     const apiTotalPages = firstPageResponse.pagination.totalPages;
 
-    logger.debug(`[DEBUG] fetchMultiplePages - API reports ${totalApiItems} total items and ${apiTotalPages} total pages`);
+    logger.debug(
+      `[DEBUG] fetchMultiplePages - API reports ${totalApiItems} total items and ${apiTotalPages} total pages`
+    );
 
     // Use the API's reported total pages directly
     // This is more reliable than calculating based on items per page
@@ -111,16 +123,17 @@ async function fetchMultiplePages<T>(
     if (combinedItems.length === 0 && clientPage > 1) {
       // If we're on a page beyond page 1 and there are no items, the previous page was the last one
       totalClientPages = clientPage - 1;
-      logger.debug(`[DEBUG] fetchMultiplePages - Adjusting totalClientPages to ${totalClientPages} because current page ${clientPage} has no items`);
+      logger.debug(
+        `[DEBUG] fetchMultiplePages - Adjusting totalClientPages to ${totalClientPages} because current page ${clientPage} has no items`
+      );
     } else if (combinedItems.length > 0) {
       // If we have items, make sure totalClientPages is at least the current page
       totalClientPages = Math.max(totalClientPages, clientPage);
-      logger.debug(`[DEBUG] fetchMultiplePages - Ensuring totalClientPages is at least ${clientPage}`);
+      logger.debug(
+        `[DEBUG] fetchMultiplePages - Ensuring totalClientPages is at least ${clientPage}`
+      );
     }
 
-    logger.debug(
-      `[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`
-    );
     logger.debug(
       `[DEBUG] fetchMultiplePages - totalApiItems: ${totalApiItems}, totalClientPages: ${totalClientPages}`
     );
@@ -136,7 +149,6 @@ async function fetchMultiplePages<T>(
       },
     };
   } catch (error) {
-    logger.error('[DEBUG] Error in fetchMultiplePages:', error);
     logger.error('[DEBUG] Error in fetchMultiplePages:', error);
     throw error;
   }
@@ -168,8 +180,13 @@ const API_ENDPOINTS = {
 // Log API endpoints for debugging
 logger.debug('API endpoints:', API_ENDPOINTS);
 logger.debug('API V1 base URL:', API_V1_BASE_URL);
-logger.debug('API endpoints:', API_ENDPOINTS);
-logger.debug('API V1 base URL:', API_V1_BASE_URL);
+
+const CACHED_ENDPOINTS = [
+  API_ENDPOINTS.CATEGORIES_LIST,
+  API_ENDPOINTS.COUNTRIES_LIST,
+  API_ENDPOINTS.V1_CATEGORY,
+  API_ENDPOINTS.V1_COUNTRY,
+];
 
 // Hàm chung để gọi API
 async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}): Promise<T> {
@@ -197,6 +214,11 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
   logger.debug(`[DEBUG] Fetching API: ${originalUrl}`);
   logger.debug(`[DEBUG] Using proxy: ${proxyUrl}`);
 
+  // Log API call if we're on the server
+  if (typeof window === 'undefined' && logApiCall) {
+    logApiCall(originalUrl, 'GET', 'EXTERNAL');
+  }
+
   // Maximum number of retries
   const MAX_RETRIES = 3;
   let retries = 0;
@@ -215,17 +237,11 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
         },
         signal: controller.signal,
         // Use cache for better performance
-        cache:
-          endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
-          endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-            ? 'force-cache'
-            : 'no-store',
+        cache: CACHED_ENDPOINTS.some(e => endpoint.includes(e)) ? 'force-cache' : 'no-store',
         // Revalidate categories and countries every hour, otherwise disable cache
-        next:
-          endpoint.includes(API_ENDPOINTS.CATEGORIES_LIST) ||
-          endpoint.includes(API_ENDPOINTS.COUNTRIES_LIST)
-            ? { revalidate: 3600 }
-            : { revalidate: 0 },
+        next: CACHED_ENDPOINTS.some(e => endpoint.includes(e))
+          ? { revalidate: 3600 } // Cache 1 giờ
+          : { revalidate: 0 },
       });
 
       clearTimeout(timeoutId);
@@ -244,7 +260,6 @@ async function fetchAPI<T>(endpoint: string, params: Record<string, string> = {}
       }
 
       const data = await response.json();
-      logger.debug(`[DEBUG] API response:`, data);
       logger.debug(`[DEBUG] API response:`, data);
       return data;
     } catch (error) {
@@ -289,12 +304,16 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
   // Ensure API_V1_BASE_URL doesn't end with a slash
   const baseUrl = API_V1_BASE_URL.endsWith('/') ? API_V1_BASE_URL.slice(0, -1) : API_V1_BASE_URL;
 
-  const originalUrl = `${baseUrl}${formattedEndpoint}${queryParams ? `?${queryParams}` : ''}`;
+  const url = `${baseUrl}${formattedEndpoint}${queryParams ? `?${queryParams}` : ''}`;
 
-  // Use direct API call instead of proxy
-  const proxyUrl = originalUrl;
+  // Add cache options for static pages
+  const fetchOptions: RequestInit = {
+    next: {
+      revalidate: 3600, // Cache for 1 hour
+    },
+  };
 
-  logger.debug(`[DEBUG] Fetching API V1: ${originalUrl}`);
+  logger.debug(`[DEBUG] Fetching API V1: ${url}`);
 
   // Maximum number of retries
   const MAX_RETRIES = 3;
@@ -306,17 +325,7 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
-      const response = await fetch(proxyUrl, {
-        method: 'GET',
-        headers: {
-          Accept: 'application/json',
-        },
-        signal: controller.signal,
-        // Use cache for better performance
-        cache: 'no-store',
-        // Disable Next.js cache for dynamic data
-        next: { revalidate: 0 },
-      });
+      const response = await fetch(url, fetchOptions);
 
       clearTimeout(timeoutId);
 
@@ -371,7 +380,7 @@ async function fetchAPIV1<T>(endpoint: string, params: Record<string, string> = 
 
       return data;
     } catch (error) {
-      logger.error(`[DEBUG] Error fetching from ${originalUrl} (attempt ${retries + 1}):`, error);
+      logger.error(`[DEBUG] Error fetching from ${url} (attempt ${retries + 1}):`, error);
 
       // If it's an AbortError (timeout) or a network error, retry
       if (
@@ -481,12 +490,9 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
 
   logger.debug('Processing episodes from API response');
   logger.debug('API episodes:', JSON.stringify(apiMovie.episodes, null, 2));
-  logger.debug('Processing episodes from API response');
-  logger.debug('API episodes:', JSON.stringify(apiMovie.episodes, null, 2));
 
   if (apiMovie.episodes && Array.isArray(apiMovie.episodes) && apiMovie.episodes.length > 0) {
     apiMovie.episodes.forEach((server: any) => {
-      logger.debug('Processing server:', server.server_name);
       logger.debug('Processing server:', server.server_name);
       if (
         server.server_data &&
@@ -506,21 +512,15 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
         logger.debug(
           `Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`
         );
-        logger.debug(
-          `Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`
-        );
         episodes.push(serverEpisodes);
       } else {
-        logger.debug(`Server ${server.server_name} has no valid server_data`);
         logger.debug(`Server ${server.server_name} has no valid server_data`);
       }
     });
   } else {
     logger.debug('No valid episodes array in API response');
-    logger.debug('No valid episodes array in API response');
   }
 
-  logger.debug(`Total episodes servers processed: ${episodes.length}`);
   logger.debug(`Total episodes servers processed: ${episodes.length}`);
 
   return {
@@ -606,15 +606,7 @@ export async function getMovieDetail(slug: string): Promise<MovieDetail | null> 
 export async function getMoviesByCategory(
   typeOrCategorySlug: string,
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: {
-    sort_field?: string;
-    sort_type?: string;
-    sort_lang?: string;
-    category?: string;
-    country?: string;
-    year?: string;
-    limit?: string;
-  } = {}
+  options: Record<string, string> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     // Set default limit if not provided in options
@@ -648,8 +640,6 @@ export async function getMoviesByCategory(
 
     logger.debug(`[DEBUG] getMoviesByCategory - typeOrCategorySlug: ${typeOrCategorySlug}`);
     logger.debug(`[DEBUG] getMoviesByCategory - options:`, options);
-    logger.debug(`[DEBUG] getMoviesByCategory - typeOrCategorySlug: ${typeOrCategorySlug}`);
-    logger.debug(`[DEBUG] getMoviesByCategory - options:`, options);
 
     // Check if this is a category slug
     const isCategorySlug =
@@ -660,38 +650,31 @@ export async function getMoviesByCategory(
       // For categories, use the category endpoint directly
       endpoint = `${API_ENDPOINTS.V1_CATEGORY}/${typeOrCategorySlug}`;
       logger.debug(`[DEBUG] Using category endpoint for slug: ${typeOrCategorySlug}`);
-      logger.debug(`[DEBUG] Using category endpoint for slug: ${typeOrCategorySlug}`);
     } else if (isYear) {
       // For years, use the movies list endpoint with year parameter
       endpoint = `${API_ENDPOINTS.V1_MOVIES_LIST}/phim-bo`;
       params.year = typeOrCategorySlug;
       logger.debug(`[DEBUG] Using year parameter: ${typeOrCategorySlug}`);
-      logger.debug(`[DEBUG] Using year parameter: ${typeOrCategorySlug}`);
     } else if (isLanguageType || isMovieType) {
       // For all type lists (movie types and language types), use the danh-sach endpoint
       endpoint = `${API_ENDPOINTS.V1_MOVIES_LIST}/${typeOrCategorySlug}`;
-      logger.debug(`[DEBUG] Using type list: ${typeOrCategorySlug}`);
       logger.debug(`[DEBUG] Using type list: ${typeOrCategorySlug}`);
 
       // Add additional filters if provided
       if (options.category) {
         logger.debug(`[DEBUG] Adding category filter: ${options.category}`);
-        logger.debug(`[DEBUG] Adding category filter: ${options.category}`);
       }
 
       if (options.country) {
-        logger.debug(`[DEBUG] Adding country filter: ${options.country}`);
         logger.debug(`[DEBUG] Adding country filter: ${options.country}`);
       }
 
       if (options.year) {
         logger.debug(`[DEBUG] Adding year filter: ${options.year}`);
-        logger.debug(`[DEBUG] Adding year filter: ${options.year}`);
       }
     } else {
       // Default to phim-bo if we can't determine the type
       endpoint = `${API_ENDPOINTS.V1_MOVIES_LIST}/phim-bo`;
-      logger.debug(`[DEBUG] Using default type list: phim-bo`);
       logger.debug(`[DEBUG] Using default type list: phim-bo`);
     }
 
@@ -699,30 +682,18 @@ export async function getMoviesByCategory(
       `[DEBUG] Fetching from endpoint: ${endpoint} with params:`,
       JSON.stringify(params, null, 2)
     );
-    logger.debug(
-      `[DEBUG] Fetching from endpoint: ${endpoint} with params:`,
-      JSON.stringify(params, null, 2)
-    );
     const response = await fetchAPIV1<any>(endpoint, params);
     logger.debug(`[DEBUG] Response status:`, response.status);
     logger.debug(`[DEBUG] Response data structure:`, Object.keys(response.data || {}));
-    logger.debug(`[DEBUG] Response status:`, response.status);
-    logger.debug(`[DEBUG] Response data structure:`, Object.keys(response.data || {}));
     if (response.data && response.data.items) {
-      logger.debug(`[DEBUG] Found ${response.data.items.length} items`);
       logger.debug(`[DEBUG] Found ${response.data.items.length} items`);
       if (response.data.items.length > 0) {
         logger.debug(
           `[DEBUG] First item:`,
           JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...'
         );
-        logger.debug(
-          `[DEBUG] First item:`,
-          JSON.stringify(response.data.items[0], null, 2).substring(0, 200) + '...'
-        );
       }
     } else {
-      logger.debug(`[DEBUG] No items found in response:`, response);
       logger.debug(`[DEBUG] No items found in response:`, response);
     }
 
@@ -737,10 +708,6 @@ export async function getMoviesByCategory(
 
       // Log first item to check structure
       if (items && items.length > 0) {
-        logger.debug(`Found ${items.length} movies for ${typeOrCategorySlug}`);
-        logger.debug('First item:', JSON.stringify(items[0], null, 2));
-        logger.debug('Pagination data:', responseParams.pagination);
-        logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
         logger.debug(`Found ${items.length} movies for ${typeOrCategorySlug}`);
         logger.debug('First item:', JSON.stringify(items[0], null, 2));
         logger.debug('Pagination data:', responseParams.pagination);
@@ -775,101 +742,59 @@ export async function getMoviesByCategory(
     return getEmptyResponse(page);
   } catch (error) {
     logger.error(`Error fetching movies for ${typeOrCategorySlug}:`, error);
-    logger.error(`Error fetching movies for ${typeOrCategorySlug}:`, error);
     // Return empty response in case of error
     return getEmptyResponse(page);
   }
 }
 
 // Get movies by country
-export async function getMoviesByCountry(
-  countrySlug: string,
-  page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: {
-    sort_field?: string;
-    sort_type?: string;
-    sort_lang?: string;
-    category?: string;
-    year?: string;
-    limit?: string;
-  } = {}
-): Promise<PaginatedResponse<Movie>> {
+export async function getMoviesByCountry(slug: string, page = 1, options: { limit?: string } = {}) {
   try {
-    // Set default limit if not provided in options
-    const defaultOptions = {
-      limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
-      sort_field: 'modified.time',
-      sort_type: 'desc',
-    };
-
-    // Filter out undefined values from options
-    const filteredOptions: Record<string, string> = {};
-    for (const [key, value] of Object.entries(options)) {
-      if (value !== undefined && value !== null && value !== 'undefined') {
-        filteredOptions[key] = value;
-      }
-    }
-
-    const params: Record<string, string> = {
+    const response = await fetchAPIV1<any>(`${API_ENDPOINTS.V1_COUNTRY}/${slug}`, {
       page: page.toString(),
-      ...defaultOptions,
-      ...filteredOptions,
-    };
+      ...options,
+    });
 
-    // Use the correct API endpoint for countries
-    const url = `${API_ENDPOINTS.V1_COUNTRY}/${countrySlug}`;
-    logger.debug(
-      `[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`,
-      JSON.stringify(params, null, 2)
-    );
-    logger.debug(
-      `[DEBUG] Fetching movies for country ${countrySlug}, URL: ${url}, params:`,
-      JSON.stringify(params, null, 2)
-    );
-
-    const response = await fetchAPIV1<any>(url, params);
-    logger.debug(`[DEBUG] Country response status:`, response.status);
-    logger.debug(`[DEBUG] Country response full:`, response);
-    logger.debug(`[DEBUG] Country response status:`, response.status);
-    logger.debug(`[DEBUG] Country response full:`, response);
-
-    if (response.data) {
-      logger.debug(`[DEBUG] Country response data keys:`, Object.keys(response.data));
-      logger.debug(`[DEBUG] Country response data keys:`, Object.keys(response.data));
-
-      if (response.data.items) {
-        logger.debug(
-          `[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`
-        );
-        logger.debug(
-          `[DEBUG] Found ${response.data.items.length} items for country ${countrySlug}`
-        );
-        if (response.data.items.length > 0) {
-          logger.debug(`[DEBUG] First country item:`, response.data.items[0]);
-          logger.debug(`[DEBUG] First country item:`, response.data.items[0]);
-        }
-      } else {
-        logger.debug(`[DEBUG] No items found in country response data`);
-        logger.debug(`[DEBUG] No items found in country response data`);
-      }
-    } else {
-      logger.debug(`[DEBUG] No data found in country response`);
-      logger.debug(`[DEBUG] No data found in country response`);
+    // Kiểm tra cấu trúc response
+    if (!response || typeof response !== 'object') {
+      console.warn(`Invalid response for country ${slug}`);
+      return getEmptyResponse(page);
     }
 
-    if (response && response.status === 'success' && response.data) {
-      const { items, params: responseParams, APP_DOMAIN_CDN_IMAGE } = response.data;
+    // Kiểm tra nếu response là dạng { data: { items: [] } }
+    if (response.data && Array.isArray(response.data.items)) {
+      // Xử lý URL ảnh với APP_DOMAIN_CDN_IMAGE
+      const { items, params, APP_DOMAIN_CDN_IMAGE } = response.data;
 
-      if (items && items.length > 0) {
-        logger.debug(`Found ${items.length} movies for country ${countrySlug}`);
-        logger.debug('Pagination data:', responseParams.pagination);
-        logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
-        logger.debug(`Found ${items.length} movies for country ${countrySlug}`);
-        logger.debug('Pagination data:', responseParams.pagination);
-        logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
+      // Xử lý URL ảnh cho từng item
+      const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
+        if (item.thumb_url && !item.thumb_url.startsWith('http')) {
+          item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
+        }
+        if (item.poster_url && !item.poster_url.startsWith('http')) {
+          item.poster_url = `${APP_DOMAIN_CDN_IMAGE}/${item.poster_url}`;
+        }
+        return item;
+      });
 
-        // Add image domain to each item
-        const processedItems = items.map((item: { thumb_url: string; poster_url: string }) => {
+      return {
+        data: processedItems.map(mapAPIMovieToMovie),
+        pagination: params?.pagination || {
+          totalItems: items.length,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+          currentPage: page,
+          totalPages: Math.ceil(items.length / PAGINATION_CONFIG.ITEMS_PER_PAGE),
+        },
+      };
+    }
+
+    // Kiểm tra nếu response.data là array trực tiếp
+    if (Array.isArray(response.data)) {
+      const { APP_DOMAIN_CDN_IMAGE } = response;
+
+      // Xử lý URL ảnh cho từng item
+      const processedItems = response.data.map(
+        (item: { thumb_url: string; poster_url: string }) => {
           if (item.thumb_url && !item.thumb_url.startsWith('http')) {
             item.thumb_url = `${APP_DOMAIN_CDN_IMAGE}/${item.thumb_url}`;
           }
@@ -877,26 +802,25 @@ export async function getMoviesByCountry(
             item.poster_url = `${APP_DOMAIN_CDN_IMAGE}/${item.poster_url}`;
           }
           return item;
-        });
+        }
+      );
 
-        return {
-          data: processedItems.map(mapAPIMovieToMovie),
-          pagination: {
-            totalItems: responseParams.pagination?.totalItems || 0,
-            totalItemsPerPage:
-              responseParams.pagination?.totalItemsPerPage || PAGINATION_CONFIG.ITEMS_PER_PAGE,
-            currentPage: responseParams.pagination?.currentPage || page,
-            totalPages: responseParams.pagination?.totalPages || 1,
-          },
-        };
-      }
+      return {
+        data: processedItems.map(mapAPIMovieToMovie),
+        pagination: response.pagination || {
+          totalItems: response.data.length,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+          currentPage: page,
+          totalPages: Math.ceil(response.data.length / PAGINATION_CONFIG.ITEMS_PER_PAGE),
+        },
+      };
     }
 
-    throw new Error('Empty response from API');
+    // Nếu không match với bất kỳ format nào
+    console.warn(`Unexpected response format for country ${slug}:`, response);
+    return getEmptyResponse(page);
   } catch (error) {
-    logger.error(`Error fetching movies for country ${countrySlug}:`, error);
-    logger.error(`Error fetching movies for country ${countrySlug}:`, error);
-    // Return empty response in case of error
+    console.error(`Error fetching movies for country ${slug}:`, error);
     return getEmptyResponse(page);
   }
 }
@@ -940,20 +864,15 @@ export async function getMoviesByYear(
     // Use the movies list API endpoint with year as a parameter
     const url = `${API_ENDPOINTS.V1_MOVIES_LIST}/phim-bo`; // Use phim-bo as the base type
     logger.debug(`Fetching movies for year ${year}, URL: ${url}, params:`, params);
-    logger.debug(`Fetching movies for year ${year}, URL: ${url}, params:`, params);
 
     try {
       const response = await fetchAPIV1<any>(url, params);
-      logger.debug(`API response for year ${year}:`, response);
       logger.debug(`API response for year ${year}:`, response);
 
       if (response && response.status === 'success' && response.data) {
         const { items, params: responseParams, APP_DOMAIN_CDN_IMAGE } = response.data;
 
         if (items && items.length > 0) {
-          logger.debug(`Found ${items.length} movies for year ${year}`);
-          logger.debug('Pagination data:', responseParams.pagination);
-          logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
           logger.debug(`Found ${items.length} movies for year ${year}`);
           logger.debug('Pagination data:', responseParams.pagination);
           logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
@@ -984,15 +903,12 @@ export async function getMoviesByYear(
 
       // If we get here, the response didn't have the expected structure
       logger.error(`Invalid response structure for year ${year}:`, response);
-      logger.error(`Invalid response structure for year ${year}:`, response);
       throw new Error('Invalid API response structure');
     } catch (error) {
-      logger.error(`Error in fetchAPIV1 for year ${year}:`, error);
       logger.error(`Error in fetchAPIV1 for year ${year}:`, error);
       throw error;
     }
   } catch (error) {
-    logger.error(`Error fetching movies for year ${year}:`, error);
     logger.error(`Error fetching movies for year ${year}:`, error);
     // Return empty response in case of error
     return getEmptyResponse(page);
@@ -1052,16 +968,12 @@ export async function searchMovies(
     };
 
     logger.debug(`Searching for movies with keyword: ${keyword}, params:`, params);
-    logger.debug(`Searching for movies with keyword: ${keyword}, params:`, params);
     const response = await fetchAPIV1<any>(`${API_ENDPOINTS.V1_SEARCH}`, params);
 
     if (response && response.status === 'success' && response.data) {
       const { items, params: responseParams, APP_DOMAIN_CDN_IMAGE } = response.data;
 
       if (items && items.length > 0) {
-        logger.debug(`Found ${items.length} movies for search keyword ${keyword}`);
-        logger.debug('Pagination data:', responseParams.pagination);
-        logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
         logger.debug(`Found ${items.length} movies for search keyword ${keyword}`);
         logger.debug('Pagination data:', responseParams.pagination);
         logger.debug('Image domain:', APP_DOMAIN_CDN_IMAGE);
@@ -1102,7 +1014,6 @@ export async function searchMovies(
     };
   } catch (error) {
     logger.error(`Error searching for movies with keyword ${keyword}:`, error);
-    logger.error(`Error searching for movies with keyword ${keyword}:`, error);
     // Return empty results for search
     return {
       data: [],
@@ -1117,164 +1028,119 @@ export async function searchMovies(
 }
 
 // Get categories
-export async function getCategories(): Promise<any[]> {
+export async function getCategories() {
   try {
-    logger.debug(
-      '[DEBUG] Fetching categories from:',
-      `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`
-    );
-    logger.debug(
-      '[DEBUG] Fetching categories from:',
-      `${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`
-    );
+    console.log('[API] getCategories called');
+    // Check client cache first
+    const cachedData = clientCache.get(CACHE_KEYS.CATEGORIES);
+    if (cachedData) {
+      console.log('[API] Using cached categories data');
 
-    // Use fetch directly with a longer timeout to avoid AbortError
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
-        signal: controller.signal,
-        cache: 'force-cache', // Use cache for categories
-        next: { revalidate: 3600 }, // Revalidate every hour
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        logger.error(`[DEBUG] Categories API error: ${response.status}`);
-        logger.error(`[DEBUG] Categories API error: ${response.status}`);
-        return getSampleCategories();
+      // Log API call with cache hit if we're on the server
+      if (typeof window === 'undefined' && logApiCall) {
+        logApiCall(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, 'GET', 'HIT');
       }
 
-      const data = await response.json();
-      logger.debug('[DEBUG] Categories response:', data);
-      logger.debug('[DEBUG] Categories response:', data);
+      return cachedData;
+    }
 
-      if (Array.isArray(data)) {
-        return data.map(category => ({
+    console.log('[API] Fetching categories from API');
+
+    // Log API call with cache miss if we're on the server
+    if (typeof window === 'undefined' && logApiCall) {
+      logApiCall(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, 'GET', 'MISS');
+    }
+
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
+      next: {
+        revalidate: CACHE_CONFIG.SERVER.CATEGORIES,
+        tags: ['categories'],
+      },
+      cache: 'force-cache',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch categories: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const categories = Array.isArray(data)
+      ? data.map(category => ({
           id: category._id,
           name: category.name,
           slug: category.slug,
-        }));
-      } else {
-        logger.error('[DEBUG] Categories response is not an array:', data);
-        logger.error('[DEBUG] Categories response is not an array:', data);
-        return getSampleCategories();
-      }
-    } catch (fetchError) {
-      logger.error('Error fetching categories (fetch error):', fetchError);
-      return getSampleCategories();
+        }))
+      : [];
+
+    // Cache the result
+    if (categories.length > 0) {
+      console.log(`[API] Caching ${categories.length} categories`);
+      clientCache.set(CACHE_KEYS.CATEGORIES, categories, CACHE_CONFIG.CLIENT.CATEGORIES);
     }
+
+    return categories;
   } catch (error) {
-    logger.error('Error fetching categories:', error);
-    logger.error('Error fetching categories:', error);
-    return getSampleCategories();
+    console.error('[API] Error fetching categories:', error);
+    return [];
   }
 }
 
 // Get countries
-export async function getCountries(): Promise<any[]> {
+export async function getCountries() {
   try {
-    logger.debug(
-      '[DEBUG] Fetching countries from:',
-      `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`
-    );
-    logger.debug(
-      '[DEBUG] Fetching countries from:',
-      `${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`
-    );
+    console.log('[API] getCountries called');
+    // Check client cache first
+    const cachedData = clientCache.get(CACHE_KEYS.COUNTRIES);
+    if (cachedData) {
+      console.log('[API] Using cached countries data');
 
-    // Use fetch directly with a longer timeout to avoid AbortError
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
-
-    try {
-      const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
-        signal: controller.signal,
-        cache: 'force-cache', // Use cache for countries
-        next: { revalidate: 3600 }, // Revalidate every hour
-      });
-
-      clearTimeout(timeoutId);
-
-      if (!response.ok) {
-        logger.error(`[DEBUG] Countries API error: ${response.status}`);
-        logger.error(`[DEBUG] Countries API error: ${response.status}`);
-        return getSampleCountries();
+      // Log API call with cache hit if we're on the server
+      if (typeof window === 'undefined' && logApiCall) {
+        logApiCall(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, 'GET', 'HIT');
       }
 
-      const data = await response.json();
-      logger.debug('[DEBUG] Countries response:', data);
-      logger.debug('[DEBUG] Countries response:', data);
+      return cachedData;
+    }
 
-      if (Array.isArray(data)) {
-        return data.map(country => ({
+    console.log('[API] Fetching countries from API');
+
+    // Log API call with cache miss if we're on the server
+    if (typeof window === 'undefined' && logApiCall) {
+      logApiCall(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, 'GET', 'MISS');
+    }
+
+    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, {
+      next: {
+        revalidate: CACHE_CONFIG.SERVER.COUNTRIES,
+        tags: ['countries'],
+      },
+      cache: 'force-cache',
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch countries: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const countries = Array.isArray(data)
+      ? data.map(country => ({
           id: country._id,
           name: country.name,
           slug: country.slug,
-        }));
-      } else {
-        logger.error('[DEBUG] Countries response is not an array:', data);
-        logger.error('[DEBUG] Countries response is not an array:', data);
-        return getSampleCountries();
-      }
-    } catch (fetchError) {
-      logger.error('Error fetching countries (fetch error):', fetchError);
-      return getSampleCountries();
+        }))
+      : [];
+
+    // Cache the result
+    if (countries.length > 0) {
+      console.log(`[API] Caching ${countries.length} countries`);
+      clientCache.set(CACHE_KEYS.COUNTRIES, countries, CACHE_CONFIG.CLIENT.COUNTRIES);
     }
+
+    return countries;
   } catch (error) {
-    logger.error('Error fetching countries:', error);
-    logger.error('Error fetching countries:', error);
-    return getSampleCountries();
+    console.error('[API] Error fetching countries:', error);
+    return [];
   }
-}
-
-
-
-// Helper function to generate sample categories
-function getSampleCategories() {
-  return [
-    { id: 'cat-1', name: 'Hành Động', slug: 'hanh-dong' },
-    { id: 'cat-2', name: 'Tình Cảm', slug: 'tinh-cam' },
-    { id: 'cat-3', name: 'Hài Hước', slug: 'hai-huoc' },
-    { id: 'cat-4', name: 'Cổ Trang', slug: 'co-trang' },
-    { id: 'cat-5', name: 'Tâm Lý', slug: 'tam-ly' },
-    { id: 'cat-6', name: 'Hình Sự', slug: 'hinh-su' },
-    { id: 'cat-7', name: 'Chiến Tranh', slug: 'chien-tranh' },
-    { id: 'cat-8', name: 'Thể Thao', slug: 'the-thao' },
-    { id: 'cat-9', name: 'Võ Thuật', slug: 'vo-thuat' },
-    { id: 'cat-10', name: 'Viễn Tưởng', slug: 'vien-tuong' },
-    { id: 'cat-11', name: 'Phiêu Lưu', slug: 'phieu-luu' },
-    { id: 'cat-12', name: 'Khoa Học', slug: 'khoa-hoc' },
-    { id: 'cat-13', name: 'Kinh Dị', slug: 'kinh-di' },
-    { id: 'cat-14', name: 'Âm Nhạc', slug: 'am-nhac' },
-    { id: 'cat-15', name: 'Thần Thoại', slug: 'than-thoai' },
-    { id: 'cat-16', name: 'Tài Liệu', slug: 'tai-lieu' },
-    { id: 'cat-17', name: 'Gia Đình', slug: 'gia-dinh' },
-    { id: 'cat-18', name: 'Chính Kịch', slug: 'chinh-kich' },
-    { id: 'cat-19', name: 'Bí Ẩn', slug: 'bi-an' },
-    { id: 'cat-20', name: 'Học Đường', slug: 'hoc-duong' },
-  ];
-}
-
-// Helper function to generate sample countries
-function getSampleCountries() {
-  return [
-    { id: 'country-1', name: 'Việt Nam', slug: 'viet-nam' },
-    { id: 'country-2', name: 'Trung Quốc', slug: 'trung-quoc' },
-    { id: 'country-3', name: 'Hàn Quốc', slug: 'han-quoc' },
-    { id: 'country-4', name: 'Nhật Bản', slug: 'nhat-ban' },
-    { id: 'country-5', name: 'Thái Lan', slug: 'thai-lan' },
-    { id: 'country-6', name: 'Âu Mỹ', slug: 'au-my' },
-    { id: 'country-7', name: 'Đài Loan', slug: 'dai-loan' },
-    { id: 'country-8', name: 'Hồng Kông', slug: 'hong-kong' },
-    { id: 'country-9', name: 'Ấn Độ', slug: 'an-do' },
-    { id: 'country-10', name: 'Anh', slug: 'anh' },
-    { id: 'country-11', name: 'Pháp', slug: 'phap' },
-    { id: 'country-12', name: 'Canada', slug: 'canada' },
-    { id: 'country-13', name: 'Quốc Gia Khác', slug: 'quoc-gia-khac' },
-  ];
 }
 
 // Client-side paginated versions of API functions
@@ -1335,10 +1201,6 @@ export async function getMoviesByYearClientPaginated(
     `[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`,
     options
   );
-  logger.debug(
-    `[DEBUG] getMoviesByYearClientPaginated called with year: ${year}, clientPage: ${clientPage}, options:`,
-    options
-  );
 
   try {
     const result = await fetchMultiplePages<Movie>(
@@ -1355,7 +1217,6 @@ export async function getMoviesByYearClientPaginated(
 
     return result;
   } catch (error) {
-    logger.error(`[DEBUG] Error in getMoviesByYearClientPaginated for year ${year}:`, error);
     logger.error(`[DEBUG] Error in getMoviesByYearClientPaginated for year ${year}:`, error);
     throw error;
   }

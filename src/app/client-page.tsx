@@ -13,9 +13,17 @@ import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { clientCache } from '@/lib/cache/client-cache';
 import { FeaturedCountriesSection } from '@/components/movie/featured-countries-section';
 
-export default function HomeClientPage() {
+interface HomeClientPageProps {
+  initialCountriesData?: {
+    slug: string;
+    name: string;
+    movies: Movie[];
+  }[];
+}
+
+export default function HomeClientPage({ initialCountriesData = [] }: HomeClientPageProps) {
   const [movies, setMovies] = useState<Movie[]>([]);
-  const [popularTopics, setPopularTopics] = useState<Array<{name: string; url: string}>>([]);
+  const [popularTopics, setPopularTopics] = useState<Array<{ name: string; url: string }>>([]);
 
   const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
@@ -67,22 +75,30 @@ export default function HomeClientPage() {
         const categories = await getCategories();
 
         // Danh sách thể loại ưu tiên
-        const priorityGenres = ['Tình cảm', 'Hành động', 'Cổ trang', 'Tâm lý', 'Viễn tưởng', 'Kinh dị'];
+        const priorityGenres = [
+          'Tình cảm',
+          'Hành động',
+          'Cổ trang',
+          'Tâm lý',
+          'Viễn tưởng',
+          'Kinh dị',
+        ];
 
         // Lọc ra các thể loại ưu tiên
-        const priorityCategories: Array<{name: string; url: string}> = [];
+        const priorityCategories: Array<{ name: string; url: string }> = [];
 
         // Thêm các thể loại ưu tiên theo thứ tự đã định
         for (const genreName of priorityGenres) {
-          const found = categories.find(cat =>
-            cat.name.toLowerCase() === genreName.toLowerCase() ||
-            cat.name.toLowerCase().includes(genreName.toLowerCase())
+          const found = categories.find(
+            cat =>
+              cat.name.toLowerCase() === genreName.toLowerCase() ||
+              cat.name.toLowerCase().includes(genreName.toLowerCase())
           );
 
           if (found) {
             priorityCategories.push({
               name: found.name,
-              url: `/genres/${found.slug}`
+              url: `/genres/${found.slug}`,
             });
           }
         }
@@ -95,7 +111,7 @@ export default function HomeClientPage() {
             .slice(0, remainingCount)
             .map(cat => ({
               name: cat.name,
-              url: `/genres/${cat.slug}`
+              url: `/genres/${cat.slug}`,
             }));
 
           priorityCategories.push(...remainingCategories);
@@ -228,13 +244,27 @@ export default function HomeClientPage() {
     <>
       <div className="container mx-auto px-4 py-8" ref={containerRef}>
         {/* SEO H1 heading - ẩn khỏi giao diện nhưng vẫn hiển thị cho search engines */}
-        <h1 className="sr-only">Nextflix - Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD</h1>
+        <h1 className="sr-only">
+          Nextflix - Xem phim và chương trình truyền hình mới nhất trực tuyến với chất lượng HD
+        </h1>
 
         {/* Thêm nội dung văn bản cho SEO - ẩn khỏi giao diện nhưng vẫn hiển thị cho search engines */}
         <div className="sr-only">
-          <p>Nextflix là trang web xem phim trực tuyến hàng đầu Việt Nam, cung cấp kho phim đa dạng với chất lượng HD. Tại đây, bạn có thể tìm thấy các bộ phim mới nhất, phim lẻ, phim bộ, phim hoạt hình, phim chiếu rạp và các chương trình truyền hình được cập nhật liên tục.</p>
-          <p>Với giao diện thân thiện, dễ sử dụng, Nextflix giúp bạn dễ dàng tìm kiếm và thưởng thức các bộ phim yêu thích. Chúng tôi cung cấp nhiều thể loại phim đa dạng từ hành động, tình cảm, hài hước, kinh dị, viễn tưởng đến phim hoạt hình và tài liệu.</p>
-          <p>Tất cả các phim trên Nextflix đều được cung cấp với phụ đề tiếng Việt hoặc thuyết minh chất lượng cao, giúp bạn có trải nghiệm xem phim tuyệt vời nhất. Hãy khám phá kho tàng phim phong phú của chúng tôi ngay hôm nay!</p>
+          <p>
+            Nextflix là trang web xem phim trực tuyến hàng đầu Việt Nam, cung cấp kho phim đa dạng
+            với chất lượng HD. Tại đây, bạn có thể tìm thấy các bộ phim mới nhất, phim lẻ, phim bộ,
+            phim hoạt hình, phim chiếu rạp và các chương trình truyền hình được cập nhật liên tục.
+          </p>
+          <p>
+            Với giao diện thân thiện, dễ sử dụng, Nextflix giúp bạn dễ dàng tìm kiếm và thưởng thức
+            các bộ phim yêu thích. Chúng tôi cung cấp nhiều thể loại phim đa dạng từ hành động, tình
+            cảm, hài hước, kinh dị, viễn tưởng đến phim hoạt hình và tài liệu.
+          </p>
+          <p>
+            Tất cả các phim trên Nextflix đều được cung cấp với phụ đề tiếng Việt hoặc thuyết minh
+            chất lượng cao, giúp bạn có trải nghiệm xem phim tuyệt vời nhất. Hãy khám phá kho tàng
+            phim phong phú của chúng tôi ngay hôm nay!
+          </p>
         </div>
 
         {/* Hero Carousel Section */}
@@ -249,7 +279,7 @@ export default function HomeClientPage() {
         />
 
         {/* Featured Countries Section */}
-        <FeaturedCountriesSection className="mt-8" />
+        <FeaturedCountriesSection className="mt-8" countriesData={initialCountriesData} />
 
         {/* New Movies Section */}
         <section className="py-6">

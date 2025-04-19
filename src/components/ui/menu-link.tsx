@@ -2,9 +2,10 @@
 
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
+import { clientCache } from '@/lib/cache/client-cache';
+import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { RippleEffect } from './ripple-effect';
-import { triggerGlobalLoading } from '@/providers/loading-provider';
 import { useLoading } from '@/providers/loading-provider';
 
 interface MenuLinkProps {
@@ -16,25 +17,87 @@ interface MenuLinkProps {
 
 export function MenuLink({ href, className = '', children, onClick }: MenuLinkProps) {
   const router = useRouter();
-  const [, setIsLoading] = useState(false);
   const { startLoading } = useLoading();
+  const isNavigating = useRef(false);
   const linkRef = useRef<HTMLAnchorElement>(null);
 
+  // Track visited links to avoid unnecessary prefetching
+  const prefetchedLinks = useRef<Set<string>>(new Set());
+
+  // Prefetch only important links to reduce RSC requests
+  useEffect(() => {
+    // Skip prefetching for anchor links and external links
+    if (href.startsWith('#') || href.startsWith('http')) {
+      return;
+    }
+
+    // Skip if already prefetched
+    if (prefetchedLinks.current.has(href)) {
+      console.log(`[PREFETCH] Link already prefetched: ${href}`);
+      return;
+    }
+
+    // Only prefetch important links
+    const importantPaths = [
+      '/',
+      '/categories/phim-le',
+      '/categories/phim-bo',
+      '/categories/hoat-hinh',
+      '/countries/han-quoc',
+      '/countries/trung-quoc',
+      '/countries/au-my',
+      '/genres/hanh-dong',
+      '/genres/tinh-cam',
+    ];
+
+    if (importantPaths.includes(href)) {
+      // Mark as prefetched
+      prefetchedLinks.current.add(href);
+      console.log(`[PREFETCH] Prefetching important link: ${href}`);
+
+      // Use Next.js router to prefetch the page
+      router.prefetch(href);
+
+      // Store in cache that we've prefetched this link
+      const prefetchedLinksCache = clientCache.get<string[]>('prefetched_links') || [];
+      if (!prefetchedLinksCache.includes(href)) {
+        console.log(`[PREFETCH] Adding link to prefetched_links cache: ${href}`);
+        clientCache.set(
+          'prefetched_links',
+          [...prefetchedLinksCache, href],
+          CACHE_CONFIG.CLIENT.NAVIGATION
+        );
+      }
+    }
+  }, [href, router]);
+
   const handleNavigation = useCallback(() => {
-    // Show loading state immediately for any navigation
-    setIsLoading(true);
+    // Prevent multiple navigations
+    if (isNavigating.current) {
+      console.log(`[NAVIGATION] Already navigating to ${href}, ignoring click`);
+      return;
+    }
+
+    console.log(`[NAVIGATION] Starting navigation to ${href}`);
+    isNavigating.current = true;
+
+    // Single loading trigger
     startLoading();
-    triggerGlobalLoading();
 
     // Call onClick handler if provided
     if (onClick) onClick();
 
-    // Navigate to the link
+    // Navigate using push
     router.push(href);
-  }, [href, onClick, router, setIsLoading, startLoading]);
+
+    // Reset navigation flag after a delay
+    setTimeout(() => {
+      console.log(`[NAVIGATION] Navigation flag reset for ${href}`);
+      isNavigating.current = false;
+    }, 300);
+  }, [href, onClick, router, startLoading]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
-    // Prevent default link behavior
     e.preventDefault();
     handleNavigation();
   };
@@ -96,7 +159,13 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
   }, [href, handleNavigation]);
 
   return (
-    <Link ref={linkRef} href={href} className={`relative block ${className}`} onClick={handleClick}>
+    <Link
+      ref={linkRef}
+      href={href}
+      className={`relative block ${className}`}
+      onClick={handleClick}
+      prefetch={false} // Disable Next.js automatic prefetching, we handle it manually
+    >
       {children}
       <RippleEffect />
     </Link>

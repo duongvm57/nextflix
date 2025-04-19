@@ -9,6 +9,18 @@ import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 
 async function getMoviesByCountry(slug: string, page: number = 1) {
   try {
+    // Kiểm tra xem slug có phải là country slug hợp lệ không
+    const countries = await getCountries();
+    const isValidCountry = countries.some(country => country.slug === slug);
+
+    if (!isValidCountry) {
+      console.error(`Invalid country slug: ${slug}`);
+      return {
+        data: [],
+        pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 },
+      };
+    }
+
     return await movieService.getMoviesByCountry(slug, page);
   } catch (error) {
     console.error('Error fetching movies by country:', error);
@@ -90,17 +102,8 @@ export default async function CountryPage({
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <BreadcrumbSchema
-        items={[
-          { name: countryName, url: `/countries/${slug}` },
-        ]}
-      />
-      <Breadcrumb
-        items={[
-          { name: countryName, url: `/countries/${slug}` },
-        ]}
-        className="mt-4"
-      />
+      <BreadcrumbSchema items={[{ name: countryName, url: `/countries/${slug}` }]} />
+      <Breadcrumb items={[{ name: countryName, url: `/countries/${slug}` }]} className="mt-4" />
       <h1 className="mb-8 text-3xl font-bold">Quốc gia: {countryName}</h1>
 
       {movies.length > 0 ? (
