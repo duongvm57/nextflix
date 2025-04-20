@@ -1,12 +1,16 @@
 import { movieService } from '@/lib/services/api';
 import { MovieDetail } from '@/types';
-import Image from 'next/image';
-import { MoviePlayer } from '@/components/player/movie-player';
 import { Metadata } from 'next';
 import { DOMAIN } from '@/lib/constants';
 import { MovieSchema } from '@/components/schema/movie-schema';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { MenuLink } from '@/components/ui/menu-link';
+import dynamic from 'next/dynamic';
+
+// Sử dụng dynamic import để tránh lỗi hydration
+const MoviePlayer = dynamic(() => import('@/components/player/movie-player').then(mod => mod.MoviePlayer), {
+  ssr: true, // Vẫn render trên server
+});
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
@@ -81,7 +85,7 @@ export async function generateMetadata({
 }
 
 // Server component for the page
-export default async function MovieDetailPage({ params }: { params: { slug: string } }) {
+export default async function WatchMoviePage({ params }: { params: { slug: string } }) {
   const { slug } = params;
   const movie = await getMovieDetail(slug);
 
@@ -104,124 +108,34 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
     <div className="container mx-auto px-4 py-8">
       {/* Thêm Schema.org structured data */}
       <MovieSchema movie={movie} />
-      <BreadcrumbSchema items={[{ name: movie.name, url: `/watch/${movie.slug}` }]} />
+      <BreadcrumbSchema items={[
+        { name: movie.name, url: `/movie/${movie.slug}` },
+        { name: "Xem phim", url: `/watch/${movie.slug}` }
+      ]} />
+
+      {/* Hiển thị thông tin cơ bản của phim */}
+      <div className="mb-6">
+        <div className="flex items-center gap-3 mb-4">
+          <MenuLink
+            href={`/movie/${movie.slug}`}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-md bg-gray-800 hover:bg-gray-700 transition-colors"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M19 12H5M12 19l-7-7 7-7"/>
+            </svg>
+            <span>Thông tin phim</span>
+          </MenuLink>
+        </div>
+        <h1 className="text-2xl md:text-3xl font-bold mb-2">{movie.name}</h1>
+        <p className="text-gray-400">{movie.origin_name} ({movie.year})</p>
+      </div>
 
       {/* Video player and episode selection */}
       {movie.episodes && movie.episodes.length > 0 && (
         <MoviePlayer movie={movie} initialEpisode={initialEpisode} />
       )}
 
-      {/* Movie header with poster and basic info */}
-      <div className="mb-8 grid grid-cols-1 gap-8 md:grid-cols-3">
-        {/* Poster */}
-        <div className="relative aspect-[2/3] overflow-hidden rounded-lg md:col-span-1">
-          <Image
-            src={
-              movie.poster_url || movie.thumb_url || 'https://placehold.co/300x450?text=No+Image'
-            }
-            alt={movie.name}
-            fill
-            className="object-cover"
-            sizes="(max-width: 768px) 100vw, 300px"
-            priority
-          />
-        </div>
 
-        {/* Movie info */}
-        <div className="md:col-span-2">
-          <h1 className="mb-2 text-3xl font-bold">{movie.name}</h1>
-          <h2 className="mb-4 text-xl text-gray-400">{movie.origin_name}</h2>
-
-          <div className="mb-6 space-y-2">
-            <p>
-              <span className="font-semibold">Năm phát hành:</span> {movie.year}
-            </p>
-            <p>
-              <span className="font-semibold">Thời lượng:</span>{' '}
-              {movie.time || movie.duration || 'N/A'}
-            </p>
-            <p>
-              <span className="font-semibold">Trạng thái:</span>{' '}
-              {movie.status === 'ongoing' ? 'Đang chiếu' : 'Hoàn thành'}
-            </p>
-            <p>
-              <span className="font-semibold">Chất lượng:</span> {movie.quality}
-            </p>
-            <p>
-              <span className="font-semibold">Ngôn ngữ:</span> {movie.lang}
-            </p>
-            <p>
-              <span className="font-semibold">Đạo diễn:</span>{' '}
-              {movie.directors?.length > 0 ? movie.directors.join(', ') : 'Chưa cập nhật'}
-            </p>
-            <p>
-              <span className="font-semibold">Diễn viên:</span>{' '}
-              {movie.actors?.length > 0 ? movie.actors.join(', ') : 'Chưa cập nhật'}
-            </p>
-            <p>
-              <span className="font-semibold">Thể loại:</span>{' '}
-              {movie.genres?.length > 0
-                ? (
-                  <span className="inline">
-                    {movie.genres.map((genre, index) => (
-                      <span key={genre.slug} className="inline">
-                        <MenuLink href={`/genres/${genre.slug}`} className="text-primary hover:underline inline">
-                          {genre.name}
-                        </MenuLink>
-                        {index < movie.genres.length - 1 ? ', ' : ''}
-                      </span>
-                    ))}
-                  </span>
-                )
-                : 'Chưa cập nhật'}
-            </p>
-            <p>
-              <span className="font-semibold">Quốc gia:</span>{' '}
-              {movie.country?.length > 0
-                ? (
-                  <span className="inline">
-                    {movie.country.map((country, index) => (
-                      <span key={country.slug} className="inline">
-                        <MenuLink
-                          href={`/countries/${country.slug}`}
-                          className="text-primary hover:underline inline"
-                        >
-                          {country.name}
-                        </MenuLink>
-                        {index < movie.country.length - 1 ? ', ' : ''}
-                      </span>
-                    ))}
-                  </span>
-                )
-                : 'Chưa cập nhật'}
-            </p>
-          </div>
-        </div>
-      </div>
-
-      {/* Movie description */}
-      <div className="mb-8">
-        <h3 className="mb-4 text-2xl font-semibold">Nội dung phim</h3>
-        <div className="prose prose-invert max-w-none">
-          <p>{movie.content}</p>
-        </div>
-      </div>
-
-      {/* Trailer section */}
-      {movie.trailer_url && (
-        <div className="mb-8">
-          <h3 className="mb-4 text-2xl font-semibold">Trailer</h3>
-          <div className="relative aspect-video overflow-hidden rounded-lg">
-            <iframe
-              src={movie.trailer_url}
-              title={`${movie.name} Trailer`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full"
-            ></iframe>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

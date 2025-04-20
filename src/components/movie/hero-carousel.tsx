@@ -106,9 +106,9 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
               >
                 {/* Thêm button phủ toàn bộ banner trên mobile */}
                 <button
-                  onClick={() => router.push(`/watch/${movie.slug}`)}
+                  onClick={() => router.push(`/movie/${movie.slug}`)}
                   className="absolute inset-0 z-10 md:hidden"
-                  aria-label={`Xem phim ${movie.name}`}
+                  aria-label={`Xem thông tin phim ${movie.name}`}
                 />
 
                 <div className="relative aspect-video w-full overflow-hidden">
@@ -122,7 +122,9 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 
                   {/* Thêm link phủ toàn bộ banner trên mobile */}
-                  <MenuLink href={`/watch/${movie.slug}`} className="absolute inset-0 md:hidden" />
+                  <MenuLink href={`/movie/${movie.slug}`} className="absolute inset-0 md:hidden">
+                    <span className="sr-only">Xem thông tin phim {movie.name}</span>
+                  </MenuLink>
                 </div>
 
                 <div className="absolute bottom-0 left-0 p-4 md:p-12 w-full md:w-2/3 lg:w-1/2">
@@ -164,10 +166,10 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                         className="flex items-center gap-2 md:text-base md:px-4 md:py-2"
                       >
                         <Play size={16} fill="white" className="md:h-5 md:w-5" />
-                        Xem ngay
+                        Xem phim
                       </Button>
                     </MenuLink>
-                    <MenuLink href={`/watch/${movie.slug}`}>
+                    <MenuLink href={`/movie/${movie.slug}`}>
                       <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
                         Thông tin thêm
                       </Button>

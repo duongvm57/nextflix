@@ -22,9 +22,9 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
     >
       <TouchRipple className={`movie-card-${movie._id}`} />
       <div className="relative h-full w-full">
-        {/* Toàn bộ thẻ có thể click để xem phim */}
+        {/* Toàn bộ thẻ có thể click để xem thông tin phim */}
         <MenuLink
-          href={`/watch/${movie.slug}`}
+          href={`/movie/${movie.slug}`}
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
           <Image

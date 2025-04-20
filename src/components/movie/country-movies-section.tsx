@@ -88,7 +88,7 @@ export function CountryMoviesSection({
                 className="flex-shrink-0 group relative overflow-hidden rounded-lg w-[180px] h-[270px]"
               >
                 <MenuLink
-                  href={`/watch/${movie.slug}`}
+                  href={`/movie/${movie.slug}`}
                   className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150"
                 >
                   <Image

@@ -69,7 +69,8 @@ const languages = [
 
 // Các năm gần đây
 const recentYears = () => {
-  const currentYear = new Date().getFullYear();
+  // Sử dụng năm cố định để tránh lỗi hydration
+  const currentYear = 2024;
   return Array.from({ length: 5 }, (_, i) => {
     const year = currentYear - i;
     return { name: year.toString(), url: `/categories/${year}` };

@@ -13,12 +13,10 @@ import { MenuSkeleton } from '@/components/ui/menu-skeleton';
 import { clientCache, CACHE_DURATION } from '@/lib/cache/client-cache';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { Category, Country } from '@/types';
-
-// Sử dụng năm cố định để tránh lỗi hydration
-const CURRENT_YEAR = 2024;
+import { useYear } from '@/providers/year-provider';
 
 // Tạo menu cơ bản để hiển thị ngay từ đầu
-const getFixedMenuItems = (): MenuItem[] => {
+const getFixedMenuItems = (currentYear: number): MenuItem[] => {
   return [
     // Trang chủ
     { id: 'home', label: 'Trang chủ', href: `/` },
@@ -75,7 +73,7 @@ const getFixedMenuItems = (): MenuItem[] => {
       href: '#years',
       isDropdown: true,
       children: Array.from({ length: 10 }, (_, i) => {
-        const year = CURRENT_YEAR - i;
+        const year = currentYear - i;
         return {
           id: `year-${year}`,
           label: year.toString(),
@@ -171,8 +169,11 @@ const MenuItems = memo(function MenuItems({
 });
 
 export function Header() {
+  // Sử dụng hook useYear để lấy năm hiện tại từ context
+  const { currentYear } = useYear();
+
   const [menuState, setMenuState] = useState({
-    items: getFixedMenuItems(),
+    items: getFixedMenuItems(currentYear),
     isLoading: false,
     error: null as string | null,
   });

@@ -51,7 +51,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
       {/* Video Player */}
       <div className="mb-6">
         {useEmbed && videoSrc ? (
-          <div className="relative aspect-video overflow-hidden rounded-lg">
+          <div className="relative aspect-video overflow-hidden rounded-lg shadow-sm ring-1 ring-gray-800">
             <iframe
               src={videoSrc}
               title={`${movie.name} - ${selectedEpisode?.name || ''}`}
@@ -61,11 +61,11 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
             ></iframe>
           </div>
         ) : videoSrc ? (
-          <div className="relative aspect-video overflow-hidden rounded-lg">
+          <div className="relative aspect-video overflow-hidden rounded-lg shadow-sm ring-1 ring-gray-800">
             <VideoPlayer src={videoSrc} poster={movie.thumb_url} className="rounded-lg" />
           </div>
         ) : (
-          <div className="relative aspect-video flex items-center justify-center overflow-hidden rounded-lg bg-gray-800">
+          <div className="relative aspect-video flex items-center justify-center overflow-hidden rounded-lg bg-gray-800 shadow-sm ring-1 ring-gray-800">
             <p className="text-gray-400">Không có nguồn phát khả dụng</p>
           </div>
         )}

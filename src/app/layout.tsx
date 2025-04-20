@@ -4,6 +4,7 @@ import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
 import { LoadingProvider } from '@/providers/loading-provider';
+import { YearWrapper } from '@/components/year-wrapper';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
@@ -231,19 +232,21 @@ export default async function RootLayout({
         />
       </head>
       <body
-        className="antialiased bg-black text-white min-h-screen flex flex-col"
+        className="antialiased text-white min-h-screen flex flex-col"
         suppressHydrationWarning
       >
         {/* Thêm Schema.org structured data cho website */}
         <WebsiteSchema />
 
         <Suspense fallback={<LoadingSpinner fullPage={true} />}>
-          <LoadingProvider>
-            <Header />
-            <main className="flex-grow">{children}</main>
-            <Footer />
-            <CacheStatusWrapper />
-          </LoadingProvider>
+          <YearWrapper>
+            <LoadingProvider>
+              <Header />
+              <main className="flex-grow">{children}</main>
+              <Footer />
+              <CacheStatusWrapper />
+            </LoadingProvider>
+          </YearWrapper>
         </Suspense>
         <SpeedInsights />
         {/* Bundle Optimizer is loaded via a script tag */}

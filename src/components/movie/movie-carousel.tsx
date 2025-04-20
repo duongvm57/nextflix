@@ -71,10 +71,10 @@ export function MovieCarousel({ movies, title }: MovieCarouselProps) {
                   )}
                 </div>
 
-                <Link href={`/watch/${movie.slug}`}>
+                <Link href={`/movie/${movie.slug}`}>
                   <Button variant="primary" size="sm" className="flex items-center gap-1 w-full">
                     <Play size={16} fill="white" />
-                    Xem ngay
+                    Xem chi tiết
                   </Button>
                 </Link>
               </div>
