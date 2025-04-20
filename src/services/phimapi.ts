@@ -1062,7 +1062,7 @@ export async function getCategories(): Promise<Category[]> {
 
       // Log API call with cache hit if we're on the server
       if (typeof window === 'undefined' && logApiCall) {
-        logApiCall(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, 'GET', 'HIT');
+        logApiCall('/api/batch?resources=categories', 'GET', 'HIT');
       }
 
       return cachedData as Category[];
@@ -1072,10 +1072,15 @@ export async function getCategories(): Promise<Category[]> {
 
     // Log API call with cache miss if we're on the server
     if (typeof window === 'undefined' && logApiCall) {
-      logApiCall(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, 'GET', 'MISS');
+      logApiCall('/api/batch?resources=categories', 'GET', 'MISS');
     }
 
-    const response = await fetch(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, {
+    // Sử dụng Batch API thay vì gọi trực tiếp đến API endpoint
+    const apiUrl = typeof window === 'undefined'
+      ? `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/batch?resources=categories`
+      : '/api/batch?resources=categories';
+
+    const response = await fetch(apiUrl, {
       next: {
         revalidate: CACHE_CONFIG.SERVER.CATEGORIES,
         tags: ['categories'],
@@ -1088,13 +1093,7 @@ export async function getCategories(): Promise<Category[]> {
     }
 
     const data = await response.json();
-    const categories = Array.isArray(data)
-      ? data.map((category: Category) => ({
-          id: category.id,
-          name: category.name,
-          slug: category.slug,
-        }))
-      : [];
+    const categories = data.categories || [];
 
     // Cache the result
     if (categories.length > 0) {

@@ -90,7 +90,8 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    if (resources.includes('newMovies')) {
+    // Hỗ trợ cả 'newMovies' và 'new_movies' để đảm bảo tương thích ngược
+    if (resources.includes('newMovies') || resources.includes('new_movies')) {
       const page = parseInt(searchParams.get('page') || '1');
       console.log(`[BATCH API] Fetching new movies for page ${page}`);
       promises.push(

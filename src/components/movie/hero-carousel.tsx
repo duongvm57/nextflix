@@ -118,6 +118,8 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                     fill
                     className="object-cover"
                     priority={index === 0}
+                    loading={index < 2 ? 'eager' : 'lazy'}
+                    sizes="(max-width: 768px) 100vw, 100vw"
                   />
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 

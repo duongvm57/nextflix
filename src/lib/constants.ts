@@ -20,3 +20,7 @@ export const FACEBOOK_PAGE =
 export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://phimapi.com';
 export const API_V1_BASE_URL =
   process.env.NEXT_PUBLIC_API_V1_BASE_URL || 'https://phimapi.com/v1/api';
+
+// Cấu hình UI
+export const HERO_CAROUSEL_ITEMS = Number(process.env.NEXT_PUBLIC_HERO_CAROUSEL_ITEMS || '5');
+export const COUNTRY_MOVIES_ITEMS = Number(process.env.NEXT_PUBLIC_COUNTRY_MOVIES_ITEMS || '10');

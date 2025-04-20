@@ -33,7 +33,9 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
             sizes={isFeatured ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
-            unoptimized
+            loading="lazy"
+            placeholder="blur"
+            blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
           />
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
