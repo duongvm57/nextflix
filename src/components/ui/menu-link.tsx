@@ -24,7 +24,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
   // Track visited links to avoid unnecessary prefetching
   const prefetchedLinks = useRef<Set<string>>(new Set());
 
-  // Prefetch only important links to reduce RSC requests
+  // Prefetch only essential links to reduce RSC requests
   useEffect(() => {
     // Skip prefetching for anchor links and external links
     if (href.startsWith('#') || href.startsWith('http')) {
@@ -33,32 +33,24 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
 
     // Skip if already prefetched
     if (prefetchedLinks.current.has(href)) {
-      console.log(`[PREFETCH] Link already prefetched: ${href}`);
       return;
     }
 
-    // Only prefetch important links
-    const importantPaths = [
+    // Only prefetch home page and a few essential links
+    // Significantly reduced list to minimize RSC requests
+    const essentialPaths = [
       '/',
       '/danh-muc/phim-le',
       '/danh-muc/phim-bo',
-      '/danh-muc/hoat-hinh',
-      '/quoc-gia/han-quoc',
-      '/quoc-gia/trung-quoc',
-      '/quoc-gia/au-my',
-      '/the-loai/hanh-dong',
-      '/the-loai/tinh-cam',
     ];
 
-    // Check if this is a genre or country link
-    const isGenreLink = href.startsWith('/the-loai/');
-    const isCountryLink = href.startsWith('/quoc-gia/');
-    const shouldPrefetch = importantPaths.includes(href) || isGenreLink || isCountryLink;
+    // Only prefetch essential paths, not all genre/country links
+    const shouldPrefetch = essentialPaths.includes(href);
 
     if (shouldPrefetch) {
       // Mark as prefetched
       prefetchedLinks.current.add(href);
-      console.log(`[PREFETCH] Prefetching link: ${href}`);
+      console.log(`[PREFETCH] Prefetching essential link: ${href}`);
 
       // Use Next.js router to prefetch the page
       router.prefetch(href);
@@ -66,7 +58,6 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       // Store in cache that we've prefetched this link
       const prefetchedLinksCache = clientCache.get<string[]>('prefetched_links') || [];
       if (!prefetchedLinksCache.includes(href)) {
-        console.log(`[PREFETCH] Adding link to prefetched_links cache: ${href}`);
         clientCache.set(
           'prefetched_links',
           [...prefetchedLinksCache, href],

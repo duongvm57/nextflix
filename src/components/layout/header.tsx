@@ -10,7 +10,7 @@ import { MenuItem } from '@/lib/menu/phimapi-menu';
 import { fetchMenuData } from '@/lib/cache/api-cache';
 import Image from 'next/image';
 import { MenuSkeleton } from '@/components/ui/menu-skeleton';
-import { clientCache, CACHE_DURATION } from '@/lib/cache/client-cache';
+import { clientCache } from '@/lib/cache/client-cache';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { Category, Country } from '@/types';
 import { useYear } from '@/providers/year-provider';
@@ -201,6 +201,7 @@ export function Header() {
       // Check if we have cached menu data
       const cachedMenu = clientCache.get<MenuItem[]>('full_menu');
       if (cachedMenu) {
+        console.log('[MENU] Using cached full menu data');
         setMenuState(prev => ({
           ...prev,
           items: cachedMenu,
@@ -211,7 +212,8 @@ export function Header() {
 
       setMenuState(prev => ({ ...prev, isLoading: true }));
       try {
-        // Use API calls
+        console.log('[MENU] Fetching menu data from batch API');
+        // Use batch API to fetch menu data in a single request
         const response = await fetchMenuData();
         const { categories = [], countries = [] } = response as {
           categories: Category[];
@@ -221,6 +223,7 @@ export function Header() {
         if (!mounted) return;
 
         if (categories.length > 0 && countries.length > 0) {
+          console.log(`[MENU] Received ${categories.length} categories and ${countries.length} countries`);
           // Sử dụng callback trong setMenuState để tránh phụ thuộc vào menuState.items
           setMenuState(prev => {
             const updatedItems = [...prev.items];
@@ -252,6 +255,7 @@ export function Header() {
             }
 
             // Cache the full menu with longer duration
+            console.log('[MENU] Caching full menu data');
             clientCache.set('full_menu', updatedItems, CACHE_CONFIG.CLIENT.NAVIGATION);
 
             return {
@@ -260,72 +264,23 @@ export function Header() {
               error: null,
             };
           });
-
-          // Cache is already set above
-        }
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      } catch (error) {
-        if (!mounted) return;
-
-        // Fallback to original fetchMenuData if batch fails
-        try {
-          const response = await fetchMenuData();
-          const { categories = [], countries = [] } = response as {
-            categories: Category[];
-            countries: Country[];
-          };
-
-          if (!mounted) return;
-
-          if (categories.length > 0 && countries.length > 0) {
-            setMenuState(prev => {
-              const updatedItems = [...prev.items];
-
-              // Update categories
-              const categoryIndex = updatedItems.findIndex(item => item.id === 'categories');
-              if (categoryIndex !== -1) {
-                updatedItems[categoryIndex] = {
-                  ...updatedItems[categoryIndex],
-                  children: categories.map(category => ({
-                    id: category.id || category.slug,
-                    label: category.name,
-                    href: `/the-loai/${category.slug}`,
-                  })),
-                };
-              }
-
-              // Update countries
-              const countryIndex = updatedItems.findIndex(item => item.id === 'countries');
-              if (countryIndex !== -1) {
-                updatedItems[countryIndex] = {
-                  ...updatedItems[countryIndex],
-                  children: countries.map(country => ({
-                    id: country.id || country.slug,
-                    label: country.name,
-                    href: `/quoc-gia/${country.slug}`,
-                  })),
-                };
-              }
-
-              // Cache the full menu
-              clientCache.set('full_menu', updatedItems, CACHE_DURATION.MENU);
-
-              return {
-                items: updatedItems,
-                isLoading: false,
-                error: null,
-              };
-            });
-          }
-        } catch (fallbackError) {
-          if (!mounted) return;
-
+        } else {
+          console.error('[MENU] Received empty categories or countries');
           setMenuState(prev => ({
             ...prev,
             isLoading: false,
-            error: `Failed to load menu data: ${fallbackError}`,
+            error: 'Không thể tải dữ liệu menu',
           }));
         }
+      } catch (error) {
+        console.error('[MENU] Error fetching menu data:', error);
+        if (!mounted) return;
+
+        setMenuState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: 'Không thể tải dữ liệu menu',
+        }));
       }
     };
 

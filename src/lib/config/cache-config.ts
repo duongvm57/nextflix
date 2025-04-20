@@ -5,6 +5,7 @@ export const CACHE_CONFIG = {
     COUNTRIES: 7200, // 2 hours
     MOVIES: 1800, // 30 minutes
     BATCH: 3600, // 1 hour
+    MENU: 7200, // 2 hours
     RSC_REQUESTS: 86400, // 24 hours
   },
   CLIENT: {

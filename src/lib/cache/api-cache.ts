@@ -7,6 +7,7 @@ import { clientCache, memoize } from './client-cache';
 import { getCategories, getCountries } from '@/services/phimapi';
 import { CACHE_CONFIG, CACHE_KEYS } from '@/lib/config/cache-config';
 import { Category, Country } from '@/types';
+import { logger } from '@/utils/logger';
 // Cache expiration times (in milliseconds)
 const CACHE_TIMES = {
   // Categories and countries rarely change, cache for 1 hour
@@ -26,7 +27,7 @@ export const cachedAPI = {
 };
 
 /**
- * Fetch multiple API calls in parallel with caching
+ * Fetch multiple API calls using batch API with caching
  * @returns Object with categories and countries
  */
 export async function fetchMenuData(): Promise<{
@@ -39,11 +40,24 @@ export async function fetchMenuData(): Promise<{
       CACHE_KEYS.MENU
     );
     if (cachedMenu) {
+      logger.debug('[MENU] Using cached menu data');
       return cachedMenu;
     }
 
-    // If no cache, fetch data in parallel
-    const [categories, countries] = await Promise.all([getCategories(), getCountries()]);
+    logger.debug('[MENU] Fetching menu data from batch API');
+
+    // Use batch API instead of parallel requests to reduce RSC requests
+    const response = await fetch('/api/batch?resources=categories,countries', {
+      cache: 'force-cache',
+      next: { revalidate: CACHE_CONFIG.SERVER.MENU }
+    });
+
+    if (!response.ok) {
+      throw new Error(`Failed to fetch batch data: ${response.status}`);
+    }
+
+    const data = await response.json();
+    const { categories = [], countries = [] } = data;
 
     const menuData = {
       categories,
@@ -57,6 +71,7 @@ export async function fetchMenuData(): Promise<{
       categories.length > 0 &&
       countries.length > 0
     ) {
+      logger.debug('[MENU] Caching menu data');
       clientCache.set(CACHE_KEYS.MENU, menuData, CACHE_CONFIG.CLIENT.MENU);
     }
 
@@ -65,10 +80,23 @@ export async function fetchMenuData(): Promise<{
       countries: (countries as Country[]) || [],
     };
   } catch (error) {
-    console.error('Error fetching menu data:', error);
-    return {
-      categories: [],
-      countries: [],
-    };
+    logger.error('[MENU] Error fetching menu data:', error);
+
+    // Fallback to parallel requests if batch API fails
+    try {
+      logger.debug('[MENU] Falling back to parallel requests');
+      const [categories, countries] = await Promise.all([getCategories(), getCountries()]);
+
+      return {
+        categories: (categories as Category[]) || [],
+        countries: (countries as Country[]) || [],
+      };
+    } catch (fallbackError) {
+      logger.error('[MENU] Fallback also failed:', fallbackError);
+      return {
+        categories: [],
+        countries: [],
+      };
+    }
   }
 }
