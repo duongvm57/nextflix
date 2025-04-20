@@ -111,6 +111,25 @@ export default async function RootLayout({
                   window.__PREFETCHED_MOVIES = new Set();
                   window.__RSC_CACHE = {};
 
+                  // Fix navigation issues with genre and country links
+                  if (typeof window !== 'undefined') {
+                    // Check if we're on the home page but should be on a genre/country page
+                    const currentPath = window.location.pathname;
+                    const targetUrl = sessionStorage.getItem('targetUrl');
+                    const lastUrl = sessionStorage.getItem('lastUrl');
+
+                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/genres/') || targetUrl.startsWith('/countries/'))) {
+                      console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
+                      console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
+
+                      // If we're on the home page but should be on a genre/country page, redirect
+                      if (lastUrl && lastUrl.includes('/watch/')) {
+                        console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
+                        window.location.href = targetUrl;
+                      }
+                    }
+                  }
+
                   // Chặn các yêu cầu RSC trùng lặp
                   const originalFetch = window.fetch;
                   window.fetch = function(input, init) {
@@ -162,6 +181,49 @@ export default async function RootLayout({
                   document.body.appendChild(script);
                 } catch (error) {
                   console.error('[OPTIMIZER] Error initializing:', error);
+                }
+              })();
+            `,
+          }}
+        />
+
+        <Script
+          id="navigation-fix"
+          strategy="afterInteractive"
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Fix navigation issues with genre and country links
+              (function() {
+                try {
+                  // Listen for navigation events
+                  window.addEventListener('popstate', function() {
+                    // Store the current URL when navigating with back/forward buttons
+                    sessionStorage.setItem('navigationMethod', 'popstate');
+                    sessionStorage.setItem('currentPath', window.location.pathname);
+                  });
+
+                  // Check for navigation issues on page load
+                  document.addEventListener('DOMContentLoaded', function() {
+                    const currentPath = window.location.pathname;
+                    const targetUrl = sessionStorage.getItem('targetUrl');
+                    const lastUrl = sessionStorage.getItem('lastUrl');
+                    const navigationMethod = sessionStorage.getItem('navigationMethod');
+
+                    console.log('[NAVIGATION_CHECK] Current path:', currentPath);
+                    console.log('[NAVIGATION_CHECK] Target URL:', targetUrl);
+                    console.log('[NAVIGATION_CHECK] Last URL:', lastUrl);
+                    console.log('[NAVIGATION_CHECK] Navigation method:', navigationMethod);
+
+                    // If we're on the home page but should be on a genre/country page
+                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/genres/') || targetUrl.startsWith('/countries/'))) {
+                      if (lastUrl && lastUrl.includes('/watch/')) {
+                        console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
+                        window.location.replace(targetUrl);
+                      }
+                    }
+                  });
+                } catch (error) {
+                  console.error('[NAVIGATION_FIX] Error:', error);
                 }
               })();
             `,

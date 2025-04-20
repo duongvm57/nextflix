@@ -50,10 +50,15 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       '/genres/tinh-cam',
     ];
 
-    if (importantPaths.includes(href)) {
+    // Check if this is a genre or country link
+    const isGenreLink = href.startsWith('/genres/');
+    const isCountryLink = href.startsWith('/countries/');
+    const shouldPrefetch = importantPaths.includes(href) || isGenreLink || isCountryLink;
+
+    if (shouldPrefetch) {
       // Mark as prefetched
       prefetchedLinks.current.add(href);
-      console.log(`[PREFETCH] Prefetching important link: ${href}`);
+      console.log(`[PREFETCH] Prefetching link: ${href}`);
 
       // Use Next.js router to prefetch the page
       router.prefetch(href);
@@ -78,6 +83,12 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       return;
     }
 
+    // Check if we're already on the same page
+    if (typeof window !== 'undefined' && window.location.pathname === href) {
+      console.log(`[NAVIGATION] Already on ${href}, ignoring click`);
+      return;
+    }
+
     console.log(`[NAVIGATION] Starting navigation to ${href}`);
     isNavigating.current = true;
 
@@ -87,8 +98,31 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Call onClick handler if provided
     if (onClick) onClick();
 
-    // Navigate using push
-    router.push(href);
+    // Check if this is a genre or country link
+    const isGenreLink = href.startsWith('/genres/');
+    const isCountryLink = href.startsWith('/countries/');
+
+    // Store the current URL in sessionStorage before navigation
+    // This will help us detect and fix navigation issues
+    if (typeof window !== 'undefined') {
+      sessionStorage.setItem('lastUrl', window.location.pathname);
+      sessionStorage.setItem('targetUrl', href);
+    }
+
+    try {
+      // Always use direct navigation for genre and country links to avoid Next.js routing issues
+      if (isGenreLink || isCountryLink) {
+        console.log(`[NAVIGATION] Using direct navigation for ${href}`);
+        window.location.href = href;
+      } else {
+        // For other links, use normal push navigation
+        router.push(href);
+      }
+    } catch (error) {
+      console.error(`[NAVIGATION] Error navigating to ${href}:`, error);
+      // Fallback to direct navigation
+      window.location.href = href;
+    }
 
     // Reset navigation flag after a delay
     setTimeout(() => {

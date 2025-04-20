@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { getCategories, getCountries } from '@/services/phimapi';
 import { TYPE_LIST } from '@/lib/menu/phimapi-menu';
+import { Category, Country } from '@/types';
 
 export function generateMetadata(): Metadata {
   const title = 'Tất cả chủ đề | ' + SITE_NAME;
@@ -80,12 +81,12 @@ export default async function TopicsPage() {
   const [categories, countries] = await Promise.all([getCategories(), getCountries()]);
 
   // Chuyển đổi thể loại và quốc gia thành định dạng topic
-  const genreTopics = categories.map(category => ({
+  const genreTopics = categories.map((category: Category) => ({
     name: category.name,
     url: `/genres/${category.slug}`,
   }));
 
-  const countryTopics = countries.map(country => ({
+  const countryTopics = countries.map((country: Country) => ({
     name: country.name,
     url: `/countries/${country.slug}`,
   }));

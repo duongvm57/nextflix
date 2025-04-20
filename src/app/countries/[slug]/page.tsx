@@ -6,12 +6,13 @@ import { getCountries } from '@/services/phimapi';
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
+import { Country, PaginatedResponse, Movie } from '@/types';
 
-async function getMoviesByCountry(slug: string, page: number = 1) {
+async function getMoviesByCountry(slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
   try {
     // Kiểm tra xem slug có phải là country slug hợp lệ không
     const countries = await getCountries();
-    const isValidCountry = countries.some(country => country.slug === slug);
+    const isValidCountry = countries.some((country: Country) => country.slug === slug);
 
     if (!isValidCountry) {
       console.error(`Invalid country slug: ${slug}`);
@@ -41,7 +42,7 @@ export async function generateMetadata({
 
   // Get country name from API
   const countries = await getCountries();
-  const country = countries.find(c => c.slug === slug);
+  const country = countries.find((c: Country) => c.slug === slug);
 
   // Use country name from API or format from slug if not found
   const countryName = country
@@ -90,7 +91,7 @@ export default async function CountryPage({
 
   // Get country name from API
   const countries = await getCountries();
-  const country = countries.find(c => c.slug === slug);
+  const country = countries.find((c: Country) => c.slug === slug);
 
   // Use country name from API or format from slug if not found
   const countryName = country

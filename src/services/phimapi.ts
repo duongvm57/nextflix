@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // API service for phimapi.com
-import { Movie, MovieDetail, PaginatedResponse, Episode } from '@/types';
+import { Movie, MovieDetail, PaginatedResponse, Episode, Category, Country } from '@/types';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { logger } from '@/utils/logger';
 import { clientCache } from '@/lib/cache/client-cache';
@@ -467,11 +467,11 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
         : null,
     country:
       apiMovie.country && apiMovie.country.length > 0
-        ? apiMovie.country.map((c: any) => ({ name: c.name, slug: c.slug }))
+        ? apiMovie.country.map((c: { name: string; slug: string }) => ({ name: c.name, slug: c.slug }))
         : [],
     genres:
       apiMovie.category && apiMovie.category.length > 0
-        ? apiMovie.category.map((g: any) => ({ name: g.name, slug: g.slug }))
+        ? apiMovie.category.map((g: { name: string; slug: string }) => ({ name: g.name, slug: g.slug }))
         : [],
     status: 'ongoing',
     actors: apiMovie.actor || [],
@@ -501,7 +501,7 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
       ) {
         const serverEpisodes = {
           server_name: server.server_name,
-          items: server.server_data.map((item: any) => ({
+          items: server.server_data.map((item: { name: string; slug: string; filename?: string; link_embed: string; link_m3u8: string }) => ({
             name: item.name,
             slug: item.slug,
             filename: item.filename || `${apiMovie.slug}-${item.slug}`,
@@ -1028,7 +1028,7 @@ export async function searchMovies(
 }
 
 // Get categories
-export async function getCategories() {
+export async function getCategories(): Promise<Category[]> {
   try {
     console.log('[API] getCategories called');
     // Check client cache first
@@ -1041,7 +1041,7 @@ export async function getCategories() {
         logApiCall(`${API_BASE_URL}${API_ENDPOINTS.CATEGORIES_LIST}`, 'GET', 'HIT');
       }
 
-      return cachedData;
+      return cachedData as Category[];
     }
 
     console.log('[API] Fetching categories from API');
@@ -1065,8 +1065,8 @@ export async function getCategories() {
 
     const data = await response.json();
     const categories = Array.isArray(data)
-      ? data.map(category => ({
-          id: category._id,
+      ? data.map((category: Category) => ({
+          id: category.id,
           name: category.name,
           slug: category.slug,
         }))
@@ -1074,7 +1074,6 @@ export async function getCategories() {
 
     // Cache the result
     if (categories.length > 0) {
-      console.log(`[API] Caching ${categories.length} categories`);
       clientCache.set(CACHE_KEYS.CATEGORIES, categories, CACHE_CONFIG.CLIENT.CATEGORIES);
     }
 
@@ -1086,7 +1085,7 @@ export async function getCategories() {
 }
 
 // Get countries
-export async function getCountries() {
+export async function getCountries(): Promise<Country[]> {
   try {
     console.log('[API] getCountries called');
     // Check client cache first
@@ -1099,7 +1098,7 @@ export async function getCountries() {
         logApiCall(`${API_BASE_URL}${API_ENDPOINTS.COUNTRIES_LIST}`, 'GET', 'HIT');
       }
 
-      return cachedData;
+      return cachedData as Country[];
     }
 
     console.log('[API] Fetching countries from API');
@@ -1123,8 +1122,8 @@ export async function getCountries() {
 
     const data = await response.json();
     const countries = Array.isArray(data)
-      ? data.map(country => ({
-          id: country._id,
+      ? data.map((country: Country) => ({
+          id: country.id,
           name: country.name,
           slug: country.slug,
         }))
@@ -1132,7 +1131,6 @@ export async function getCountries() {
 
     // Cache the result
     if (countries.length > 0) {
-      console.log(`[API] Caching ${countries.length} countries`);
       clientCache.set(CACHE_KEYS.COUNTRIES, countries, CACHE_CONFIG.CLIENT.COUNTRIES);
     }
 

@@ -96,9 +96,9 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
           </div>
 
           {/* Small loading spinner in the corner */}
-          <div className="fixed bottom-4 left-4 z-50">
+          {/* <div className="fixed bottom-4 left-4 z-50">
             <LoadingSpinner size="sm" text="" />
-          </div>
+          </div> */}
         </>
       )}
     </LoadingContext.Provider>

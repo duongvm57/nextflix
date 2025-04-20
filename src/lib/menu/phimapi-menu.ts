@@ -1,4 +1,5 @@
 // Menu configuration for phimapi.com
+import { Category, Country } from '@/types';
 
 export interface MenuItem {
   id: string;
@@ -106,7 +107,7 @@ export function getLanguageMenuItems(): MenuItem {
 
 // Create categories menu item from API data
 export function getCategoriesMenuItem(
-  categories: Array<{ id: string; name: string; slug: string }>
+  categories: Category[]
 ): MenuItem {
   console.log('[DEBUG] Creating categories menu with categories:', categories);
   return {
@@ -114,7 +115,7 @@ export function getCategoriesMenuItem(
     label: 'Thể loại',
     href: '#categories',
     isDropdown: true,
-    children: categories.map(category => {
+    children: categories.map((category: Category) => {
       console.log('[DEBUG] Category item:', category);
       return {
         id: category.id || category.slug,
@@ -127,7 +128,7 @@ export function getCategoriesMenuItem(
 
 // Create countries menu item from API data
 export function getCountriesMenuItem(
-  countries: Array<{ id: string; name: string; slug: string }>
+  countries: Country[]
 ): MenuItem {
   console.log('[DEBUG] Creating countries menu with countries:', countries);
   return {
@@ -135,7 +136,7 @@ export function getCountriesMenuItem(
     label: 'Quốc gia',
     href: '#countries',
     isDropdown: true,
-    children: countries.map(country => {
+    children: countries.map((country: Country) => {
       console.log('[DEBUG] Country item:', country);
       return {
         id: country.id || country.slug,
@@ -156,7 +157,7 @@ export function getYearsMenuItem(): MenuItem {
     label: 'Năm',
     href: '#years',
     isDropdown: true,
-    children: years.map(year => ({
+    children: years.map((year: number) => ({
       id: `year-${year}`,
       label: year.toString(),
       href: `/categories/${year}`,
@@ -166,8 +167,8 @@ export function getYearsMenuItem(): MenuItem {
 
 // Get all menu items
 export function getAllMenuItems(
-  categories?: Array<{ id: string; name: string; slug: string }>,
-  countries?: Array<{ id: string; name: string; slug: string }>
+  categories?: Category[],
+  countries?: Country[]
 ): MenuItem[] {
   // If categories or countries are not provided, return only the static menu items
   if (!categories || !countries) {

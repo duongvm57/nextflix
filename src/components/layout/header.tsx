@@ -180,6 +180,15 @@ export function Header() {
   const [searchQuery, setSearchQuery] = useState('');
   const [openDropdown, setOpenDropdown] = useState<string | null>(null);
 
+  // Separate state for mobile menu dropdowns
+  const [mobileOpenDropdown, setMobileOpenDropdown] = useState<string | null>(null);
+
+  // Function to toggle mobile dropdown menu
+  const toggleMobileDropdown = (label: string) => {
+    console.log('Toggle mobile dropdown:', label, 'Current:', mobileOpenDropdown);
+    setMobileOpenDropdown(prevState => prevState === label ? null : label);
+  };
+
   const router = useRouter();
   const dropdownRef = useRef<HTMLDivElement>(null);
 
@@ -423,30 +432,55 @@ export function Header() {
                   <li key={item.id}>
                     {item.isDropdown ? (
                       <div className="space-y-2">
-                        <button
-                          onClick={() =>
-                            setOpenDropdown(openDropdown === item.label ? null : item.label)
-                          }
-                          className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500"
+                        {/* Menu cha - khi click sẽ toggle menu con */}
+                        <div
+                          onClick={() => toggleMobileDropdown(item.label)}
+                          className="flex items-center text-gray-300 font-medium transition-colors hover:text-blue-500 cursor-pointer"
                         >
-                          {item.label}
-                          <ChevronDown size={16} className="ml-1" />
-                        </button>
-                        {openDropdown === item.label && (
-                          <div className="ml-4 border-l border-gray-700 pl-4">
-                            {item.children?.map(child => (
-                              <MenuLink
-                                key={child.href}
-                                href={child.href}
-                                className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
-                                onClick={() => {
-                                  setOpenDropdown(null);
-                                  setIsMenuOpen(false);
-                                }}
-                              >
-                                {child.label}
-                              </MenuLink>
-                            ))}
+                          <span>{item.label}</span>
+                          <ChevronDown
+                            size={16}
+                            className={`ml-1 transition-transform duration-200 ${mobileOpenDropdown === item.label ? 'rotate-180' : ''}`}
+                          />
+                        </div>
+
+                        {/* Menu con - hiển thị khi menu cha được click */}
+                        {mobileOpenDropdown === item.label && (
+                          <div className="ml-4 border-l border-gray-700 pl-4 mt-2">
+                            {/* Chia menu con thành nhiều cột khi có quá nhiều mục */}
+                            {(item.id === 'categories' || item.id === 'countries') && item.children && item.children.length > 10 ? (
+                              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                                {item.children?.map(child => (
+                                  <MenuLink
+                                    key={child.href}
+                                    href={child.href}
+                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                                    onClick={() => {
+                                      setMobileOpenDropdown(null);
+                                      setIsMenuOpen(false);
+                                    }}
+                                  >
+                                    {child.label}
+                                  </MenuLink>
+                                ))}
+                              </div>
+                            ) : (
+                              <div>
+                                {item.children?.map(child => (
+                                  <MenuLink
+                                    key={child.href}
+                                    href={child.href}
+                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                                    onClick={() => {
+                                      setMobileOpenDropdown(null);
+                                      setIsMenuOpen(false);
+                                    }}
+                                  >
+                                    {child.label}
+                                  </MenuLink>
+                                ))}
+                              </div>
+                            )}
                           </div>
                         )}
                       </div>
@@ -454,7 +488,10 @@ export function Header() {
                       <MenuLink
                         href={item.href}
                         className="block text-gray-300 font-medium transition-colors hover:text-blue-500"
-                        onClick={() => setIsMenuOpen(false)}
+                        onClick={() => {
+                          setMobileOpenDropdown(null);
+                          setIsMenuOpen(false);
+                        }}
                       >
                         {item.label}
                       </MenuLink>

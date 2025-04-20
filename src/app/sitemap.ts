@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next';
 import { getCategories, getCountries } from '@/services/phimapi';
 import { DOMAIN } from '@/lib/constants';
+import { Category, Country } from '@/types';
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Lấy danh sách thể loại và quốc gia từ API
@@ -23,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   ];
 
   // Tạo sitemap cho các trang thể loại
-  const categoryPages = categories.map(category => ({
+  const categoryPages = categories.map((category: Category) => ({
     url: `${DOMAIN}/categories/${category.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
@@ -31,7 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   }));
 
   // Tạo sitemap cho các trang quốc gia
-  const countryPages = countries.map(country => ({
+  const countryPages = countries.map((country: Country) => ({
     url: `${DOMAIN}/countries/${country.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,

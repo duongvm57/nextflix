@@ -106,7 +106,7 @@ export async function GET(request: NextRequest) {
       console.log('[BATCH API] Fetching popular genres data');
 
       // Tạo một mảng promises cho mỗi thể loại phổ biến
-      const genrePromises = popularGenres.map(async genre => {
+      const genrePromises = popularGenres.map(async (genre: string) => {
         try {
           const data = await getMoviesByCategory(genre, 1, { limit: '12' });
           if (result.genres) result.genres[genre] = data;

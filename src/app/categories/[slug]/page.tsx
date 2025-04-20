@@ -4,8 +4,9 @@ import { CategoryClientPage } from './client-page';
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
+import { Category, PaginatedResponse, Movie } from '@/types';
 
-async function getMoviesByCategory(slug: string, page: number = 1) {
+async function getMoviesByCategory(slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
   try {
     return await movieService.getMoviesByCategory(slug, page);
   } catch (error) {
@@ -17,7 +18,7 @@ async function getMoviesByCategory(slug: string, page: number = 1) {
   }
 }
 
-async function getMoviesByYear(year: string, page: number = 1) {
+async function getMoviesByYear(year: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
   try {
     return await movieService.getMoviesByYear(year, page);
   } catch (error) {
@@ -79,7 +80,7 @@ export async function generateMetadata({
     } else {
       // Try to get category name from API
       const categories = await getCategories();
-      const category = categories.find(cat => cat.slug === slug);
+      const category = categories.find((cat: Category) => cat.slug === slug);
 
       // Use category name from API or format from slug if not found
       const categoryName = category
@@ -157,7 +158,7 @@ export default async function ListingPage({
     } else {
       // Try to get category name from API
       const categories = await getCategories();
-      const category = categories.find(cat => cat.slug === slug);
+      const category = categories.find((cat: Category) => cat.slug === slug);
 
       // Use category name from API or format from slug if not found
       title = category

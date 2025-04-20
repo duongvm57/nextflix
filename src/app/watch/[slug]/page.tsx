@@ -1,12 +1,12 @@
 import { movieService } from '@/lib/services/api';
 import { MovieDetail } from '@/types';
-import Link from 'next/link';
 import Image from 'next/image';
 import { MoviePlayer } from '@/components/player/movie-player';
 import { Metadata } from 'next';
 import { DOMAIN } from '@/lib/constants';
 import { MovieSchema } from '@/components/schema/movie-schema';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
+import { MenuLink } from '@/components/ui/menu-link';
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
@@ -90,9 +90,9 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="mb-4 text-3xl font-bold">Không tìm thấy phim</h1>
         <p className="mb-8 text-gray-400">Phim bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-        <Link href="/" className="rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80">
+        <MenuLink href="/" className="inline-block rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80">
           Về trang chủ
-        </Link>
+        </MenuLink>
       </div>
     );
   }
@@ -161,30 +161,38 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
             <p>
               <span className="font-semibold">Thể loại:</span>{' '}
               {movie.genres?.length > 0
-                ? movie.genres.map((genre, index) => (
-                    <span key={genre.slug}>
-                      <Link href={`/genres/${genre.slug}`} className="text-primary hover:underline">
-                        {genre.name}
-                      </Link>
-                      {index < movie.genres.length - 1 ? ', ' : ''}
-                    </span>
-                  ))
+                ? (
+                  <span className="inline">
+                    {movie.genres.map((genre, index) => (
+                      <span key={genre.slug} className="inline">
+                        <MenuLink href={`/genres/${genre.slug}`} className="text-primary hover:underline inline">
+                          {genre.name}
+                        </MenuLink>
+                        {index < movie.genres.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </span>
+                )
                 : 'Chưa cập nhật'}
             </p>
             <p>
               <span className="font-semibold">Quốc gia:</span>{' '}
               {movie.country?.length > 0
-                ? movie.country.map((country, index) => (
-                    <span key={country.slug}>
-                      <Link
-                        href={`/countries/${country.slug}`}
-                        className="text-primary hover:underline"
-                      >
-                        {country.name}
-                      </Link>
-                      {index < movie.country.length - 1 ? ', ' : ''}
-                    </span>
-                  ))
+                ? (
+                  <span className="inline">
+                    {movie.country.map((country, index) => (
+                      <span key={country.slug} className="inline">
+                        <MenuLink
+                          href={`/countries/${country.slug}`}
+                          className="text-primary hover:underline inline"
+                        >
+                          {country.name}
+                        </MenuLink>
+                        {index < movie.country.length - 1 ? ', ' : ''}
+                      </span>
+                    ))}
+                  </span>
+                )
                 : 'Chưa cập nhật'}
             </p>
           </div>
