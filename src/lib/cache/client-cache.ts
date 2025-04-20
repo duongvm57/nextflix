@@ -14,11 +14,60 @@ interface CacheItem<T> {
   expiry: number;
 }
 
+// Định nghĩa kiểu cho window object với thuộc tính __MEMORY_CACHE
+declare global {
+  interface Window {
+    __MEMORY_CACHE?: MemoryCache;
+  }
+}
+
 class MemoryCache {
   private cache: Map<string, CacheItem<unknown>>;
 
   constructor() {
     this.cache = new Map();
+
+    // Khôi phục từ session storage khi khởi tạo (chỉ khi ở client-side)
+    if (isClient) {
+      this.restoreFromSessionStorage();
+    }
+  }
+
+  // Phương thức khôi phục dữ liệu từ session storage
+  private restoreFromSessionStorage(): void {
+    try {
+      console.log('[MEMORY_CACHE] Restoring from session storage');
+      let restoredCount = 0;
+
+      for (let i = 0; i < sessionStorage.length; i++) {
+        const key = sessionStorage.key(i);
+        if (key && key.startsWith('cache_')) {
+          const realKey = key.replace('cache_', '');
+          const item = sessionStorage.getItem(key);
+
+          if (item) {
+            try {
+              const cacheItem = JSON.parse(item) as CacheItem<unknown>;
+
+              // Chỉ khôi phục các mục chưa hết hạn
+              if (Date.now() <= cacheItem.expiry) {
+                this.cache.set(realKey, {
+                  data: cacheItem.data,
+                  expiry: cacheItem.expiry
+                });
+                restoredCount++;
+              }
+            } catch (parseError) {
+              console.error(`[MEMORY_CACHE] Error parsing item ${key}:`, parseError);
+            }
+          }
+        }
+      }
+
+      console.log(`[MEMORY_CACHE] Restored ${restoredCount} items from session storage`);
+    } catch (error) {
+      console.error('[MEMORY_CACHE] Error restoring from session storage:', error);
+    }
   }
 
   get<T>(key: string): T | null {
@@ -53,10 +102,32 @@ class MemoryCache {
   clear(): void {
     this.cache.clear();
   }
+
+  debug(): void {
+    console.log('[MEMORY_CACHE] Debug info:');
+    console.log(`Total items: ${this.cache.size}`);
+    console.log('Keys:', this.getKeys());
+  }
 }
 
-// Shared memory cache instance
-const memoryCache = new MemoryCache();
+// Tạo hoặc sử dụng memory cache toàn cục
+let memoryCache: MemoryCache;
+
+// Sử dụng window object để lưu trữ memory cache ở client-side
+if (isClient) {
+  // Kiểm tra xem đã có memory cache trong window chưa
+  if (!window.__MEMORY_CACHE) {
+    console.log('[MEMORY_CACHE] Creating new global memory cache');
+    window.__MEMORY_CACHE = new MemoryCache();
+  } else {
+    console.log('[MEMORY_CACHE] Using existing global memory cache');
+  }
+
+  memoryCache = window.__MEMORY_CACHE;
+} else {
+  // Fallback cho server-side rendering
+  memoryCache = new MemoryCache();
+}
 
 /**
  * Client-side cache utility
@@ -77,15 +148,24 @@ export const clientCache = {
           return null;
         }
 
-        const cacheItem: CacheItem<T> = JSON.parse(item);
-        if (Date.now() > cacheItem.expiry) {
+        try {
+          const cacheItem: CacheItem<T> = JSON.parse(item);
+          if (Date.now() > cacheItem.expiry) {
+            // Xóa mục đã hết hạn
+            sessionStorage.removeItem(`cache_${key}`);
+            return null;
+          }
+
+          // Cache in memory for faster subsequent access
+          // Vì memory cache giờ đã là toàn cục, nó sẽ tồn tại xuyên suốt các lần chuyển trang
+          memoryCache.set(key, cacheItem.data, cacheItem.expiry - Date.now());
+          return cacheItem.data;
+        } catch (parseError) {
+          console.error(`Error parsing cache item for key ${key}:`, parseError);
+          // Xóa mục không hợp lệ
           sessionStorage.removeItem(`cache_${key}`);
           return null;
         }
-
-        // Cache in memory for faster subsequent access
-        memoryCache.set(key, cacheItem.data, cacheItem.expiry - Date.now());
-        return cacheItem.data;
       }
 
       return null;
@@ -126,18 +206,74 @@ export const clientCache = {
 
   clear(): void {
     try {
+      console.log('[CACHE] Clearing all cache data');
+      // Xóa memory cache
       memoryCache.clear();
+
+      // Xóa session storage cache
       if (isClient) {
+        let removedCount = 0;
         Object.keys(sessionStorage).forEach(key => {
           if (key.startsWith('cache_')) {
             sessionStorage.removeItem(key);
+            removedCount++;
           }
         });
+        console.log(`[CACHE] Removed ${removedCount} items from session storage`);
       }
     } catch (error) {
-      console.error('Error clearing cache:', error);
+      console.error('[CACHE] Error clearing cache:', error);
     }
   },
+
+  // Expose memory cache keys for debugging
+  getMemoryCacheKeys(): string[] {
+    try {
+      return memoryCache.getKeys();
+    } catch (error) {
+      console.error('[CACHE] Error getting memory cache keys:', error);
+      return [];
+    }
+  },
+
+  // Phương thức debug toàn bộ hệ thống cache
+  debug(): void {
+    try {
+      console.group('[CACHE] Debug Information');
+
+      // Thông tin memory cache
+      const memoryKeys = memoryCache.getKeys();
+      console.log('Memory Cache:');
+      console.log(`- Total items: ${memoryKeys.length}`);
+      console.log('- Keys:', memoryKeys);
+
+      // Thông tin session storage
+      if (isClient) {
+        const sessionKeys: string[] = [];
+        let sessionSize = 0;
+
+        for (let i = 0; i < sessionStorage.length; i++) {
+          const key = sessionStorage.key(i);
+          if (key && key.startsWith('cache_')) {
+            sessionKeys.push(key.replace('cache_', ''));
+            const item = sessionStorage.getItem(key);
+            if (item) {
+              sessionSize += item.length;
+            }
+          }
+        }
+
+        console.log('Session Storage Cache:');
+        console.log(`- Total items: ${sessionKeys.length}`);
+        console.log(`- Total size: ${Math.round(sessionSize / 1024)} KB`);
+        console.log('- Keys:', sessionKeys);
+      }
+
+      console.groupEnd();
+    } catch (error) {
+      console.error('[CACHE] Error in debug:', error);
+    }
+  }
 };
 
 // Cache duration constants

@@ -3,14 +3,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { clientCache } from '@/lib/cache/client-cache';
 
-interface MemoryCache {
-  cache: Map<string, unknown>;
-}
-
-interface InternalClientCache {
-  memoryCache: MemoryCache;
-}
-
 interface CacheInfo {
   client: {
     memory: {
@@ -27,14 +19,6 @@ interface CacheInfo {
     status: 'active' | 'inactive';
     lastRevalidated?: Date;
   };
-}
-
-function getMemoryCacheKeys(cache: unknown): string[] {
-  const internalCache = cache as InternalClientCache;
-  if (internalCache?.memoryCache?.cache instanceof Map) {
-    return Array.from(internalCache.memoryCache.cache.keys());
-  }
-  return [];
 }
 
 export function CacheStatus() {
@@ -81,6 +65,9 @@ export function CacheStatus() {
     if (typeof window === 'undefined') return;
 
     try {
+      // Log detailed cache info to console for debugging
+      clientCache.debug();
+
       // Get session storage info
       const sessionKeys: string[] = [];
       let sessionTotalSize = 0;
@@ -100,8 +87,8 @@ export function CacheStatus() {
         console.error('Error accessing sessionStorage:', storageError);
       }
 
-      // Get memory cache info
-      const memoryKeys = getMemoryCacheKeys(clientCache);
+      // Get memory cache info using the clientCache API
+      const memoryKeys = clientCache.getMemoryCacheKeys();
 
       setCacheInfo(prev => ({
         ...prev,
@@ -168,7 +155,7 @@ export function CacheStatus() {
     if (!isVisible) {
       return;
     }
-    
+
     getCacheInfo();
     const interval = setInterval(getCacheInfo, 5000);
     return () => clearInterval(interval);
@@ -243,12 +230,42 @@ export function CacheStatus() {
               </div>
             </div>
 
-            <button
-              onClick={clearClientCache}
-              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm mt-2"
-            >
-              Clear Client Cache
-            </button>
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button
+                onClick={clearClientCache}
+                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Clear Client Cache
+              </button>
+
+              <button
+                onClick={() => {
+                  // Thêm một mục vào memory cache để kiểm tra
+                  const testValue = `test-${Date.now()}`;
+                  clientCache.set('memory_test', testValue, 3600000); // 1 giờ
+                  alert(`Đã thêm mục test vào Memory Cache: ${testValue}\n\nHãy chuyển trang và quay lại để kiểm tra!`);
+                  getCacheInfo();
+                }}
+                className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Test Memory Cache
+              </button>
+
+              <button
+                onClick={() => {
+                  // Kiểm tra giá trị trong memory cache
+                  const testValue = clientCache.get('memory_test');
+                  if (testValue) {
+                    alert(`Memory Cache vẫn tồn tại: memory_test = ${testValue}`);
+                  } else {
+                    alert('Không tìm thấy giá trị memory_test trong Memory Cache!');
+                  }
+                }}
+                className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+              >
+                Kiểm tra Memory Cache
+              </button>
+            </div>
           </div>
 
           {/* Server Cache Section */}

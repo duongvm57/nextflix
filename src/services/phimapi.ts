@@ -750,10 +750,20 @@ export async function getMoviesByCategory(
 // Get movies by country
 export async function getMoviesByCountry(slug: string, page = 1, options: { limit?: string } = {}) {
   try {
-    const response = await fetchAPIV1<any>(`${API_ENDPOINTS.V1_COUNTRY}/${slug}`, {
+    // Set default limit if not provided in options
+    const defaultOptions = {
+      limit: PAGINATION_CONFIG.ITEMS_PER_PAGE.toString(),
+    };
+
+    // Combine default options with provided options
+    const params = {
       page: page.toString(),
+      ...defaultOptions,
       ...options,
-    });
+    };
+
+    logger.debug(`Fetching movies for country ${slug}, params:`, params);
+    const response = await fetchAPIV1<any>(`${API_ENDPOINTS.V1_COUNTRY}/${slug}`, params);
 
     // Kiểm tra cấu trúc response
     if (!response || typeof response !== 'object') {
