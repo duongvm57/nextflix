@@ -20,13 +20,8 @@ export function CategoryClientPage({ initialData, isYear }: CategoryClientPagePr
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <Breadcrumb
-        items={[{ name: title, url: `/danh-muc/${slug}` }]}
-        className="mt-4"
-      />
-      <h1 className="mb-8 text-3xl font-bold">
-        {isYear ? `Phim năm ${slug}` : title}
-      </h1>
+      <Breadcrumb items={[{ name: title, url: `/danh-muc/${slug}` }]} className="mt-4" />
+      <h1 className="mb-8 text-3xl font-bold">{isYear ? `Phim năm ${slug}` : title}</h1>
 
       {movies.length > 0 ? (
         <>

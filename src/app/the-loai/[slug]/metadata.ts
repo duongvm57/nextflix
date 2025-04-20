@@ -25,13 +25,13 @@ export async function generateMetadata({
 
   // Tiêu đề thể loại mặc định
   const title = `Danh sách phim ${categoryName} - tổng hợp phim ${categoryName}`;
-  
+
   // Description thể loại mặc định
   const description = `Phim ${categoryName} mới nhất tuyển chọn hay nhất. Top những bộ phim ${categoryName} đáng để bạn cày 2025`;
-  
+
   // Keywords thể loại mặc định
   const keywords = `Xem phim ${categoryName},Phim ${categoryName} mới,Phim ${categoryName} 2025,phim hay`;
-  
+
   // Thông tin bổ sung
   const additionalInfo = `Thông tin: ${categoryName}`;
 

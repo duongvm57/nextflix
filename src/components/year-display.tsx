@@ -11,14 +11,12 @@ export function YearDisplay() {
 // Component để tạo danh sách năm
 export function YearsList({ length = 5 }: { length?: number }) {
   const { currentYear } = useYear();
-  
+
   return (
     <>
       {Array.from({ length }, (_, i) => {
         const year = currentYear - i;
-        return (
-          <div key={year}>{year}</div>
-        );
+        return <div key={year}>{year}</div>;
       })}
     </>
   );

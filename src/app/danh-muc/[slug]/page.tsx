@@ -7,7 +7,10 @@ import { Category, PaginatedResponse, Movie } from '@/types';
 // Export metadata từ file riêng biệt
 export { generateMetadata } from './metadata';
 
-async function getMoviesByCategory(slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
+async function getMoviesByCategory(
+  slug: string,
+  page: number = 1
+): Promise<PaginatedResponse<Movie>> {
   try {
     return await movieService.getMoviesByCategory(slug, page);
   } catch (error) {
@@ -41,8 +44,6 @@ const SPECIAL_CATEGORY_NAMES: Record<string, string> = {
   'phim-long-tieng': 'Phim Lồng tiếng',
   'tv-shows': 'TV Shows',
 };
-
-
 
 export default async function ListingPage({
   params,

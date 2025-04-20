@@ -53,7 +53,7 @@ class MemoryCache {
               if (Date.now() <= cacheItem.expiry) {
                 this.cache.set(realKey, {
                   data: cacheItem.data,
-                  expiry: cacheItem.expiry
+                  expiry: cacheItem.expiry,
                 });
                 restoredCount++;
               }
@@ -219,6 +219,11 @@ export const clientCache = {
             removedCount++;
           }
         });
+
+        // Also clear navigation-related session storage items
+        sessionStorage.removeItem('lastUrl');
+        sessionStorage.removeItem('targetUrl');
+
         console.log(`[CACHE] Removed ${removedCount} items from session storage`);
       }
     } catch (error) {
@@ -273,7 +278,7 @@ export const clientCache = {
     } catch (error) {
       console.error('[CACHE] Error in debug:', error);
     }
-  }
+  },
 };
 
 // Cache duration constants

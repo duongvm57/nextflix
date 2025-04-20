@@ -243,7 +243,9 @@ export function CacheStatus() {
                   // Thêm một mục vào memory cache để kiểm tra
                   const testValue = `test-${Date.now()}`;
                   clientCache.set('memory_test', testValue, 3600000); // 1 giờ
-                  alert(`Đã thêm mục test vào Memory Cache: ${testValue}\n\nHãy chuyển trang và quay lại để kiểm tra!`);
+                  alert(
+                    `Đã thêm mục test vào Memory Cache: ${testValue}\n\nHãy chuyển trang và quay lại để kiểm tra!`
+                  );
                   getCacheInfo();
                 }}
                 className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"

@@ -106,9 +106,7 @@ export function getLanguageMenuItems(): MenuItem {
 }
 
 // Create categories menu item from API data
-export function getCategoriesMenuItem(
-  categories: Category[]
-): MenuItem {
+export function getCategoriesMenuItem(categories: Category[]): MenuItem {
   console.log('[DEBUG] Creating categories menu with categories:', categories);
   return {
     id: 'categories',
@@ -127,9 +125,7 @@ export function getCategoriesMenuItem(
 }
 
 // Create countries menu item from API data
-export function getCountriesMenuItem(
-  countries: Country[]
-): MenuItem {
+export function getCountriesMenuItem(countries: Country[]): MenuItem {
   console.log('[DEBUG] Creating countries menu with countries:', countries);
   return {
     id: 'countries',
@@ -166,10 +162,7 @@ export function getYearsMenuItem(): MenuItem {
 }
 
 // Get all menu items
-export function getAllMenuItems(
-  categories?: Category[],
-  countries?: Country[]
-): MenuItem[] {
+export function getAllMenuItems(categories?: Category[], countries?: Country[]): MenuItem[] {
   // If categories or countries are not provided, return only the static menu items
   if (!categories || !countries) {
     return [

@@ -76,6 +76,18 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     }
   }, [href, router]);
 
+  // Helper function to clear any stale navigation state
+  const clearNavigationState = useCallback(() => {
+    if (typeof window !== 'undefined') {
+      // Remove any existing navigation flags from sessionStorage
+      sessionStorage.removeItem('lastUrl');
+      sessionStorage.removeItem('targetUrl');
+
+      // Reset the navigation flag
+      isNavigating.current = false;
+    }
+  }, []);
+
   const handleNavigation = useCallback(() => {
     // Prevent multiple navigations
     if (isNavigating.current) {
@@ -89,6 +101,9 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       return;
     }
 
+    // Clear any stale navigation state first
+    clearNavigationState();
+
     console.log(`[NAVIGATION] Starting navigation to ${href}`);
     isNavigating.current = true;
 
@@ -98,9 +113,10 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Call onClick handler if provided
     if (onClick) onClick();
 
-    // Check if this is a genre or country link
+    // Check if this is a genre, country, or footer link
     const isGenreLink = href.startsWith('/the-loai/');
     const isCountryLink = href.startsWith('/quoc-gia/');
+    const isFooterLink = href.startsWith('/danh-muc/');
 
     // Store the current URL in sessionStorage before navigation
     // This will help us detect and fix navigation issues
@@ -110,8 +126,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     }
 
     try {
-      // Always use direct navigation for genre and country links to avoid Next.js routing issues
-      if (isGenreLink || isCountryLink) {
+      // Use direct navigation for genre, country, and footer links to avoid Next.js routing issues
+      if (isGenreLink || isCountryLink || isFooterLink) {
         console.log(`[NAVIGATION] Using direct navigation for ${href}`);
         window.location.href = href;
       } else {
@@ -129,14 +145,14 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       console.log(`[NAVIGATION] Navigation flag reset for ${href}`);
       isNavigating.current = false;
     }, 300);
-  }, [href, onClick, router, startLoading]);
+  }, [href, onClick, router, startLoading, clearNavigationState]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
     handleNavigation();
   };
 
-  // Add touch event handler for mobile devices with balanced approach
+  // Add touch event handler for mobile devices with improved reliability
   useEffect(() => {
     const linkElement = linkRef.current;
     if (!linkElement) return;
@@ -145,8 +161,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     let touchStartY = 0;
     let touchStartTime = 0;
     let isTouchMoved = false;
-    const TOUCH_THRESHOLD = 5; // Smaller threshold for better detection
-    const TAP_DURATION_THRESHOLD = 300; // Max milliseconds for a tap
+    const TOUCH_THRESHOLD = 10; // Increased threshold for better reliability
+    const TAP_DURATION_THRESHOLD = 500; // Increased max milliseconds for a tap
 
     const handleTouchStart = (e: TouchEvent) => {
       touchStartX = e.touches[0].clientX;
@@ -177,7 +193,14 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       if (!isTouchMoved && touchDuration < TAP_DURATION_THRESHOLD && href && href !== '#') {
         e.preventDefault();
         e.stopPropagation();
-        handleNavigation();
+
+        // Clear any existing navigation state from previous attempts
+        clearNavigationState();
+
+        // Small delay to ensure clean navigation state
+        setTimeout(() => {
+          handleNavigation();
+        }, 50);
       }
     };
 
@@ -190,7 +213,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       linkElement.removeEventListener('touchmove', handleTouchMove);
       linkElement.removeEventListener('touchend', handleTouchEnd);
     };
-  }, [href, handleNavigation]);
+  }, [href, handleNavigation, clearNavigationState]);
 
   return (
     <Link

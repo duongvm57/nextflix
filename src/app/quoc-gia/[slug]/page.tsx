@@ -9,7 +9,10 @@ import { Country, PaginatedResponse, Movie } from '@/types';
 // Export metadata từ file riêng biệt
 export { generateMetadata } from './metadata';
 
-async function getMoviesByCountry(slug: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
+async function getMoviesByCountry(
+  slug: string,
+  page: number = 1
+): Promise<PaginatedResponse<Movie>> {
   try {
     // Kiểm tra xem slug có phải là country slug hợp lệ không
     const countries = await getCountries();

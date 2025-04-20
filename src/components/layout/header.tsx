@@ -187,7 +187,7 @@ export function Header() {
   // Function to toggle mobile dropdown menu
   const toggleMobileDropdown = (label: string) => {
     console.log('Toggle mobile dropdown:', label, 'Current:', mobileOpenDropdown);
-    setMobileOpenDropdown(prevState => prevState === label ? null : label);
+    setMobileOpenDropdown(prevState => (prevState === label ? null : label));
   };
 
   const router = useRouter();
@@ -449,7 +449,9 @@ export function Header() {
                         {mobileOpenDropdown === item.label && (
                           <div className="ml-4 border-l border-gray-700 pl-4 mt-2">
                             {/* Chia menu con thành nhiều cột khi có quá nhiều mục */}
-                            {(item.id === 'categories' || item.id === 'countries') && item.children && item.children.length > 10 ? (
+                            {(item.id === 'categories' || item.id === 'countries') &&
+                            item.children &&
+                            item.children.length > 10 ? (
                               <div className="grid grid-cols-2 gap-x-2 gap-y-1">
                                 {item.children?.map(child => (
                                   <MenuLink

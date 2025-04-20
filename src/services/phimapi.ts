@@ -467,11 +467,17 @@ function mapAPIMovieToMovie(apiMovie: any): Movie {
         : null,
     country:
       apiMovie.country && apiMovie.country.length > 0
-        ? apiMovie.country.map((c: { name: string; slug: string }) => ({ name: c.name, slug: c.slug }))
+        ? apiMovie.country.map((c: { name: string; slug: string }) => ({
+            name: c.name,
+            slug: c.slug,
+          }))
         : [],
     genres:
       apiMovie.category && apiMovie.category.length > 0
-        ? apiMovie.category.map((g: { name: string; slug: string }) => ({ name: g.name, slug: g.slug }))
+        ? apiMovie.category.map((g: { name: string; slug: string }) => ({
+            name: g.name,
+            slug: g.slug,
+          }))
         : [],
     status: 'ongoing',
     actors: apiMovie.actor || [],
@@ -501,13 +507,21 @@ function mapAPIMovieToMovieDetail(apiMovie: any): MovieDetail {
       ) {
         const serverEpisodes = {
           server_name: server.server_name,
-          items: server.server_data.map((item: { name: string; slug: string; filename?: string; link_embed: string; link_m3u8: string }) => ({
-            name: item.name,
-            slug: item.slug,
-            filename: item.filename || `${apiMovie.slug}-${item.slug}`,
-            link_embed: item.link_embed,
-            link_m3u8: item.link_m3u8,
-          })),
+          items: server.server_data.map(
+            (item: {
+              name: string;
+              slug: string;
+              filename?: string;
+              link_embed: string;
+              link_m3u8: string;
+            }) => ({
+              name: item.name,
+              slug: item.slug,
+              filename: item.filename || `${apiMovie.slug}-${item.slug}`,
+              link_embed: item.link_embed,
+              link_m3u8: item.link_m3u8,
+            })
+          ),
         };
         logger.debug(
           `Added server ${server.server_name} with ${serverEpisodes.items.length} episodes`

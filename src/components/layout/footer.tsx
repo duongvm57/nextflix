@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { MenuLink } from '@/components/ui/menu-link';
 
 export function Footer() {
@@ -28,19 +27,19 @@ export function Footer() {
             <h1 className="mb-4 text-lg font-semibold text-white">Danh mục</h1>
             <ul className="space-y-2">
               <li>
-                <Link href="/danh-muc/phim-le" className="hover:text-primary">
+                <MenuLink href="/danh-muc/phim-le" className="hover:text-primary">
                   Phim lẻ
-                </Link>
+                </MenuLink>
               </li>
               <li>
-                <Link href="/danh-muc/phim-bo" className="hover:text-primary">
+                <MenuLink href="/danh-muc/phim-bo" className="hover:text-primary">
                   Phim bộ
-                </Link>
+                </MenuLink>
               </li>
               <li>
-                <Link href="/danh-muc/hoat-hinh" className="hover:text-primary">
+                <MenuLink href="/danh-muc/hoat-hinh" className="hover:text-primary">
                   Hoạt hình
-                </Link>
+                </MenuLink>
               </li>
             </ul>
           </div>

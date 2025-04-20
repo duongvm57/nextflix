@@ -52,7 +52,8 @@ export async function generateMetadata({
     if (SPECIAL_CATEGORY_NAMES[slug]) {
       const categoryName = SPECIAL_CATEGORY_NAMES[slug];
       title = `Danh sách ${categoryName} - tổng hợp ${categoryName}`;
-      description = SPECIAL_CATEGORY_DESCRIPTIONS[slug] || 
+      description =
+        SPECIAL_CATEGORY_DESCRIPTIONS[slug] ||
         `Phim ${categoryName} mới nhất tuyển chọn hay nhất. Top những bộ ${categoryName} đáng để bạn cày 2025`;
       keywords = `Xem ${categoryName},${categoryName} mới,${categoryName} 2025,phim hay`;
       additionalInfo = `Thông tin: ${categoryName}`;

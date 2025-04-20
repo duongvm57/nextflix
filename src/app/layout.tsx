@@ -232,10 +232,7 @@ export default async function RootLayout({
           }}
         />
       </head>
-      <body
-        className="antialiased text-white min-h-screen flex flex-col"
-        suppressHydrationWarning
-      >
+      <body className="antialiased text-white min-h-screen flex flex-col" suppressHydrationWarning>
         {/* Thêm Schema.org structured data cho website */}
         <WebsiteSchema />
 

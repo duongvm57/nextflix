@@ -29,7 +29,10 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
       <div className="container mx-auto px-4 py-20 text-center">
         <h1 className="mb-4 text-3xl font-bold">Không tìm thấy phim</h1>
         <p className="mb-8 text-gray-400">Phim bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.</p>
-        <MenuLink href="/" className="inline-block rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80">
+        <MenuLink
+          href="/"
+          className="inline-block rounded-md bg-primary px-4 py-2 text-white hover:bg-primary/80"
+        >
           Về trang chủ
         </MenuLink>
       </div>
@@ -60,7 +63,10 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           {/* Nút Xem Phim */}
           <div className="mt-4">
             <MenuLink href={`/xem/${movie.slug}`} className="w-full">
-              <Button className="w-full flex items-center justify-center gap-2 py-6 text-lg" size="lg">
+              <Button
+                className="w-full flex items-center justify-center gap-2 py-6 text-lg"
+                size="lg"
+              >
                 <Play size={20} fill="white" />
                 Xem Phim
               </Button>
@@ -120,9 +126,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           <div className="mb-4">
             <p className="mb-2 font-semibold">Diễn viên:</p>
             <p className="text-gray-300">
-              {movie.actors && movie.actors.length > 0
-                ? movie.actors.join(', ')
-                : 'Chưa cập nhật'}
+              {movie.actors && movie.actors.length > 0 ? movie.actors.join(', ') : 'Chưa cập nhật'}
             </p>
           </div>
 
@@ -140,21 +144,21 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           <div className="mb-4">
             <p className="mb-2 font-semibold">Quốc gia:</p>
             <div className="flex flex-wrap gap-2">
-              {movie.country?.length > 0
-                ? (
-                  <div className="flex flex-wrap gap-2">
-                    {movie.country.map(country => (
-                      <MenuLink
-                        key={country.slug}
-                        href={`/quoc-gia/${country.slug}`}
-                        className="rounded-full bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
-                      >
-                        {country.name}
-                      </MenuLink>
-                    ))}
-                  </div>
-                )
-                : <span className="text-gray-400">Chưa cập nhật</span>}
+              {movie.country?.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {movie.country.map(country => (
+                    <MenuLink
+                      key={country.slug}
+                      href={`/quoc-gia/${country.slug}`}
+                      className="rounded-full bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
+                    >
+                      {country.name}
+                    </MenuLink>
+                  ))}
+                </div>
+              ) : (
+                <span className="text-gray-400">Chưa cập nhật</span>
+              )}
             </div>
           </div>
         </div>
@@ -183,8 +187,6 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           </div>
         </div>
       )}
-
-
     </div>
   );
 }

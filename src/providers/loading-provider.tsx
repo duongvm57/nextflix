@@ -1,7 +1,6 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect, useCallback, useRef } from 'react';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Create context
 interface LoadingContextType {

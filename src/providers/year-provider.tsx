@@ -18,9 +18,5 @@ export function YearProvider({ children }: { children: ReactNode }) {
   // Giá trị này sẽ được sử dụng cho cả server và client render
   const [currentYear] = useState(new Date().getFullYear());
 
-  return (
-    <YearContext.Provider value={{ currentYear }}>
-      {children}
-    </YearContext.Provider>
-  );
+  return <YearContext.Provider value={{ currentYear }}>{children}</YearContext.Provider>;
 }

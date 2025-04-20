@@ -29,7 +29,9 @@ export async function generateMetadata({
     openGraph: {
       title,
       description,
-      url: keyword ? `${DOMAIN}/tim-kiem?keyword=${encodeURIComponent(keyword)}` : `${DOMAIN}/tim-kiem`,
+      url: keyword
+        ? `${DOMAIN}/tim-kiem?keyword=${encodeURIComponent(keyword)}`
+        : `${DOMAIN}/tim-kiem`,
       siteName: SITE_NAME,
       locale: 'vi_VN',
       type: 'website',
