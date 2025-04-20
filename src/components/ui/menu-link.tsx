@@ -113,10 +113,11 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Call onClick handler if provided
     if (onClick) onClick();
 
-    // Check if this is a genre, country, or footer link
+    // Check if this is a genre, country, footer, or search link
     const isGenreLink = href.startsWith('/the-loai/');
     const isCountryLink = href.startsWith('/quoc-gia/');
     const isFooterLink = href.startsWith('/danh-muc/');
+    const isSearchLink = href.startsWith('/tim-kiem');
 
     // Store the current URL in sessionStorage before navigation
     // This will help us detect and fix navigation issues
@@ -126,8 +127,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     }
 
     try {
-      // Use direct navigation for genre, country, and footer links to avoid Next.js routing issues
-      if (isGenreLink || isCountryLink || isFooterLink) {
+      // Use direct navigation for genre, country, footer, and search links to avoid Next.js routing issues
+      if (isGenreLink || isCountryLink || isFooterLink || isSearchLink) {
         console.log(`[NAVIGATION] Using direct navigation for ${href}`);
         window.location.href = href;
       } else {

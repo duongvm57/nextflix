@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useCallback } from 'react';
-import Link from 'next/link';
 import Image from 'next/image';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { Movie } from '@/types';
@@ -67,12 +66,12 @@ export function CountryMoviesSection({
             </button>
           </div>
           <div className="flex items-center gap-2">
-            <Link
+            <MenuLink
               href={`/quoc-gia/${countrySlug}`}
               className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
             >
               Xem toàn bộ
-            </Link>
+            </MenuLink>
           </div>
         </div>
       </div>

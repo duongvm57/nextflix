@@ -1,6 +1,7 @@
 import { Button } from './button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { MenuLink } from '@/components/ui/menu-link';
 
 interface PaginationProps {
   currentPage: number;
@@ -63,7 +64,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
     <div className="flex items-center justify-center gap-2 py-8">
       {/* Previous button */}
       {baseUrl ? (
-        <a
+        <MenuLink
           href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
@@ -72,7 +73,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronLeft size={16} />
           <span className="sr-only">Previous Page</span>
-        </a>
+        </MenuLink>
       ) : (
         <Button
           variant="outline"
@@ -96,7 +97,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         }
 
         return baseUrl ? (
-          <a
+          <MenuLink
             key={`link-page-${page}-${index}`}
             href={`${baseUrl}?page=${page}`}
             className={cn(
@@ -105,7 +106,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             )}
           >
             {page}
-          </a>
+          </MenuLink>
         ) : (
           <Button
             key={`button-page-${page}-${index}`}
@@ -120,7 +121,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
 
       {/* Next button */}
       {baseUrl ? (
-        <a
+        <MenuLink
           href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
           className={cn(
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
@@ -129,7 +130,7 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
         >
           <ChevronRight size={16} />
           <span className="sr-only">Next Page</span>
-        </a>
+        </MenuLink>
       ) : (
         <Button
           variant="outline"

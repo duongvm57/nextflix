@@ -1,6 +1,6 @@
 'use client';
 
-import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 
 interface InternalLinksProps {
   title: string;
@@ -60,7 +60,7 @@ export function InternalLinks({
                 className="inline-block flex-1 min-w-[160px]"
                 style={{ width: itemWidth }}
               >
-                <Link
+                <MenuLink
                   href={link.url}
                   className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 w-full h-[90px] flex items-center justify-center border border-gray-700 hover:border-gray-500`}
                 >
@@ -68,7 +68,7 @@ export function InternalLinks({
                     <div className="font-medium">{link.name}</div>
                     <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                   </div>
-                </Link>
+                </MenuLink>
               </li>
             );
           })}
@@ -76,7 +76,7 @@ export function InternalLinks({
           {/* "More topics" button */}
           {hasMoreLinks && (
             <li className="inline-block flex-1 min-w-[160px]" style={{ width: itemWidth }}>
-              <Link
+              <MenuLink
                 href={allTopicsUrl}
                 className={`bg-gradient-to-r from-gray-500/75 to-gray-400/75 rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 w-full h-[90px] flex items-center justify-center border border-gray-700 hover:border-gray-500`}
               >
@@ -84,7 +84,7 @@ export function InternalLinks({
                   <div className="font-medium">Tất cả</div>
                   <div className="text-xs opacity-80 mt-1">Xem tất cả &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             </li>
           )}
         </ul>

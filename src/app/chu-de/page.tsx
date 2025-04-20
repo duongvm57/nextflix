@@ -1,4 +1,4 @@
-import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 import { getCategories, getCountries } from '@/services/phimapi';
 import { TYPE_LIST } from '@/lib/menu/phimapi-menu';
 import { Category, Country } from '@/types';
@@ -82,7 +82,7 @@ export default async function TopicsPage() {
           {genreTopics.map((topic, index) => {
             const gradientClass = gradients[index % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -91,7 +91,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
@@ -104,7 +104,7 @@ export default async function TopicsPage() {
           {countryTopics.map((topic, index) => {
             const gradientClass = gradients[(index + 3) % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -113,7 +113,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
@@ -126,7 +126,7 @@ export default async function TopicsPage() {
           {movieTypes.map((topic, index) => {
             const gradientClass = gradients[(index + 6) % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -135,7 +135,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
@@ -148,7 +148,7 @@ export default async function TopicsPage() {
           {languages.map((topic, index) => {
             const gradientClass = gradients[(index + 9) % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -157,7 +157,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
@@ -170,7 +170,7 @@ export default async function TopicsPage() {
           {recentYears().map((topic, index) => {
             const gradientClass = gradients[(index + 11) % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -179,7 +179,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
@@ -192,7 +192,7 @@ export default async function TopicsPage() {
           {popularSearches.map((topic, index) => {
             const gradientClass = gradients[(index + 2) % gradients.length];
             return (
-              <Link
+              <MenuLink
                 key={topic.url}
                 href={topic.url}
                 className={`bg-gradient-to-r ${gradientClass} rounded-lg p-4 text-white shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] hover:bg-gray-700/20 flex items-center justify-center h-[90px] border border-gray-700 hover:border-gray-500`}
@@ -201,7 +201,7 @@ export default async function TopicsPage() {
                   <div className="font-medium">{topic.name}</div>
                   <div className="text-xs opacity-80 mt-1">Xem thêm &gt;</div>
                 </div>
-              </Link>
+              </MenuLink>
             );
           })}
         </div>
