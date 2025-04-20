@@ -16,7 +16,13 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 1.0,
     },
     {
-      url: `${DOMAIN}/search`,
+      url: `${DOMAIN}/tim-kiem`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly' as const,
+      priority: 0.8,
+    },
+    {
+      url: `${DOMAIN}/chu-de`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.8,
@@ -25,7 +31,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Tạo sitemap cho các trang thể loại
   const categoryPages = categories.map((category: Category) => ({
-    url: `${DOMAIN}/categories/${category.slug}`,
+    url: `${DOMAIN}/the-loai/${category.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
@@ -33,7 +39,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
   // Tạo sitemap cho các trang quốc gia
   const countryPages = countries.map((country: Country) => ({
-    url: `${DOMAIN}/countries/${country.slug}`,
+    url: `${DOMAIN}/quoc-gia/${country.slug}`,
     lastModified: new Date(),
     changeFrequency: 'weekly' as const,
     priority: 0.7,
@@ -42,7 +48,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   // Tạo sitemap cho các trang năm
   const currentYear = new Date().getFullYear();
   const yearPages = Array.from({ length: 10 }, (_, i) => ({
-    url: `${DOMAIN}/categories/${currentYear - i}`,
+    url: `${DOMAIN}/danh-muc/${currentYear - i}`,
     lastModified: new Date(),
     changeFrequency: 'monthly' as const,
     priority: 0.6,

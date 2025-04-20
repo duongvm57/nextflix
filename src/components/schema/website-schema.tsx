@@ -13,7 +13,7 @@ export function WebsiteSchema() {
     description: SITE_DESCRIPTION,
     potentialAction: {
       '@type': 'SearchAction',
-      target: `${DOMAIN}/search?keyword={search_term_string}`,
+      target: `${DOMAIN}/tim-kiem?keyword={search_term_string}`,
       'query-input': 'required name=search_term_string',
     },
   };

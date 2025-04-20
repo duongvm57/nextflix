@@ -98,7 +98,7 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
           if (found) {
             priorityCategories.push({
               name: found.name,
-              url: `/genres/${found.slug}`,
+              url: `/the-loai/${found.slug}`,
             });
           }
         }
@@ -111,7 +111,7 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
             .slice(0, remainingCount)
             .map(cat => ({
               name: cat.name,
-              url: `/genres/${cat.slug}`,
+              url: `/the-loai/${cat.slug}`,
             }));
 
           priorityCategories.push(...remainingCategories);
@@ -119,12 +119,12 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
 
         // Thêm một số chủ đề tìm kiếm phổ biến
         const searchTopics = [
-          { name: 'Marvel', url: '/search?keyword=marvel' },
-          { name: '4K', url: '/search?keyword=4k' },
-          { name: 'Sitcom', url: '/search?keyword=sitcom' },
-          { name: 'Lồng Tiếng', url: '/categories/phim-long-tieng' },
-          { name: 'Xuyên Không', url: '/search?keyword=xuyen-khong' },
-          { name: 'Cổ Trang', url: '/search?keyword=co-trang' },
+          { name: 'Marvel', url: '/tim-kiem?keyword=marvel' },
+          { name: '4K', url: '/tim-kiem?keyword=4k' },
+          { name: 'Sitcom', url: '/tim-kiem?keyword=sitcom' },
+          { name: 'Lồng Tiếng', url: '/danh-muc/phim-long-tieng' },
+          { name: 'Xuyên Không', url: '/tim-kiem?keyword=xuyen-khong' },
+          { name: 'Cổ Trang', url: '/tim-kiem?keyword=co-trang' },
         ];
 
         setPopularTopics([...priorityCategories, ...searchTopics]);
@@ -273,7 +273,7 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
         {/* Liên kết nội bộ - Bạn đang quan tâm gì? */}
         <InternalLinks
           title="Bạn đang quan tâm gì?"
-          allTopicsUrl="/topics"
+          allTopicsUrl="/chu-de"
           links={popularTopics}
           className="mt-8"
         />

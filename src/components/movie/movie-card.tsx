@@ -24,7 +24,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
       <div className="relative h-full w-full">
         {/* Toàn bộ thẻ có thể click để xem thông tin phim */}
         <MenuLink
-          href={`/movie/${movie.slug}`}
+          href={`/phim/${movie.slug}`}
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
           <Image

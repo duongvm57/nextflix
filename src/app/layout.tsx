@@ -3,6 +3,7 @@ import './globals.css';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
 import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
+
 import { LoadingProvider } from '@/providers/loading-provider';
 import { YearWrapper } from '@/components/year-wrapper';
 import { Suspense } from 'react';
@@ -119,7 +120,7 @@ export default async function RootLayout({
                     const targetUrl = sessionStorage.getItem('targetUrl');
                     const lastUrl = sessionStorage.getItem('lastUrl');
 
-                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/genres/') || targetUrl.startsWith('/countries/'))) {
+                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/the-loai/') || targetUrl.startsWith('/quoc-gia/'))) {
                       console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
                       console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
 
@@ -216,7 +217,7 @@ export default async function RootLayout({
                     console.log('[NAVIGATION_CHECK] Navigation method:', navigationMethod);
 
                     // If we're on the home page but should be on a genre/country page
-                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/genres/') || targetUrl.startsWith('/countries/'))) {
+                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/the-loai/') || targetUrl.startsWith('/quoc-gia/'))) {
                       if (lastUrl && lastUrl.includes('/watch/')) {
                         console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
                         window.location.replace(targetUrl);

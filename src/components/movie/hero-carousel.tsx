@@ -122,7 +122,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 
                   {/* Thêm link phủ toàn bộ banner trên mobile */}
-                  <MenuLink href={`/movie/${movie.slug}`} className="absolute inset-0 md:hidden">
+                  <MenuLink href={`/phim/${movie.slug}`} className="absolute inset-0 md:hidden">
                     <span className="sr-only">Xem thông tin phim {movie.name}</span>
                   </MenuLink>
                 </div>

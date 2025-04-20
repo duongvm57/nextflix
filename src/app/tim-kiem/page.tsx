@@ -2,9 +2,10 @@ import { movieService } from '@/lib/services/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { Metadata } from 'next';
-import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
+
+// Export metadata từ file riêng biệt
+export { generateMetadata } from './metadata';
 
 async function searchMovies(keyword: string, page: number = 1) {
   try {
@@ -16,52 +17,6 @@ async function searchMovies(keyword: string, page: number = 1) {
       pagination: { totalItems: 0, totalItemsPerPage: 10, currentPage: 1, totalPages: 1 },
     };
   }
-}
-
-// Tạo metadata động cho trang tìm kiếm
-export async function generateMetadata({
-  searchParams,
-}: {
-  searchParams: { keyword?: string };
-}): Promise<Metadata> {
-  const keyword = searchParams.keyword || '';
-
-  let title;
-  let description;
-
-  if (keyword) {
-    title = `Kết quả tìm kiếm cho "${keyword}" - ${SITE_NAME}`;
-    description = `Xem các bộ phim liên quan đến từ khóa "${keyword}". Tổng hợp phim hay nhất, cập nhật mới nhất.`;
-  } else {
-    title = `Tìm kiếm phim - ${SITE_NAME}`;
-    description = `Tìm kiếm phim lẻ, phim bộ, phim hoạt hình và các chương trình truyền hình yêu thích của bạn.`;
-  }
-
-  return {
-    title,
-    description,
-    keywords: keyword
-      ? `${keyword}, phim hay, phim online, phim HD, phim mới`
-      : 'tìm kiếm phim, phim hay, phim online, phim HD',
-    openGraph: {
-      title,
-      description,
-      url: keyword ? `${DOMAIN}/search?keyword=${encodeURIComponent(keyword)}` : `${DOMAIN}/search`,
-      siteName: SITE_NAME,
-      locale: 'vi_VN',
-      type: 'website',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title,
-      description,
-    },
-    alternates: {
-      canonical: keyword
-        ? `${DOMAIN}/search?keyword=${encodeURIComponent(keyword)}`
-        : `${DOMAIN}/search`,
-    },
-  };
 }
 
 export default async function SearchPage({
@@ -78,7 +33,7 @@ export default async function SearchPage({
   // Redirect to the last page if current page is greater than total pages
   if (pagination && pagination.totalPages > 0 && page > pagination.totalPages) {
     return Response.redirect(
-      `/search?keyword=${encodeURIComponent(keyword)}&page=${pagination.totalPages}`
+      `/tim-kiem?keyword=${encodeURIComponent(keyword)}&page=${pagination.totalPages}`
     );
   }
 
@@ -86,12 +41,12 @@ export default async function SearchPage({
     <div className="container mx-auto px-4 py-8">
       <BreadcrumbSchema
         items={[
-          { name: 'Tìm kiếm', url: '/search' },
+          { name: 'Tìm kiếm', url: '/tim-kiem' },
           ...(keyword
             ? [
                 {
                   name: `Kết quả cho "${keyword}"`,
-                  url: `/search?keyword=${encodeURIComponent(keyword)}`,
+                  url: `/tim-kiem?keyword=${encodeURIComponent(keyword)}`,
                 },
               ]
             : []),
@@ -99,12 +54,12 @@ export default async function SearchPage({
       />
       <Breadcrumb
         items={[
-          { name: 'Tìm kiếm', url: '/search' },
+          { name: 'Tìm kiếm', url: '/tim-kiem' },
           ...(keyword
             ? [
                 {
                   name: `Kết quả cho "${keyword}"`,
-                  url: `/search?keyword=${encodeURIComponent(keyword)}`,
+                  url: `/tim-kiem?keyword=${encodeURIComponent(keyword)}`,
                 },
               ]
             : []),
@@ -124,7 +79,7 @@ export default async function SearchPage({
               <Pagination
                 currentPage={pagination.currentPage}
                 totalPages={pagination.totalPages}
-                baseUrl={`/search?keyword=${encodeURIComponent(keyword)}`}
+                baseUrl={`/tim-kiem?keyword=${encodeURIComponent(keyword)}`}
               />
             )}
           </>

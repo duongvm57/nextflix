@@ -30,7 +30,7 @@ export function InternalLinks({
   links,
   className = '',
   showAll = false,
-  allTopicsUrl = '/topics',
+  allTopicsUrl = '/chu-de',
 }: InternalLinksProps) {
   if (!links || links.length === 0) return null;
 

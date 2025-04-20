@@ -16,9 +16,9 @@ export async function GET(request: NextRequest) {
 
     // Determine if this is a static route that should be cached
     const isStaticRoute =
-      urlParam.includes('/categories') ||
-      urlParam.includes('/countries') ||
-      urlParam.includes('/genres');
+      urlParam.includes('/the-loai') ||
+      urlParam.includes('/quoc-gia') ||
+      urlParam.includes('/danh-muc');
 
     console.log('Fetching URL:', urlParam);
 

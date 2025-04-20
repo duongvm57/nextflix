@@ -57,22 +57,22 @@ export function getMovieTypeMenuItems(): MenuItem {
       {
         id: 'phim-le',
         label: 'Phim lẻ',
-        href: `/categories/${TYPE_LIST.PHIM_LE}`,
+        href: `/danh-muc/${TYPE_LIST.PHIM_LE}`,
       },
       {
         id: 'phim-bo',
         label: 'Phim bộ',
-        href: `/categories/${TYPE_LIST.PHIM_BO}`,
+        href: `/danh-muc/${TYPE_LIST.PHIM_BO}`,
       },
       {
         id: 'tv-shows',
         label: 'TV Shows',
-        href: `/categories/${TYPE_LIST.TV_SHOWS}`,
+        href: `/danh-muc/${TYPE_LIST.TV_SHOWS}`,
       },
       {
         id: 'hoat-hinh',
         label: 'Hoạt hình',
-        href: `/categories/${TYPE_LIST.HOAT_HINH}`,
+        href: `/danh-muc/${TYPE_LIST.HOAT_HINH}`,
       },
     ],
   };
@@ -89,17 +89,17 @@ export function getLanguageMenuItems(): MenuItem {
       {
         id: 'phim-vietsub',
         label: 'Vietsub',
-        href: `/categories/${TYPE_LIST.PHIM_VIETSUB}`,
+        href: `/danh-muc/${TYPE_LIST.PHIM_VIETSUB}`,
       },
       {
         id: 'phim-thuyet-minh',
         label: 'Thuyết minh',
-        href: `/categories/${TYPE_LIST.PHIM_THUYET_MINH}`,
+        href: `/danh-muc/${TYPE_LIST.PHIM_THUYET_MINH}`,
       },
       {
         id: 'phim-long-tieng',
         label: 'Lồng tiếng',
-        href: `/categories/${TYPE_LIST.PHIM_LONG_TIENG}`,
+        href: `/danh-muc/${TYPE_LIST.PHIM_LONG_TIENG}`,
       },
     ],
   };
@@ -120,7 +120,7 @@ export function getCategoriesMenuItem(
       return {
         id: category.id || category.slug,
         label: category.name,
-        href: `/genres/${category.slug}`,
+        href: `/the-loai/${category.slug}`,
       };
     }),
   };
@@ -141,7 +141,7 @@ export function getCountriesMenuItem(
       return {
         id: country.id || country.slug,
         label: country.name,
-        href: `/countries/${country.slug}`,
+        href: `/quoc-gia/${country.slug}`,
       };
     }),
   };
@@ -160,7 +160,7 @@ export function getYearsMenuItem(): MenuItem {
     children: years.map((year: number) => ({
       id: `year-${year}`,
       label: year.toString(),
-      href: `/categories/${year}`,
+      href: `/danh-muc/${year}`,
     })),
   };
 }

@@ -28,17 +28,17 @@ export function Footer() {
             <h1 className="mb-4 text-lg font-semibold text-white">Danh mục</h1>
             <ul className="space-y-2">
               <li>
-                <Link href="/categories/phim-le" className="hover:text-primary">
+                <Link href="/danh-muc/phim-le" className="hover:text-primary">
                   Phim lẻ
                 </Link>
               </li>
               <li>
-                <Link href="/categories/phim-bo" className="hover:text-primary">
+                <Link href="/danh-muc/phim-bo" className="hover:text-primary">
                   Phim bộ
                 </Link>
               </li>
               <li>
-                <Link href="/categories/hoat-hinh" className="hover:text-primary">
+                <Link href="/danh-muc/hoat-hinh" className="hover:text-primary">
                   Hoạt hình
                 </Link>
               </li>
@@ -50,22 +50,22 @@ export function Footer() {
             <h1 className="mb-4 text-lg font-semibold text-white">Thể loại</h1>
             <ul className="space-y-2">
               <li>
-                <MenuLink href="/genres/hanh-dong" className="hover:text-primary">
+                <MenuLink href="/the-loai/hanh-dong" className="hover:text-primary">
                   Hành động
                 </MenuLink>
               </li>
               <li>
-                <MenuLink href="/genres/tinh-cam" className="hover:text-primary">
+                <MenuLink href="/the-loai/tinh-cam" className="hover:text-primary">
                   Tình cảm
                 </MenuLink>
               </li>
               <li>
-                <MenuLink href="/genres/kinh-di" className="hover:text-primary">
+                <MenuLink href="/the-loai/kinh-di" className="hover:text-primary">
                   Kinh dị
                 </MenuLink>
               </li>
               <li>
-                <MenuLink href="/genres/hai-huoc" className="hover:text-primary">
+                <MenuLink href="/the-loai/hai-huoc" className="hover:text-primary">
                   Hài hước
                 </MenuLink>
               </li>

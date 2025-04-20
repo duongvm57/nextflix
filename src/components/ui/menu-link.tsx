@@ -40,19 +40,19 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Only prefetch important links
     const importantPaths = [
       '/',
-      '/categories/phim-le',
-      '/categories/phim-bo',
-      '/categories/hoat-hinh',
-      '/countries/han-quoc',
-      '/countries/trung-quoc',
-      '/countries/au-my',
-      '/genres/hanh-dong',
-      '/genres/tinh-cam',
+      '/danh-muc/phim-le',
+      '/danh-muc/phim-bo',
+      '/danh-muc/hoat-hinh',
+      '/quoc-gia/han-quoc',
+      '/quoc-gia/trung-quoc',
+      '/quoc-gia/au-my',
+      '/the-loai/hanh-dong',
+      '/the-loai/tinh-cam',
     ];
 
     // Check if this is a genre or country link
-    const isGenreLink = href.startsWith('/genres/');
-    const isCountryLink = href.startsWith('/countries/');
+    const isGenreLink = href.startsWith('/the-loai/');
+    const isCountryLink = href.startsWith('/quoc-gia/');
     const shouldPrefetch = importantPaths.includes(href) || isGenreLink || isCountryLink;
 
     if (shouldPrefetch) {
@@ -99,8 +99,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     if (onClick) onClick();
 
     // Check if this is a genre or country link
-    const isGenreLink = href.startsWith('/genres/');
-    const isCountryLink = href.startsWith('/countries/');
+    const isGenreLink = href.startsWith('/the-loai/');
+    const isCountryLink = href.startsWith('/quoc-gia/');
 
     // Store the current URL in sessionStorage before navigation
     // This will help us detect and fix navigation issues

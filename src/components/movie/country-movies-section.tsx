@@ -68,7 +68,7 @@ export function CountryMoviesSection({
           </div>
           <div className="flex items-center gap-2">
             <Link
-              href={`/countries/${countrySlug}`}
+              href={`/quoc-gia/${countrySlug}`}
               className="px-3 py-1 bg-gray-800 hover:bg-gray-700 rounded-full text-sm transition-colors"
             >
               Xem toàn bộ
@@ -88,7 +88,7 @@ export function CountryMoviesSection({
                 className="flex-shrink-0 group relative overflow-hidden rounded-lg w-[180px] h-[270px]"
               >
                 <MenuLink
-                  href={`/movie/${movie.slug}`}
+                  href={`/phim/${movie.slug}`}
                   className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150"
                 >
                   <Image

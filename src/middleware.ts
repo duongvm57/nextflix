@@ -32,8 +32,8 @@ function isGenrePath(path: string): boolean {
     return true;
   }
 
-  // Check if path is in /genres/[slug] format
-  if (path.startsWith('/genres/')) {
+  // Check if path is in /the-loai/[slug] format
+  if (path.startsWith('/the-loai/')) {
     const genreSlug = path.split('/').pop();
     return POPULAR_GENRES.includes(genreSlug || '');
   }
@@ -61,7 +61,7 @@ export function middleware(request: NextRequest) {
 
       // If we're on a genre page and requesting another genre, use batch API instead
       // This helps avoid individual RSC requests for each genre
-      const genreSlug = pathname.includes('/genres/')
+      const genreSlug = pathname.includes('/the-loai/')
         ? pathname.split('/').pop()
         : pathname.substring(1);
 

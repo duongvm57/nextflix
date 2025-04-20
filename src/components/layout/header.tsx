@@ -28,10 +28,10 @@ const getFixedMenuItems = (currentYear: number): MenuItem[] => {
       href: '#movie-types',
       isDropdown: true,
       children: [
-        { id: 'phim-le', label: 'Phim lẻ', href: `/categories/phim-le` },
-        { id: 'phim-bo', label: 'Phim bộ', href: `/categories/phim-bo` },
-        { id: 'tv-shows', label: 'TV Shows', href: `/categories/tv-shows` },
-        { id: 'hoat-hinh', label: 'Hoạt hình', href: `/categories/hoat-hinh` },
+        { id: 'phim-le', label: 'Phim lẻ', href: `/danh-muc/phim-le` },
+        { id: 'phim-bo', label: 'Phim bộ', href: `/danh-muc/phim-bo` },
+        { id: 'tv-shows', label: 'TV Shows', href: `/danh-muc/tv-shows` },
+        { id: 'hoat-hinh', label: 'Hoạt hình', href: `/danh-muc/hoat-hinh` },
       ],
     },
 
@@ -42,9 +42,9 @@ const getFixedMenuItems = (currentYear: number): MenuItem[] => {
       href: '#languages',
       isDropdown: true,
       children: [
-        { id: 'phim-vietsub', label: 'Vietsub', href: `/categories/phim-vietsub` },
-        { id: 'phim-thuyet-minh', label: 'Thuyết minh', href: `/categories/phim-thuyet-minh` },
-        { id: 'phim-long-tieng', label: 'Lồng tiếng', href: `/categories/phim-long-tieng` },
+        { id: 'phim-vietsub', label: 'Vietsub', href: `/danh-muc/phim-vietsub` },
+        { id: 'phim-thuyet-minh', label: 'Thuyết minh', href: `/danh-muc/phim-thuyet-minh` },
+        { id: 'phim-long-tieng', label: 'Lồng tiếng', href: `/danh-muc/phim-long-tieng` },
       ],
     },
 
@@ -77,7 +77,7 @@ const getFixedMenuItems = (currentYear: number): MenuItem[] => {
         return {
           id: `year-${year}`,
           label: year.toString(),
-          href: `/categories/${year}`,
+          href: `/danh-muc/${year}`,
         };
       }),
     },
@@ -233,7 +233,7 @@ export function Header() {
                 children: categories.map(category => ({
                   id: category.id || category.slug,
                   label: category.name,
-                  href: `/genres/${category.slug}`,
+                  href: `/the-loai/${category.slug}`,
                 })),
               };
             }
@@ -246,7 +246,7 @@ export function Header() {
                 children: countries.map(country => ({
                   id: country.id || country.slug,
                   label: country.name,
-                  href: `/countries/${country.slug}`,
+                  href: `/quoc-gia/${country.slug}`,
                 })),
               };
             }
@@ -289,7 +289,7 @@ export function Header() {
                   children: categories.map(category => ({
                     id: category.id || category.slug,
                     label: category.name,
-                    href: `/genres/${category.slug}`,
+                    href: `/the-loai/${category.slug}`,
                   })),
                 };
               }
@@ -302,7 +302,7 @@ export function Header() {
                   children: countries.map(country => ({
                     id: country.id || country.slug,
                     label: country.name,
-                    href: `/countries/${country.slug}`,
+                    href: `/quoc-gia/${country.slug}`,
                   })),
                 };
               }
@@ -353,7 +353,7 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/search?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      router.push(`/tim-kiem?keyword=${encodeURIComponent(searchQuery.trim())}`);
       setSearchQuery('');
     }
   };

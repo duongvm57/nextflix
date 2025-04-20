@@ -1,31 +1,10 @@
-import { Metadata } from 'next';
 import Link from 'next/link';
-import { DOMAIN, SITE_NAME } from '@/lib/constants';
 import { getCategories, getCountries } from '@/services/phimapi';
 import { TYPE_LIST } from '@/lib/menu/phimapi-menu';
 import { Category, Country } from '@/types';
 
-export function generateMetadata(): Metadata {
-  const title = 'Tất cả chủ đề | ' + SITE_NAME;
-  const description =
-    'Khám phá tất cả các chủ đề phim và chương trình truyền hình trên ' + SITE_NAME;
-
-  return {
-    title,
-    description,
-    openGraph: {
-      title,
-      description,
-      url: `${DOMAIN}/topics`,
-      siteName: SITE_NAME,
-      locale: 'vi_VN',
-      type: 'website',
-    },
-    alternates: {
-      canonical: `${DOMAIN}/topics`,
-    },
-  };
-}
+// Export metadata từ file riêng biệt
+export { generateMetadata } from './metadata';
 
 // Predefined gradient colors for cards - dark monochrome with gradient from left to right
 const gradients = [
@@ -40,31 +19,31 @@ const gradients = [
 
 // Các chủ đề tìm kiếm phổ biến
 const popularSearches = [
-  { name: 'Marvel', url: '/search?keyword=marvel' },
-  { name: '4K', url: '/search?keyword=4k' },
-  { name: 'Sitcom', url: '/search?keyword=sitcom' },
-  { name: 'Xuyên Không', url: '/search?keyword=xuyen-khong' },
-  { name: 'Cổ Trang', url: '/search?keyword=co-trang' },
-  { name: 'Đình Nóc', url: '/search?keyword=dinh-noc' },
-  { name: '9x', url: '/search?keyword=9x' },
-  { name: 'Tham Vọng', url: '/search?keyword=tham-vong' },
-  { name: 'Chữa Lành', url: '/search?keyword=chua-lanh' },
-  { name: 'Phù Thủy', url: '/search?keyword=phu-thuy' },
+  { name: 'Marvel', url: '/tim-kiem?keyword=marvel' },
+  { name: '4K', url: '/tim-kiem?keyword=4k' },
+  { name: 'Sitcom', url: '/tim-kiem?keyword=sitcom' },
+  { name: 'Xuyên Không', url: '/tim-kiem?keyword=xuyen-khong' },
+  { name: 'Cổ Trang', url: '/tim-kiem?keyword=co-trang' },
+  { name: 'Đình Nóc', url: '/tim-kiem?keyword=dinh-noc' },
+  { name: '9x', url: '/tim-kiem?keyword=9x' },
+  { name: 'Tham Vọng', url: '/tim-kiem?keyword=tham-vong' },
+  { name: 'Chữa Lành', url: '/tim-kiem?keyword=chua-lanh' },
+  { name: 'Phù Thủy', url: '/tim-kiem?keyword=phu-thuy' },
 ];
 
 // Các loại phim
 const movieTypes = [
-  { name: 'Phim lẻ', url: `/categories/${TYPE_LIST.PHIM_LE}` },
-  { name: 'Phim bộ', url: `/categories/${TYPE_LIST.PHIM_BO}` },
-  { name: 'TV Shows', url: `/categories/${TYPE_LIST.TV_SHOWS}` },
-  { name: 'Hoạt hình', url: `/categories/${TYPE_LIST.HOAT_HINH}` },
+  { name: 'Phim lẻ', url: `/danh-muc/${TYPE_LIST.PHIM_LE}` },
+  { name: 'Phim bộ', url: `/danh-muc/${TYPE_LIST.PHIM_BO}` },
+  { name: 'TV Shows', url: `/danh-muc/${TYPE_LIST.TV_SHOWS}` },
+  { name: 'Hoạt hình', url: `/danh-muc/${TYPE_LIST.HOAT_HINH}` },
 ];
 
 // Các ngôn ngữ
 const languages = [
-  { name: 'Vietsub', url: `/categories/${TYPE_LIST.PHIM_VIETSUB}` },
-  { name: 'Thuyết minh', url: `/categories/${TYPE_LIST.PHIM_THUYET_MINH}` },
-  { name: 'Lồng tiếng', url: `/categories/${TYPE_LIST.PHIM_LONG_TIENG}` },
+  { name: 'Vietsub', url: `/danh-muc/${TYPE_LIST.PHIM_VIETSUB}` },
+  { name: 'Thuyết minh', url: `/danh-muc/${TYPE_LIST.PHIM_THUYET_MINH}` },
+  { name: 'Lồng tiếng', url: `/danh-muc/${TYPE_LIST.PHIM_LONG_TIENG}` },
 ];
 
 // Các năm gần đây
@@ -73,7 +52,7 @@ const recentYears = () => {
   const currentYear = 2024;
   return Array.from({ length: 5 }, (_, i) => {
     const year = currentYear - i;
-    return { name: year.toString(), url: `/categories/${year}` };
+    return { name: year.toString(), url: `/danh-muc/${year}` };
   });
 };
 
@@ -84,12 +63,12 @@ export default async function TopicsPage() {
   // Chuyển đổi thể loại và quốc gia thành định dạng topic
   const genreTopics = categories.map((category: Category) => ({
     name: category.name,
-    url: `/genres/${category.slug}`,
+    url: `/the-loai/${category.slug}`,
   }));
 
   const countryTopics = countries.map((country: Country) => ({
     name: country.name,
-    url: `/countries/${country.slug}`,
+    url: `/quoc-gia/${country.slug}`,
   }));
 
   return (

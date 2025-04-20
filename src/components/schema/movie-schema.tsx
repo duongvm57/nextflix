@@ -37,7 +37,7 @@ export function MovieSchema({ movie }: MovieSchemaProps) {
         '@type': 'Country',
         name: country.name,
       })) || [],
-    url: `${DOMAIN}/watch/${movie.slug}`,
+    url: `${DOMAIN}/xem/${movie.slug}`,
   };
 
   return (

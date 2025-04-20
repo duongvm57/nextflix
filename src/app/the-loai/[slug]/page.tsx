@@ -8,6 +8,9 @@ import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import type { Category } from '@/types';
 
+// Export metadata từ file riêng biệt
+export { generateMetadata } from './metadata';
+
 // Sử dụng ISR thay vì force-static
 export const revalidate = 3600; // revalidate mỗi 1 giờ
 
@@ -51,7 +54,7 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
   ]);
 
   if (pagination.totalPages > 0 && page > pagination.totalPages) {
-    return Response.redirect(`/genres/${slug}?page=${pagination.totalPages}`);
+    return Response.redirect(`/the-loai/${slug}?page=${pagination.totalPages}`);
   }
 
   const genre = (categories as Category[]).find(cat => cat.slug === slug);
@@ -64,8 +67,8 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
 
   return (
     <>
-      <BreadcrumbSchema items={[{ name: genreName, url: `/genres/${slug}` }]} />
-      <Breadcrumb items={[{ name: genreName, url: `/genres/${slug}` }]} className="mt-4" />
+      <BreadcrumbSchema items={[{ name: genreName, url: `/the-loai/${slug}` }]} />
+      <Breadcrumb items={[{ name: genreName, url: `/the-loai/${slug}` }]} className="mt-4" />
       <h1 className="mb-8 text-3xl font-bold">Thể loại: {genreName}</h1>
 
       {movies.length > 0 ? (
@@ -75,7 +78,7 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
             <Pagination
               currentPage={pagination.currentPage}
               totalPages={pagination.totalPages}
-              baseUrl={`/genres/${slug}`}
+              baseUrl={`/the-loai/${slug}`}
             />
           )}
         </>

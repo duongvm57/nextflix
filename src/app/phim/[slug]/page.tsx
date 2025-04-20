@@ -1,13 +1,14 @@
 import { movieService } from '@/lib/services/api';
 import { MovieDetail } from '@/types';
 import Image from 'next/image';
-import { Metadata } from 'next';
-import { DOMAIN } from '@/lib/constants';
 import { MovieSchema } from '@/components/schema/movie-schema';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { MenuLink } from '@/components/ui/menu-link';
 import { Button } from '@/components/ui/button';
 import { Play } from 'lucide-react';
+
+// Export metadata từ file riêng biệt
+export { generateMetadata } from './metadata';
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
@@ -16,67 +17,6 @@ async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
     console.error('Error fetching movie detail:', error);
     return null;
   }
-}
-
-// Tạo metadata động cho trang chi tiết phim
-export async function generateMetadata({
-  params,
-}: {
-  params: { slug: string };
-}): Promise<Metadata> {
-  const { slug } = params;
-  const movie = await getMovieDetail(slug);
-
-  if (!movie) {
-    return {
-      title: 'Không tìm thấy phim',
-      description: 'Phim bạn đang tìm kiếm không tồn tại hoặc đã bị xóa.',
-    };
-  }
-
-  // Tạo mô tả ngắn gọn từ nội dung phim
-  const description = movie.content
-    ? movie.content.length > 160
-      ? `${movie.content.substring(0, 157)}...`
-      : movie.content
-    : `Xem phim ${movie.name} (${movie.origin_name}) ${movie.year} online với chất lượng HD`;
-
-  // Tạo danh sách thể loại và diễn viên cho keywords
-  const genres = movie.genres?.map(genre => genre.name).join(', ') || '';
-  const actors = movie.actors?.join(', ') || '';
-
-  return {
-    title: `${movie.name} (${movie.origin_name}) - ${movie.year}`,
-    description,
-    keywords: `${movie.name}, ${movie.origin_name}, ${genres}, ${actors}, phim online, xem phim HD`,
-    openGraph: {
-      title: `${movie.name} (${movie.origin_name}) - ${movie.year}`,
-      description,
-      url: `${DOMAIN}/movie/${slug}`,
-      siteName: 'Nextflix',
-      images: [
-        {
-          url: movie.poster_url || movie.thumb_url || 'https://placehold.co/1200x630?text=No+Image',
-          width: 1200,
-          height: 630,
-          alt: movie.name,
-        },
-      ],
-      locale: 'vi_VN',
-      type: 'video.movie',
-    },
-    twitter: {
-      card: 'summary_large_image',
-      title: `${movie.name} (${movie.origin_name}) - ${movie.year}`,
-      description,
-      images: [
-        movie.poster_url || movie.thumb_url || 'https://placehold.co/1200x630?text=No+Image',
-      ],
-    },
-    alternates: {
-      canonical: `${DOMAIN}/movie/${slug}`,
-    },
-  };
 }
 
 // Server component for the page
@@ -100,7 +40,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
     <div className="container mx-auto px-4 py-8">
       {/* Thêm Schema.org structured data */}
       <MovieSchema movie={movie} />
-      <BreadcrumbSchema items={[{ name: movie.name, url: `/movie/${movie.slug}` }]} />
+      <BreadcrumbSchema items={[{ name: movie.name, url: `/phim/${movie.slug}` }]} />
 
       {/* Movie info */}
       <div className="mb-8 flex flex-col gap-6 md:flex-row">
@@ -119,7 +59,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
 
           {/* Nút Xem Phim */}
           <div className="mt-4">
-            <MenuLink href={`/watch/${movie.slug}`} className="w-full">
+            <MenuLink href={`/xem/${movie.slug}`} className="w-full">
               <Button className="w-full flex items-center justify-center gap-2 py-6 text-lg" size="lg">
                 <Play size={20} fill="white" />
                 Xem Phim
@@ -164,7 +104,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
                 movie.genres.map(genre => (
                   <MenuLink
                     key={genre.slug}
-                    href={`/genres/${genre.slug}`}
+                    href={`/the-loai/${genre.slug}`}
                     className="rounded-full bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
                   >
                     {genre.name}
@@ -206,7 +146,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
                     {movie.country.map(country => (
                       <MenuLink
                         key={country.slug}
-                        href={`/countries/${country.slug}`}
+                        href={`/quoc-gia/${country.slug}`}
                         className="rounded-full bg-gray-800 px-3 py-1 text-sm hover:bg-gray-700"
                       >
                         {country.name}
