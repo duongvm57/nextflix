@@ -284,7 +284,7 @@ export async function getMoviesByCategory(
     if (specialCategories.includes(slug)) {
       // Đối với các danh mục đặc biệt, sử dụng endpoint danh-sach
       logger.debug(`[API Service] Using movies list endpoint for special category: ${slug}`);
-      response = await apiClient.fetchAPI<any>(
+      response = await apiClient.fetchAPIV1<any>(
         `${apiClient.API_ENDPOINTS.V1_MOVIES_LIST}/${slug}`,
         {
           page: page.toString(),
