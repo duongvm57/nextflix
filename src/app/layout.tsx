@@ -175,12 +175,6 @@ export default async function RootLayout({
                     // Gọi fetch gốc
                     return originalFetch.call(window, input, init);
                   };
-
-                  // Tải BundleOptimizer
-                  const script = document.createElement('script');
-                  script.src = '/bundle-optimizer.js';
-                  script.async = true;
-                  document.body.appendChild(script);
                 } catch (error) {
                   console.error('[OPTIMIZER] Error initializing:', error);
                 }

@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
-import { getCountries } from '@/services/phimapi';
+import { getCountries } from '@/lib/api';
 import { Country } from '@/types';
 
 // Tạo metadata động cho trang quốc gia

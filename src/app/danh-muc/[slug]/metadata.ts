@@ -1,6 +1,6 @@
 import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
-import { getCategories } from '@/services/phimapi';
+import { getCategories } from '@/lib/api';
 import { Category } from '@/types';
 
 // Map of special category slugs to display names that might not be in the API

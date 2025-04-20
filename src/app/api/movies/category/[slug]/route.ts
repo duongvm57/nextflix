@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getMoviesByCategory } from '@/services/phimapi';
+import { getMoviesByCategory } from '@/lib/api/services';
 
 export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
   try {

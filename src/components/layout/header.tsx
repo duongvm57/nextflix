@@ -6,7 +6,7 @@ import { useState, useRef, useEffect, memo } from 'react';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 
-import { MenuItem } from '@/lib/menu/phimapi-menu';
+import { MenuItem } from '@/lib/config/menu-config';
 import { fetchMenuData } from '@/lib/cache/api-cache';
 import Image from 'next/image';
 import { MenuSkeleton } from '@/components/ui/menu-skeleton';
@@ -223,7 +223,9 @@ export function Header() {
         if (!mounted) return;
 
         if (categories.length > 0 && countries.length > 0) {
-          console.log(`[MENU] Received ${categories.length} categories and ${countries.length} countries`);
+          console.log(
+            `[MENU] Received ${categories.length} categories and ${countries.length} countries`
+          );
           // Sử dụng callback trong setMenuState để tránh phụ thuộc vào menuState.items
           setMenuState(prev => {
             const updatedItems = [...prev.items];

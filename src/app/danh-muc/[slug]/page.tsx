@@ -1,5 +1,8 @@
-import { movieService } from '@/lib/services/api';
-import { getCategories } from '@/services/phimapi';
+import {
+  getMoviesByCategory as apiGetMoviesByCategory,
+  getMoviesByYear as apiGetMoviesByYear,
+  getCategories,
+} from '@/lib/api';
 import { CategoryClientPage } from './client-page';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { Category, PaginatedResponse, Movie } from '@/types';
@@ -12,7 +15,7 @@ async function getMoviesByCategory(
   page: number = 1
 ): Promise<PaginatedResponse<Movie>> {
   try {
-    return await movieService.getMoviesByCategory(slug, page);
+    return await apiGetMoviesByCategory(slug, page);
   } catch (error) {
     console.error('Error fetching movies by category:', error);
     return {
@@ -24,7 +27,7 @@ async function getMoviesByCategory(
 
 async function getMoviesByYear(year: string, page: number = 1): Promise<PaginatedResponse<Movie>> {
   try {
-    return await movieService.getMoviesByYear(year, page);
+    return await apiGetMoviesByYear(year, page);
   } catch (error) {
     console.error('Error fetching movies by year:', error);
     return {

@@ -1,6 +1,6 @@
 import { Suspense } from 'react';
 import HomeClientPage from './client-page';
-import { movieService } from '@/lib/services/api';
+import { getMoviesByCountry } from '@/lib/api';
 import { COUNTRY_MOVIES_ITEMS } from '@/lib/constants';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
@@ -28,7 +28,7 @@ async function HomeContent() {
   const countriesData = await Promise.all(
     countries.map(async country => {
       try {
-        const data = await movieService.getMoviesByCountry(country.slug, 1);
+        const data = await getMoviesByCountry(country.slug, 1);
         return {
           ...country,
           movies: data.data.slice(0, COUNTRY_MOVIES_ITEMS),

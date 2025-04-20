@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { getCategories } from '@/services/phimapi';
+import { getCategories } from '@/lib/api';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { Movie, PaginatedResponse } from '@/types';
 import { MovieCard } from '@/components/movie/movie-card';
@@ -103,8 +103,8 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
             totalItems: 0,
             totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
             currentPage: page,
-            totalPages: 1
-          }
+            totalPages: 1,
+          },
         };
       }
 
@@ -123,8 +123,8 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
           totalItems: 0,
           totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
           currentPage: page,
-          totalPages: 1
-        }
+          totalPages: 1,
+        },
       };
     } finally {
       // Luôn xóa khỏi danh sách đang fetch, bất kể thành công hay thất bại

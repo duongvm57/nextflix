@@ -1,4 +1,4 @@
-import { movieService } from '@/lib/services/api';
+import { searchMovies as apiSearchMovies } from '@/lib/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
@@ -9,7 +9,7 @@ export { generateMetadata } from './metadata';
 
 async function searchMovies(keyword: string, page: number = 1) {
   try {
-    return await movieService.searchMovies(keyword, page);
+    return await apiSearchMovies(keyword, page);
   } catch (error) {
     console.error('Error searching movies:', error);
     return {

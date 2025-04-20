@@ -1,4 +1,4 @@
-import { movieService } from '@/lib/services/api';
+import { getMovieDetail as apiGetMovieDetail } from '@/lib/api';
 import { MovieDetail } from '@/types';
 import Image from 'next/image';
 import { MovieSchema } from '@/components/schema/movie-schema';
@@ -12,7 +12,7 @@ export { generateMetadata } from './metadata';
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
-    return await movieService.getMovieDetail(slug);
+    return await apiGetMovieDetail(slug);
   } catch (error) {
     console.error('Error fetching movie detail:', error);
     return null;
@@ -126,7 +126,7 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           <div className="mb-4">
             <p className="mb-2 font-semibold">Diễn viên:</p>
             <p className="text-gray-300">
-              {movie.actors && movie.actors.length > 0 ? movie.actors.join(', ') : 'Chưa cập nhật'}
+              {movie.actor && movie.actor.length > 0 ? movie.actor.join(', ') : 'Chưa cập nhật'}
             </p>
           </div>
 
@@ -134,8 +134,8 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           <div className="mb-4">
             <p className="mb-2 font-semibold">Đạo diễn:</p>
             <p className="text-gray-300">
-              {movie.directors && movie.directors.length > 0
-                ? movie.directors.join(', ')
+              {movie.director && movie.director.length > 0
+                ? movie.director.join(', ')
                 : 'Chưa cập nhật'}
             </p>
           </div>

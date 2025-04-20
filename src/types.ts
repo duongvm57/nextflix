@@ -19,8 +19,8 @@ export interface Movie {
   category?: { name: string; slug: string } | null;
   country: { name: string; slug: string }[];
   genres: { name: string; slug: string }[];
-  actors: string[];
-  directors: string[];
+  actor: string[];
+  director: string[];
   duration: string;
   content: string;
 }
@@ -34,7 +34,7 @@ export interface MovieDetail extends Movie {
 // Episode type
 export interface Episode {
   server_name: string;
-  items: EpisodeItem[];
+  server_data?: EpisodeItem[];
 }
 
 // Episode item type

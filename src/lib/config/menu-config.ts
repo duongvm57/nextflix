@@ -1,5 +1,12 @@
-// Menu configuration for phimapi.com
+/**
+ * Menu Configuration - Cấu hình menu cho ứng dụng
+ *
+ * File này chứa các hàm và cấu trúc dữ liệu để tạo menu cho ứng dụng.
+ */
+
 import { Category, Country } from '@/types';
+import { TYPE_LIST } from '@/lib/api/constants';
+import { logger } from '@/utils/logger';
 
 export interface MenuItem {
   id: string;
@@ -8,38 +15,6 @@ export interface MenuItem {
   isDropdown?: boolean;
   children?: MenuItem[];
 }
-
-// Type list options for API
-export const TYPE_LIST = {
-  // Danh sách phim
-  PHIM_BO: 'phim-bo',
-  PHIM_LE: 'phim-le',
-  TV_SHOWS: 'tv-shows',
-  HOAT_HINH: 'hoat-hinh',
-  PHIM_VIETSUB: 'phim-vietsub',
-  PHIM_THUYET_MINH: 'phim-thuyet-minh',
-  PHIM_LONG_TIENG: 'phim-long-tieng',
-};
-
-// Sort field options
-export const SORT_FIELD = {
-  MODIFIED_TIME: 'modified.time',
-  ID: '_id',
-  YEAR: 'year',
-};
-
-// Sort type options
-export const SORT_TYPE = {
-  DESC: 'desc',
-  ASC: 'asc',
-};
-
-// Sort language options
-export const SORT_LANG = {
-  VIETSUB: 'vietsub',
-  THUYET_MINH: 'thuyet-minh',
-  LONG_TIENG: 'long-tieng',
-};
 
 // Base menu items
 export function getBaseMenuItems(): MenuItem[] {
@@ -107,14 +82,14 @@ export function getLanguageMenuItems(): MenuItem {
 
 // Create categories menu item from API data
 export function getCategoriesMenuItem(categories: Category[]): MenuItem {
-  console.log('[DEBUG] Creating categories menu with categories:', categories);
+  logger.debug('Creating categories menu with categories:', categories);
   return {
     id: 'categories',
     label: 'Thể loại',
     href: '#categories',
     isDropdown: true,
     children: categories.map((category: Category) => {
-      console.log('[DEBUG] Category item:', category);
+      logger.debug('Category item:', category);
       return {
         id: category.id || category.slug,
         label: category.name,
@@ -126,14 +101,14 @@ export function getCategoriesMenuItem(categories: Category[]): MenuItem {
 
 // Create countries menu item from API data
 export function getCountriesMenuItem(countries: Country[]): MenuItem {
-  console.log('[DEBUG] Creating countries menu with countries:', countries);
+  logger.debug('Creating countries menu with countries:', countries);
   return {
     id: 'countries',
     label: 'Quốc gia',
     href: '#countries',
     isDropdown: true,
     children: countries.map((country: Country) => {
-      console.log('[DEBUG] Country item:', country);
+      logger.debug('Country item:', country);
       return {
         id: country.id || country.slug,
         label: country.name,

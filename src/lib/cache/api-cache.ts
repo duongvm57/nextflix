@@ -4,7 +4,7 @@
  */
 
 import { clientCache, memoize } from './client-cache';
-import { getCategories, getCountries } from '@/services/phimapi';
+import { getCategories, getCountries } from '@/lib/api';
 import { CACHE_CONFIG, CACHE_KEYS } from '@/lib/config/cache-config';
 import { Category, Country } from '@/types';
 import { logger } from '@/utils/logger';
@@ -49,7 +49,7 @@ export async function fetchMenuData(): Promise<{
     // Use batch API instead of parallel requests to reduce RSC requests
     const response = await fetch('/api/batch?resources=categories,countries', {
       cache: 'force-cache',
-      next: { revalidate: CACHE_CONFIG.SERVER.MENU }
+      next: { revalidate: CACHE_CONFIG.SERVER.MENU },
     });
 
     if (!response.ok) {

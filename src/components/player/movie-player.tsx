@@ -15,7 +15,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
   // State for selected server and episode
   const [selectedServer, setSelectedServer] = useState<number>(0);
   const [selectedEpisode, setSelectedEpisode] = useState<EpisodeItem | null>(
-    initialEpisode || movie.episodes?.[0]?.items?.[0] || null
+    initialEpisode || movie.episodes?.[0]?.server_data?.[0] || null
   );
 
   // Handle episode selection
@@ -92,14 +92,14 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
 
         {/* Episodes grid - Điều chỉnh hiển thị dựa vào số lượng tập */}
         <div className="rounded-lg bg-gray-800 p-4">
-          {movie.episodes[selectedServer]?.items.length === 1 &&
-          movie.episodes[selectedServer]?.items[0].name.toLowerCase() === 'full' ? (
+          {movie.episodes[selectedServer]?.server_data?.length === 1 &&
+          movie.episodes[selectedServer]?.server_data[0]?.name.toLowerCase() === 'full' ? (
             // Nếu chỉ có 1 tập "Full", hiển thị nút nhỏ
             <div className="flex justify-start">
               <div className="w-24">
                 <EpisodeButton
                   key={0}
-                  episode={movie.episodes[selectedServer]?.items[0]}
+                  episode={movie.episodes[selectedServer]?.server_data[0]}
                   isActive={true}
                   onClick={handleEpisodeSelect}
                 />
@@ -108,7 +108,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
           ) : (
             // Nếu có nhiều tập, hiển thị dạng lưới
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {movie.episodes[selectedServer]?.items.map((episode, episodeIndex) => (
+              {movie.episodes[selectedServer]?.server_data?.map((episode, episodeIndex) => (
                 <EpisodeButton
                   key={episodeIndex}
                   episode={episode}

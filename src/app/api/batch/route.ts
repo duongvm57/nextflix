@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getCategories, getCountries, getNewMovies, getMoviesByCategory } from '@/services/phimapi';
+import { getCategories, getCountries, getNewMovies, getMoviesByCategory } from '@/lib/api';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { clientCache } from '@/lib/cache/client-cache';
-import { logApiCall } from '../debug/route';
 import { revalidateTag } from 'next/cache';
 import type { Category, Country, Movie, PaginatedResponse } from '@/types';
 
@@ -37,9 +36,6 @@ export async function GET(request: NextRequest) {
     if (cachedResult) {
       console.log(`[BATCH API] Cache hit for key: ${cacheKey}`);
 
-      // Log this API call with cache hit
-      logApiCall(request.url, 'GET', 'HIT');
-
       // Add cache headers for better performance
       const headers = new Headers();
       headers.set(
@@ -52,9 +48,6 @@ export async function GET(request: NextRequest) {
     }
 
     console.log(`[BATCH API] Cache miss for key: ${cacheKey}, fetching data`);
-
-    // Log this API call with cache miss
-    logApiCall(request.url, 'GET', 'MISS');
 
     // Định nghĩa kiểu dữ liệu cho kết quả
     interface IBatchResult {
@@ -74,8 +67,8 @@ export async function GET(request: NextRequest) {
       console.log('[BATCH API] Fetching categories');
       promises.push(
         getCategories().then(data => {
-          result.categories = data as Category[];
-          console.log(`[BATCH API] Got ${Array.isArray(data) ? data.length : 0} categories`);
+          result.categories = data;
+          console.log(`[BATCH API] Got ${data.length} categories`);
         })
       );
     }
@@ -90,8 +83,7 @@ export async function GET(request: NextRequest) {
       );
     }
 
-    // Hỗ trợ cả 'newMovies' và 'new_movies' để đảm bảo tương thích ngược
-    if (resources.includes('newMovies') || resources.includes('new_movies')) {
+    if (resources.includes('new_movies')) {
       const page = parseInt(searchParams.get('page') || '1');
       console.log(`[BATCH API] Fetching new movies for page ${page}`);
       promises.push(

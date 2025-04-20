@@ -1,8 +1,8 @@
-import { movieService } from '@/lib/services/api';
+import { getMoviesByGenre } from '@/lib/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { getCategories } from '@/services/phimapi';
+import { getCategories } from '@/lib/api';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -17,7 +17,7 @@ export const revalidate = 3600; // revalidate mỗi 1 giờ
 // Cache kết quả của các API calls
 async function getMoviesByGenreWithCache(slug: string, page: number = 1) {
   try {
-    return await movieService.getMoviesByGenre(slug, page);
+    return await getMoviesByGenre(slug, page);
   } catch (error) {
     console.error('Error fetching movies by genre:', error);
     return {

@@ -16,10 +16,7 @@ export const TWITTER_HANDLE = process.env.NEXT_PUBLIC_TWITTER_HANDLE || '@nextfl
 export const FACEBOOK_PAGE =
   process.env.NEXT_PUBLIC_FACEBOOK_PAGE || 'https://facebook.com/nextflix';
 
-// API config từ biến môi trường
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://phimapi.com';
-export const API_V1_BASE_URL =
-  process.env.NEXT_PUBLIC_API_V1_BASE_URL || 'https://phimapi.com/v1/api';
+// API config đã được di chuyển sang src/lib/api/constants.ts
 
 // Cấu hình UI
 export const HERO_CAROUSEL_ITEMS = Number(process.env.NEXT_PUBLIC_HERO_CAROUSEL_ITEMS || '5');
