@@ -38,11 +38,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
 
     // Only prefetch home page and a few essential links
     // Significantly reduced list to minimize RSC requests
-    const essentialPaths = [
-      '/',
-      '/danh-muc/phim-le',
-      '/danh-muc/phim-bo',
-    ];
+    const essentialPaths = ['/', '/danh-muc/phim-le', '/danh-muc/phim-bo'];
 
     // Only prefetch essential paths, not all genre/country links
     const shouldPrefetch = essentialPaths.includes(href);

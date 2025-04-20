@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import { MenuLink } from '@/components/ui/menu-link';
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Play, ImageOff } from 'lucide-react';
+import { getImageUrl } from '@/lib/utils';
 import { Movie } from '@/types';
 import { Button } from '@/components/ui/button';
 import useEmblaCarousel from 'embla-carousel-react';
@@ -14,9 +15,10 @@ interface HeroCarouselProps {
   title: string;
 }
 
-export function HeroCarousel({ movies, title }: HeroCarouselProps) {
+export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps) {
   const router = useRouter();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [movies, setMovies] = useState<(Movie & { imageError?: boolean })[]>(initialMovies);
 
   // Sử dụng Embla Carousel
   const [emblaRef, emblaApi] = useEmblaCarousel({
@@ -67,6 +69,14 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
     return () => clearInterval(interval);
   }, [emblaApi]);
 
+  // Log movie data for debugging
+  useEffect(() => {
+    if (movies && movies.length > 0) {
+      console.log('Hero Carousel Movies:', movies);
+      console.log('First movie category:', movies[0].category);
+    }
+  }, [movies]);
+
   if (!movies || movies.length === 0) {
     return null;
   }
@@ -106,19 +116,38 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
               >
                 {/* Thêm button phủ toàn bộ banner trên mobile */}
                 <button
-                  onClick={() => router.push(`/movie/${movie.slug}`)}
+                  onClick={() => router.push(`/phim/${movie.slug}`)}
                   className="absolute inset-0 z-10 md:hidden"
                   aria-label={`Xem thông tin phim ${movie.name}`}
                 />
 
                 <div className="relative aspect-video w-full overflow-hidden">
-                  <Image
-                    src={movie.thumb_url || movie.poster_url}
-                    alt={movie.name}
-                    fill
-                    className="object-cover"
-                    priority={index === 0}
-                  />
+                  {movie.imageError ? (
+                    <div className="flex h-full w-full items-center justify-center bg-gray-800">
+                      <div className="flex flex-col items-center justify-center text-gray-400">
+                        <ImageOff size={32} className="mb-2" />
+                        <span className="text-sm">Không tải được ảnh</span>
+                      </div>
+                    </div>
+                  ) : (
+                    <Image
+                      src={getImageUrl(movie.thumb_url || movie.poster_url)}
+                      alt={movie.name}
+                      fill
+                      className="object-cover"
+                      priority={index === 0}
+                      loading={index < 2 ? 'eager' : 'lazy'}
+                      sizes="(max-width: 768px) 100vw, 100vw"
+                      onError={e => {
+                        const updatedMovies = [...movies];
+                        updatedMovies[index] = { ...movie, imageError: true };
+                        setMovies(updatedMovies);
+                        // Ẩn hình ảnh lỗi
+                        const img = e.target as HTMLImageElement;
+                        if (img) img.style.display = 'none';
+                      }}
+                    />
+                  )}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
 
                   {/* Thêm link phủ toàn bộ banner trên mobile */}
@@ -136,16 +165,27 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                   </p>
 
                   <div className="mb-1 flex flex-wrap gap-1 md:gap-2 md:mb-4">
-                    {movie.category && (
+                    {/* Hiển thị category (có thể là mảng hoặc đối tượng) */}
+                    {movie.category &&
+                      Array.isArray(movie.category) &&
+                      movie.category.length > 0 && (
+                        <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
+                          {movie.category[0].name}
+                        </span>
+                      )}
+                    {/* Hiển thị category nếu là đối tượng */}
+                    {movie.category && !Array.isArray(movie.category) && (
                       <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
                         {movie.category.name}
                       </span>
                     )}
+                    {/* Chất lượng phim */}
                     {movie.quality && (
                       <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
                         {movie.quality}
                       </span>
                     )}
+                    {/* Năm sản xuất */}
                     {movie.year && (
                       <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
                         {movie.year}
@@ -159,7 +199,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
 
                   {/* Ẩn buttons trên mobile */}
                   <div className="hidden md:flex flex-wrap gap-4">
-                    <MenuLink href={`/watch/${movie.slug}`}>
+                    <MenuLink href={`/xem/${movie.slug}`}>
                       <Button
                         variant="primary"
                         size="sm"
@@ -169,7 +209,7 @@ export function HeroCarousel({ movies, title }: HeroCarouselProps) {
                         Xem phim
                       </Button>
                     </MenuLink>
-                    <MenuLink href={`/movie/${movie.slug}`}>
+                    <MenuLink href={`/phim/${movie.slug}`}>
                       <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
                         Thông tin thêm
                       </Button>

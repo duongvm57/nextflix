@@ -4,7 +4,8 @@ import { Movie } from '@/types';
 import Image from 'next/image';
 import { MenuLink } from '@/components/ui/menu-link';
 import { formatViewCount, getImageUrl, truncateText } from '@/lib/utils';
-import { Play, Star } from 'lucide-react';
+import { Play, Star, ImageOff } from 'lucide-react';
+import { useState } from 'react';
 
 import { TouchRipple } from '@/components/ui/touch-ripple';
 
@@ -15,6 +16,7 @@ interface MovieCardProps {
 
 export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
   const isFeatured = variant === 'featured';
+  const [imageError, setImageError] = useState(false);
 
   return (
     <div
@@ -27,14 +29,28 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
           href={`/phim/${movie.slug}`}
           className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150 touch-highlight"
         >
-          <Image
-            src={getImageUrl(movie.poster_url || movie.thumb_url)}
-            alt={movie.name}
-            fill
-            className="object-cover transition-transform duration-300 group-hover:scale-105"
-            sizes={isFeatured ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'}
-            unoptimized
-          />
+          {imageError ? (
+            <div className="flex h-full w-full items-center justify-center bg-gray-800">
+              <div className="flex flex-col items-center justify-center text-gray-400">
+                <ImageOff size={24} className="mb-2" />
+                <span className="text-xs">Không tải được ảnh</span>
+              </div>
+            </div>
+          ) : (
+            <Image
+              src={getImageUrl(movie.poster_url || movie.thumb_url)}
+              alt={movie.name}
+              fill
+              className="object-cover transition-transform duration-300 group-hover:scale-105"
+              sizes={
+                isFeatured ? '(max-width: 768px) 100vw, 50vw' : '(max-width: 768px) 50vw, 33vw'
+              }
+              loading="lazy"
+              placeholder="blur"
+              blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
+              onError={() => setImageError(true)}
+            />
+          )}
           <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
 
           {/* Movie info overlay */}

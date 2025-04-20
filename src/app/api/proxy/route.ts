@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
+import { proxyAPIRequest, CACHED_ENDPOINTS } from '@/lib/api/services';
+import { logger } from '@/utils/logger';
 
 export async function GET(request: NextRequest) {
   const urlParam = request.nextUrl.searchParams.get('url');
@@ -15,43 +17,12 @@ export async function GET(request: NextRequest) {
     }
 
     // Determine if this is a static route that should be cached
-    const isStaticRoute =
-      urlParam.includes('/the-loai') ||
-      urlParam.includes('/quoc-gia') ||
-      urlParam.includes('/danh-muc');
+    const isStaticRoute = CACHED_ENDPOINTS.some(endpoint => urlParam.includes(endpoint));
 
-    console.log('Fetching URL:', urlParam);
+    logger.debug('Fetching URL:', urlParam);
 
-    // Construct URL parts manually to avoid URL parsing issues
-    const baseUrl = 'https://phimapi.com';
-    const path = urlParam.replace(/^https?:\/\/phimapi\.com/i, '');
-    const formattedPath = path.startsWith('/') ? path : `/${path}`;
-    const finalUrl = `${baseUrl}${formattedPath}`;
-
-    console.log('Final URL:', finalUrl);
-
-    const response = await fetch(finalUrl, {
-      method: 'GET',
-      headers: {
-        Accept: 'application/json',
-        'User-Agent':
-          'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
-      },
-      // Use appropriate cache strategy based on route type
-      cache: isStaticRoute ? 'force-cache' : 'no-store',
-      next: isStaticRoute
-        ? {
-            revalidate: CACHE_CONFIG.SERVER.CATEGORIES,
-            tags: ['categories', 'countries'],
-          }
-        : undefined,
-    });
-
-    if (!response.ok) {
-      throw new Error(`API responded with status: ${response.status}`);
-    }
-
-    const data = await response.json();
+    // Use proxyAPIRequest from service layer
+    const data = await proxyAPIRequest(urlParam, isStaticRoute);
 
     // Add appropriate cache headers
     const headers = new Headers();
@@ -64,7 +35,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(data, { headers });
   } catch (error) {
-    console.error('Proxy error:', error);
+    logger.error('Proxy error:', error);
     return NextResponse.json({ error: 'Failed to fetch data' }, { status: 500 });
   }
 }

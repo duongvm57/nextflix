@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getCategories, getCountries } from '@/services/phimapi';
+import { getCategories, getCountries } from '@/lib/api';
 import { DOMAIN } from '@/lib/constants';
 import { Category, Country } from '@/types';
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState, useRef, useCallback } from 'react';
 
-import { getNewMoviesClientPaginated, getCategories } from '@/services/phimapi';
+import { getCategories } from '@/lib/api';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
 import { Movie, PaginatedResponse } from '@/types';
 import { MovieCard } from '@/components/movie/movie-card';
@@ -12,6 +12,8 @@ import { InternalLinks } from '@/components/ui/internal-links';
 import { useInfiniteScroll } from '@/hooks/useInfiniteScroll';
 import { clientCache } from '@/lib/cache/client-cache';
 import { FeaturedCountriesSection } from '@/components/movie/featured-countries-section';
+import { FeaturedCountriesSkeleton } from '@/components/movie/featured-countries-skeleton';
+import { HERO_CAROUSEL_ITEMS } from '@/lib/constants';
 
 interface HomeClientPageProps {
   initialCountriesData?: {
@@ -28,6 +30,10 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
   const [isLoading, setIsLoading] = useState(true);
   const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
+  // Theo dõi các trang đã được fetch hoặc đang fetch
+  const fetchedPagesRef = useRef<Set<number>>(new Set([1])); // Trang 1 luôn được fetch đầu tiên
+  const pendingFetchesRef = useRef<Set<number>>(new Set());
+
   const containerRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -37,29 +43,93 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
     setHasMore,
   } = useInfiniteScroll(containerRef, { threshold: 300 });
 
-  // Function to fetch movies with caching
+  // Function to fetch movies with caching using Batch API
   const fetchMoviesWithCache = useCallback(async (page: number) => {
     const cacheKey = `movies_page_${page}`;
-    const cachedData = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
 
+    // Kiểm tra cache trước
+    const cachedData = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
     if (cachedData) {
       console.log(`Using cached data for page ${page}`);
+      fetchedPagesRef.current.add(page);
       return cachedData;
     }
 
-    console.log(`Fetching fresh data for page ${page}`);
+    // Kiểm tra xem trang này đang được fetch chưa
+    if (pendingFetchesRef.current.has(page)) {
+      console.log(`Page ${page} is already being fetched, waiting...`);
+      // Đợi cho đến khi fetch hoàn tất
+      let attempts = 0;
+      while (pendingFetchesRef.current.has(page) && attempts < 50) {
+        await new Promise(resolve => setTimeout(resolve, 100));
+        attempts++;
+      }
 
-    // Add a small delay to show loading indicator (only for visual feedback)
-    if (page > 1) {
-      await new Promise(resolve => setTimeout(resolve, 300));
+      // Thử lấy lại từ cache sau khi đợi
+      const dataAfterWait = clientCache.get<PaginatedResponse<Movie>>(cacheKey);
+      if (dataAfterWait) {
+        return dataAfterWait;
+      }
     }
 
-    const response = await getNewMoviesClientPaginated(page);
+    // Đánh dấu trang này đang được fetch
+    pendingFetchesRef.current.add(page);
 
-    // Cache for 5 minutes
-    clientCache.set(cacheKey, response, 5 * 60 * 1000);
+    try {
+      console.log(`Fetching fresh data for page ${page} using Batch API`);
 
-    return response;
+      // Add a small delay to show loading indicator (only for visual feedback)
+      if (page > 1) {
+        await new Promise(resolve => setTimeout(resolve, 300));
+      }
+
+      // Sử dụng Batch API thay vì gọi trực tiếp
+      const batchUrl = `/api/batch?resources=new_movies&page=${page}`;
+      const response = await fetch(batchUrl);
+
+      if (!response.ok) {
+        throw new Error(`Batch API responded with status: ${response.status}`);
+      }
+
+      const batchData = await response.json();
+      const moviesData = batchData.newMovies;
+
+      // Kiểm tra xem response có hợp lệ không
+      if (!moviesData || !moviesData.data || !Array.isArray(moviesData.data)) {
+        console.error(`Invalid response from Batch API for page ${page}:`, batchData);
+        return {
+          data: [],
+          pagination: {
+            totalItems: 0,
+            totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+            currentPage: page,
+            totalPages: 1,
+          },
+        };
+      }
+
+      // Cache for 5 minutes
+      clientCache.set(cacheKey, moviesData, 5 * 60 * 1000);
+
+      // Đánh dấu trang này đã được fetch
+      fetchedPagesRef.current.add(page);
+
+      return moviesData;
+    } catch (error) {
+      console.error(`Error fetching data for page ${page}:`, error);
+      return {
+        data: [],
+        pagination: {
+          totalItems: 0,
+          totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
+          currentPage: page,
+          totalPages: 1,
+        },
+      };
+    } finally {
+      // Luôn xóa khỏi danh sách đang fetch, bất kể thành công hay thất bại
+      pendingFetchesRef.current.delete(page);
+    }
   }, []);
 
   // Initial load
@@ -69,7 +139,14 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
       try {
         // Fetch movies
         const response = await fetchMoviesWithCache(1);
-        setMovies(response.data);
+
+        // Kiểm tra xem response có hợp lệ không
+        if (!response || !response.data || !Array.isArray(response.data)) {
+          console.error('Invalid response for initial load:', response);
+          setMovies([]);
+        } else {
+          setMovies(response.data);
+        }
 
         // Fetch categories for topics
         const categories = await getCategories();
@@ -146,10 +223,9 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
     // Only prefetch if we're not loading and initial load is complete
     if (initialLoadComplete && !isLoading) {
       const nextPage = page + 1;
-      const cacheKey = `movies_page_${nextPage}`;
 
-      // Check if already cached
-      if (!clientCache.get(cacheKey)) {
+      // Kiểm tra xem trang này đã được fetch hoặc đang fetch chưa
+      if (!fetchedPagesRef.current.has(nextPage) && !pendingFetchesRef.current.has(nextPage)) {
         console.log(`Prefetching data for page ${nextPage}`);
         // Use setTimeout to avoid blocking the main thread
         timer = setTimeout(() => {
@@ -157,6 +233,8 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
             console.error(`Error prefetching page ${nextPage}:`, err)
           );
         }, 1000);
+      } else {
+        console.log(`Page ${nextPage} already fetched or being fetched, skipping prefetch`);
       }
     }
 
@@ -171,15 +249,30 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
 
     const fetchMoreMovies = async () => {
       try {
+        setScrollLoading(true);
         const response = await fetchMoviesWithCache(page);
+
+        // Kiểm tra xem response có hợp lệ không
+        if (!response || !response.data || !Array.isArray(response.data)) {
+          console.error('Invalid response for infinite scroll:', response);
+          setScrollLoading(false);
+          return;
+        }
+
         const newMovies = response.data;
 
         if (newMovies.length === 0) {
           setHasMore(false);
+          setScrollLoading(false);
           return;
         }
 
-        setMovies(prevMovies => [...prevMovies, ...newMovies]);
+        setMovies(prevMovies => {
+          // Lọc các phim trùng lặp dựa trên _id
+          const existingIds = new Set(prevMovies.map((movie: Movie) => movie._id));
+          const uniqueNewMovies = newMovies.filter((movie: Movie) => !existingIds.has(movie._id));
+          return [...prevMovies, ...uniqueNewMovies];
+        });
 
         // Check if we've reached the last page
         if (page >= response.pagination.totalPages) {
@@ -215,10 +308,13 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
           <div className="relative aspect-video w-full animate-pulse bg-gray-800"></div>
         </section>
 
+        {/* Featured Countries Skeleton */}
+        <FeaturedCountriesSkeleton className="mt-8" />
+
         {/* Movies Grid Skeleton */}
         <div className="mb-6 h-8 w-40 animate-pulse rounded bg-gray-800"></div>
         <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-          {Array(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2)
+          {Array(Math.floor(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2))
             .fill(null)
             .map((_, index) => (
               <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
@@ -237,8 +333,8 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
     );
   }
 
-  // Get the first 10 movies for the hero carousel
-  const heroMovies = movies.slice(0, 10);
+  // Get the first few movies for the hero carousel based on configuration
+  const heroMovies = movies.slice(0, HERO_CAROUSEL_ITEMS);
 
   return (
     <>

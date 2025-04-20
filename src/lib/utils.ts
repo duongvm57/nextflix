@@ -22,16 +22,21 @@ export function formatViewCount(count?: number): string {
 export function getImageUrl(url: string, fallback: string = '/placeholder.jpg'): string {
   if (!url) return fallback;
 
-  // If URL already starts with http, return as is
-  if (url.startsWith('http')) return url;
-
-  // If URL starts with slash, append to base domain
-  if (url.startsWith('/')) {
-    return `https://img.phimapi.com${url}`;
+  if (url.startsWith('http')) {
+    if (url.includes('phimapi.com') || url.includes('phimimg.com')) {
+      const cacheBuster = Date.now();
+      return url.includes('?') ? `${url}&_cb=${cacheBuster}` : `${url}?_cb=${cacheBuster}`;
+    }
+    return url;
   }
 
-  // For relative URLs from API, use the CDN domain
-  return `https://img.phimapi.com/${url}`;
+  if (url.startsWith('/')) {
+    const cacheBuster = Date.now();
+    return `https://img.phimapi.com${url}?_cb=${cacheBuster}`;
+  }
+
+  const cacheBuster = Date.now();
+  return `https://img.phimapi.com/${url}?_cb=${cacheBuster}`;
 }
 
 // Truncate text with ellipsis

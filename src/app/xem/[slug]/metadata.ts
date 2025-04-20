@@ -1,11 +1,11 @@
 import { Metadata } from 'next';
 import { DOMAIN } from '@/lib/constants';
-import { movieService } from '@/lib/services/api';
+import { getMovieDetail as apiGetMovieDetail } from '@/lib/api';
 import { MovieDetail } from '@/types';
 
 async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   try {
-    return await movieService.getMovieDetail(slug);
+    return await apiGetMovieDetail(slug);
   } catch (error) {
     console.error('Error fetching movie detail:', error);
     return null;

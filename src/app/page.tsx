@@ -1,12 +1,23 @@
+import { Suspense } from 'react';
 import HomeClientPage from './client-page';
-import { movieService } from '@/lib/services/api';
+import { getMoviesByCountry } from '@/lib/api';
+import { COUNTRY_MOVIES_ITEMS } from '@/lib/constants';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 // Export metadata từ file riêng biệt
 export { generateMetadata } from './metadata';
 
 export const revalidate = 3600; // revalidate every hour
 
-export default async function HomePage() {
+export default function HomePage() {
+  return (
+    <Suspense fallback={<LoadingSpinner size="lg" text="Đang tải..." />}>
+      <HomeContent />
+    </Suspense>
+  );
+}
+
+async function HomeContent() {
   // Lấy dữ liệu phim theo quốc gia để truyền vào HomeClientPage
   const countries = [
     { slug: 'han-quoc', name: 'Hàn Quốc' },
@@ -17,10 +28,10 @@ export default async function HomePage() {
   const countriesData = await Promise.all(
     countries.map(async country => {
       try {
-        const data = await movieService.getMoviesByCountry(country.slug, 1);
+        const data = await getMoviesByCountry(country.slug, 1);
         return {
           ...country,
-          movies: data.data,
+          movies: data.data.slice(0, COUNTRY_MOVIES_ITEMS),
         };
       } catch (error) {
         console.error(`Error fetching movies for ${country.name}:`, error);

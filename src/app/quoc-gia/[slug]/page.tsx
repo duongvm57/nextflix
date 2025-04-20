@@ -1,8 +1,8 @@
-import { movieService } from '@/lib/services/api';
+import { getMoviesByCountry as apiGetMoviesByCountry } from '@/lib/api';
 import { MovieGrid } from '@/components/movie/movie-grid';
 import { Pagination } from '@/components/ui/pagination';
 import { Breadcrumb } from '@/components/ui/breadcrumb';
-import { getCountries } from '@/services/phimapi';
+import { getCountries } from '@/lib/api';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { Country, PaginatedResponse, Movie } from '@/types';
 
@@ -26,7 +26,7 @@ async function getMoviesByCountry(
       };
     }
 
-    return await movieService.getMoviesByCountry(slug, page);
+    return await apiGetMoviesByCountry(slug, page);
   } catch (error) {
     console.error('Error fetching movies by country:', error);
     return {

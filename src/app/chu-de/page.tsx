@@ -1,6 +1,6 @@
 import { MenuLink } from '@/components/ui/menu-link';
-import { getCategories, getCountries } from '@/services/phimapi';
-import { TYPE_LIST } from '@/lib/menu/phimapi-menu';
+import { getCategories, getCountries } from '@/lib/api';
+import { TYPE_LIST } from '@/lib/api/constants';
 import { Category, Country } from '@/types';
 
 // Export metadata từ file riêng biệt
