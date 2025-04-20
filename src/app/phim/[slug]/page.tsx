@@ -171,22 +171,6 @@ export default async function MovieDetailPage({ params }: { params: { slug: stri
           <p>{movie.content}</p>
         </div>
       </div>
-
-      {/* Trailer */}
-      {movie.trailer_url && (
-        <div className="mb-8">
-          <h3 className="mb-4 text-2xl font-semibold">Trailer</h3>
-          <div className="relative aspect-video overflow-hidden rounded-lg">
-            <iframe
-              src={movie.trailer_url}
-              title={`Trailer ${movie.name}`}
-              allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-              allowFullScreen
-              className="absolute inset-0 h-full w-full"
-            ></iframe>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

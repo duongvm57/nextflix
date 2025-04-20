@@ -1,10 +1,8 @@
 'use client';
 
 import { useEffect, useState, useRef, useCallback } from 'react';
-
-import { getCategories } from '@/lib/api';
 import { PAGINATION_CONFIG } from '@/lib/config/pagination';
-import { Movie, PaginatedResponse } from '@/types';
+import { Category, Movie, PaginatedResponse } from '@/types';
 import { MovieCard } from '@/components/movie/movie-card';
 import { HeroCarousel } from '@/components/movie/hero-carousel';
 import { BackToTop } from '@/components/ui/back-to-top';
@@ -14,6 +12,7 @@ import { clientCache } from '@/lib/cache/client-cache';
 import { FeaturedCountriesSection } from '@/components/movie/featured-countries-section';
 import { FeaturedCountriesSkeleton } from '@/components/movie/featured-countries-skeleton';
 import { HERO_CAROUSEL_ITEMS } from '@/lib/constants';
+import { fetchMenuData } from '@/lib/cache/api-cache';
 
 interface HomeClientPageProps {
   initialCountriesData?: {
@@ -148,8 +147,8 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
           setMovies(response.data);
         }
 
-        // Fetch categories for topics
-        const categories = await getCategories();
+        // Use fetchMenuData instead of separate categories fetch
+        const { categories } = await fetchMenuData();
 
         // Danh sách thể loại ưu tiên
         const priorityGenres = [
@@ -167,7 +166,7 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
         // Thêm các thể loại ưu tiên theo thứ tự đã định
         for (const genreName of priorityGenres) {
           const found = categories.find(
-            cat =>
+            (cat: Category) =>
               cat.name.toLowerCase() === genreName.toLowerCase() ||
               cat.name.toLowerCase().includes(genreName.toLowerCase())
           );
@@ -184,9 +183,9 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
         const remainingCount = 6 - priorityCategories.length;
         if (remainingCount > 0) {
           const remainingCategories = categories
-            .filter(cat => !priorityCategories.some(p => p.name === cat.name))
+            .filter((cat: Category) => !priorityCategories.some(p => p.name === cat.name))
             .slice(0, remainingCount)
-            .map(cat => ({
+            .map((cat: Category) => ({
               name: cat.name,
               url: `/the-loai/${cat.slug}`,
             }));

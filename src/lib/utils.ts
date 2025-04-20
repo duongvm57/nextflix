@@ -24,10 +24,8 @@ export function getImageUrl(url: string, fallback: string = '/placeholder.jpg'):
 
   if (url.startsWith('http')) {
     if (url.includes('phimapi.com') || url.includes('phimimg.com')) {
-      const cacheBuster = Date.now();
-      return url.includes('?') ? `${url}&_cb=${cacheBuster}` : `${url}?_cb=${cacheBuster}`;
+      return url;
     }
-    return url;
   }
 
   if (url.startsWith('/')) {
