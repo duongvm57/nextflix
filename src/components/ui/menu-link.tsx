@@ -7,6 +7,7 @@ import { clientCache } from '@/lib/cache/client-cache';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { RippleEffect } from './ripple-effect';
 import { useLoading } from '@/providers/loading-provider';
+import { storeNavigationState, logNavigationState, clearNavigationState as clearNavState } from '@/utils/navigation-debug';
 
 interface MenuLinkProps {
   href: string;
@@ -66,32 +67,28 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
   // Helper function to clear any stale navigation state
   const clearNavigationState = useCallback(() => {
     if (typeof window !== 'undefined') {
-      // Remove any existing navigation flags from sessionStorage
-      sessionStorage.removeItem('lastUrl');
-      sessionStorage.removeItem('targetUrl');
+      // Use the utility function to clear navigation state
+      clearNavState();
 
       // Reset the navigation flag
       isNavigating.current = false;
     }
-  }, []);
+  }, [href]);
 
   const handleNavigation = useCallback(() => {
     // Prevent multiple navigations
     if (isNavigating.current) {
-      console.log(`[NAVIGATION] Already navigating to ${href}, ignoring click`);
       return;
     }
 
     // Check if we're already on the same page
     if (typeof window !== 'undefined' && window.location.pathname === href) {
-      console.log(`[NAVIGATION] Already on ${href}, ignoring click`);
       return;
     }
 
     // Clear any stale navigation state first
     clearNavigationState();
 
-    console.log(`[NAVIGATION] Starting navigation to ${href}`);
     isNavigating.current = true;
 
     // Single loading trigger
@@ -105,32 +102,40 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     const isCountryLink = href.startsWith('/quoc-gia/');
     const isFooterLink = href.startsWith('/danh-muc/');
     const isSearchLink = href.startsWith('/tim-kiem');
+    const isWatchLink = href.startsWith('/xem/');
 
     // Store the current URL in sessionStorage before navigation
     // This will help us detect and fix navigation issues
     if (typeof window !== 'undefined') {
-      sessionStorage.setItem('lastUrl', window.location.pathname);
-      sessionStorage.setItem('targetUrl', href);
+      storeNavigationState(href);
+      // Only log in development mode
+      if (process.env.NODE_ENV === 'development') {
+        logNavigationState('NAVIGATION_CLICK');
+      }
     }
 
     try {
-      // Use direct navigation for genre, country, footer, and search links to avoid Next.js routing issues
+      // Use direct navigation for specific link types to avoid Next.js routing issues
       if (isGenreLink || isCountryLink || isFooterLink || isSearchLink) {
-        console.log(`[NAVIGATION] Using direct navigation for ${href}`);
         window.location.href = href;
+      } else if (isWatchLink) {
+        // Special handling for watch links to prevent navigation issues
+        router.push(href);
       } else {
         // For other links, use normal push navigation
         router.push(href);
       }
     } catch (error) {
-      console.error(`[NAVIGATION] Error navigating to ${href}:`, error);
+      if (process.env.NODE_ENV === 'development') {
+        console.error(`[NAVIGATION] Error navigating to ${href}:`, error);
+      }
+
       // Fallback to direct navigation
       window.location.href = href;
     }
 
     // Reset navigation flag after a delay
     setTimeout(() => {
-      console.log(`[NAVIGATION] Navigation flag reset for ${href}`);
       isNavigating.current = false;
     }, 300);
   }, [href, onClick, router, startLoading, clearNavigationState]);

@@ -2,6 +2,7 @@
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
+import { logNavigationState } from '@/utils/navigation-debug';
 
 export default function Error({
   error,
@@ -12,7 +13,12 @@ export default function Error({
 }) {
   useEffect(() => {
     // Log the error to an error reporting service
-    console.error(error);
+    console.error('[ERROR_PAGE] Error occurred:', error);
+
+    // Log navigation state to help debug why we're on the error page
+    if (typeof window !== 'undefined' && process.env.NODE_ENV === 'development') {
+      logNavigationState('ERROR_PAGE');
+    }
   }, [error]);
 
   return (

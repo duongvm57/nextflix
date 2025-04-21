@@ -113,21 +113,32 @@ export default async function RootLayout({
                   window.__PREFETCHED_MOVIES = new Set();
                   window.__RSC_CACHE = {};
 
-                  // Fix navigation issues with genre and country links
+                  // Fix navigation issues with links redirecting to homepage
                   if (typeof window !== 'undefined') {
-                    // Check if we're on the home page but should be on a genre/country page
+                    // Check if we're on the home page but should be somewhere else
                     const currentPath = window.location.pathname;
                     const targetUrl = sessionStorage.getItem('targetUrl');
                     const lastUrl = sessionStorage.getItem('lastUrl');
 
-                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/the-loai/') || targetUrl.startsWith('/quoc-gia/'))) {
-                      console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
-                      console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
+                    // Only log in development mode
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('[NAVIGATION_DEBUG] Current path:', currentPath);
+                      console.log('[NAVIGATION_DEBUG] Target URL:', targetUrl);
+                      console.log('[NAVIGATION_DEBUG] Last URL:', lastUrl);
+                    }
 
-                      // If we're on the home page but should be on a genre/country page, redirect
-                      if (lastUrl && lastUrl.includes('/watch/')) {
-                        console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
-                        window.location.href = targetUrl;
+                    // If we're on the home page but should be on another page
+                    if (currentPath === '/' && targetUrl && targetUrl !== '/') {
+                      // Only log in development mode
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
+                        console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
+                      }
+
+                      // Check if we came from a watch page or any other page
+                      if (lastUrl) {
+                        // Use replace instead of href to avoid adding to browser history
+                        window.location.replace(targetUrl);
                       }
                     }
                   }
@@ -144,7 +155,10 @@ export default async function RootLayout({
 
                       // Kiểm tra xem đã prefetch chưa
                       if (window.__PREFETCHED_PAGES.has(path)) {
-                        console.log('[OPTIMIZER] Blocked duplicate RSC request:', path);
+                        // Only log in development mode
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('[OPTIMIZER] Blocked duplicate RSC request:', path);
+                        }
                         return Promise.resolve(new Response('{}', {
                           status: 200,
                           headers: {
@@ -160,7 +174,10 @@ export default async function RootLayout({
                       if (path.startsWith('/watch/')) {
                         const movieSlug = path.replace('/watch/', '');
                         if (window.__PREFETCHED_MOVIES.has(movieSlug)) {
-                          console.log('[OPTIMIZER] Blocked duplicate movie request:', movieSlug);
+                          // Only log in development mode
+                          if (process.env.NODE_ENV === 'development') {
+                            console.log('[OPTIMIZER] Blocked duplicate movie request:', movieSlug);
+                          }
                           return Promise.resolve(new Response('{}', {
                             status: 200,
                             headers: {
@@ -188,7 +205,7 @@ export default async function RootLayout({
           strategy="afterInteractive"
           dangerouslySetInnerHTML={{
             __html: `
-              // Fix navigation issues with genre and country links
+              // Fix navigation issues with links redirecting to homepage
               (function() {
                 try {
                   // Listen for navigation events
@@ -196,6 +213,10 @@ export default async function RootLayout({
                     // Store the current URL when navigating with back/forward buttons
                     sessionStorage.setItem('navigationMethod', 'popstate');
                     sessionStorage.setItem('currentPath', window.location.pathname);
+                    // Only log in development mode
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('[NAVIGATION_POPSTATE] Current path:', window.location.pathname);
+                    }
                   });
 
                   // Check for navigation issues on page load
@@ -205,15 +226,49 @@ export default async function RootLayout({
                     const lastUrl = sessionStorage.getItem('lastUrl');
                     const navigationMethod = sessionStorage.getItem('navigationMethod');
 
-                    console.log('[NAVIGATION_CHECK] Current path:', currentPath);
-                    console.log('[NAVIGATION_CHECK] Target URL:', targetUrl);
-                    console.log('[NAVIGATION_CHECK] Last URL:', lastUrl);
-                    console.log('[NAVIGATION_CHECK] Navigation method:', navigationMethod);
+                    // Only log in development mode
+                    if (process.env.NODE_ENV === 'development') {
+                      console.log('[NAVIGATION_CHECK] Current path:', currentPath);
+                      console.log('[NAVIGATION_CHECK] Target URL:', targetUrl);
+                      console.log('[NAVIGATION_CHECK] Last URL:', lastUrl);
+                      console.log('[NAVIGATION_CHECK] Navigation method:', navigationMethod);
+                    }
 
-                    // If we're on the home page but should be on a genre/country page
-                    if (currentPath === '/' && targetUrl && (targetUrl.startsWith('/the-loai/') || targetUrl.startsWith('/quoc-gia/'))) {
-                      if (lastUrl && lastUrl.includes('/watch/')) {
+                    // If we're on the home page but should be on another page
+                    if (currentPath === '/' && targetUrl && targetUrl !== '/') {
+                      // Only log in development mode
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
                         console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
+                      }
+
+                      // Redirect to the intended page
+                      window.location.replace(targetUrl);
+                    }
+
+                    // Also check for other navigation issues
+                    if (currentPath !== targetUrl && targetUrl && !currentPath.includes('/xem/')) {
+                      // Only log in development mode
+                      if (process.env.NODE_ENV === 'development') {
+                        console.log('[NAVIGATION_CHECK] Current path does not match target URL');
+                        console.log('[NAVIGATION_CHECK] This might indicate a navigation issue');
+                      }
+                    }
+                  });
+
+                  // Also listen for page visibility changes which might indicate navigation issues
+                  document.addEventListener('visibilitychange', function() {
+                    if (document.visibilityState === 'visible') {
+                      const currentPath = window.location.pathname;
+                      const targetUrl = sessionStorage.getItem('targetUrl');
+
+                      // If we're on the home page but should be somewhere else
+                      if (currentPath === '/' && targetUrl && targetUrl !== '/') {
+                        // Only log in development mode
+                        if (process.env.NODE_ENV === 'development') {
+                          console.log('[NAVIGATION_VISIBILITY] Detected incorrect navigation to home page');
+                          console.log('[NAVIGATION_VISIBILITY] Redirecting to:', targetUrl);
+                        }
                         window.location.replace(targetUrl);
                       }
                     }
