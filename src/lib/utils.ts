@@ -29,12 +29,10 @@ export function getImageUrl(url: string, fallback: string = '/placeholder.jpg'):
   }
 
   if (url.startsWith('/')) {
-    const cacheBuster = Date.now();
-    return `https://img.phimapi.com${url}?_cb=${cacheBuster}`;
+    return `https://img.phimapi.com${url}`;
   }
 
-  const cacheBuster = Date.now();
-  return `https://img.phimapi.com/${url}?_cb=${cacheBuster}`;
+  return `https://img.phimapi.com/${url}`;
 }
 
 // Truncate text with ellipsis
