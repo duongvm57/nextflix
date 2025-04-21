@@ -14,9 +14,14 @@ interface MoviePlayerProps {
 export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
   // State for selected server and episode
   const [selectedServer, setSelectedServer] = useState<number>(0);
-  const [selectedEpisode, setSelectedEpisode] = useState<EpisodeItem | null>(
-    initialEpisode || movie.episodes?.[0]?.server_data?.[0] || null
-  );
+  // Get initial episode from either server_data or items
+  const getInitialEpisode = () => {
+    if (initialEpisode) return initialEpisode;
+    if (movie.episodes?.[0]?.server_data?.[0]) return movie.episodes[0].server_data[0];
+    return null;
+  };
+
+  const [selectedEpisode, setSelectedEpisode] = useState<EpisodeItem | null>(getInitialEpisode());
 
   // Handle episode selection
   const handleEpisodeSelect = (episode: EpisodeItem) => {
@@ -25,7 +30,30 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
 
   // Handle server selection
   const handleServerSelect = (serverIndex: number) => {
+    // Store current episode name before changing server
+    const currentEpisodeName = selectedEpisode?.name;
+
+    // Get episodes from the new server (handle both server_data and items properties)
+    const newServerEpisodes = movie.episodes[serverIndex]?.server_data || [];
+
+    // Update selected server
     setSelectedServer(serverIndex);
+
+    // If we have a current episode and episodes in the new server, try to find the same episode
+    if (currentEpisodeName && newServerEpisodes.length > 0) {
+      // Try to find the same episode in the new server
+      const sameEpisodeInNewServer = newServerEpisodes.find(
+        episode => episode.name === currentEpisodeName
+      );
+
+      if (sameEpisodeInNewServer) {
+        // If found, select it
+        setSelectedEpisode(sameEpisodeInNewServer);
+      } else {
+        // If not found, select the first episode in the new server
+        setSelectedEpisode(newServerEpisodes[0]);
+      }
+    }
   };
 
   // If no episodes available
@@ -92,27 +120,36 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
 
         {/* Episodes grid - optimized */}
         <div className="rounded-lg bg-gray-800 p-4">
-          {movie.episodes[selectedServer]?.server_data?.length === 1 &&
-          movie.episodes[selectedServer]?.server_data[0]?.name.toLowerCase() === 'full' ? (
-            <EpisodeButton
-              key={0}
-              episode={movie.episodes[selectedServer]?.server_data[0]}
-              isActive={true}
-              onClick={handleEpisodeSelect}
-              className="w-24"
-            />
-          ) : (
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
-              {movie.episodes[selectedServer]?.server_data?.map((episode, episodeIndex) => (
+          {/* Get episodes from the current server */}
+          {(() => {
+            const serverEpisodes = movie.episodes[selectedServer]?.server_data || [];
+
+            if (serverEpisodes.length === 1 && serverEpisodes[0]?.name.toLowerCase() === 'full') {
+              return (
                 <EpisodeButton
-                  key={episodeIndex}
-                  episode={episode}
-                  isActive={selectedEpisode?.name === episode.name}
+                  key={0}
+                  episode={serverEpisodes[0]}
+                  isActive={true}
                   onClick={handleEpisodeSelect}
+                  className="w-24"
                 />
-              ))}
-            </div>
-          )}
+              );
+            } else {
+              return (
+                <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
+                  {serverEpisodes.map((episode, episodeIndex) => (
+                    <EpisodeButton
+                      key={episodeIndex}
+                      episode={episode}
+                      isActive={selectedEpisode?.name === episode.name}
+                      onClick={handleEpisodeSelect}
+                    />
+                  ))}
+                </div>
+              );
+            }
+          })()
+          }
         </div>
       </div>
     </div>
