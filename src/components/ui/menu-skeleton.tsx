@@ -7,7 +7,7 @@ export function MenuSkeleton() {
   return (
     <div className="flex items-center">
       <LoadingSpinner size="sm" text="" />
-      <span className="ml-2 text-sm font-medium text-gray-400">Đang tải menu...</span>
+      <span className="ml-2 text-sm font-medium text-gray-400"></span>
     </div>
   );
 

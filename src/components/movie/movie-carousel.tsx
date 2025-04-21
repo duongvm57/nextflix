@@ -2,10 +2,9 @@
 
 import { useRef } from 'react';
 import Image from 'next/image';
-import Link from 'next/link';
+import { MenuLink } from '@/components/ui/menu-link';
 import { Play } from 'lucide-react';
 import { Movie } from '@/types';
-import { Button } from '@/components/ui/button';
 
 interface MovieCarouselProps {
   movies: Movie[];
@@ -58,25 +57,21 @@ export function MovieCarousel({ movies, title }: MovieCarouselProps) {
                 <h3 className="mb-1 text-lg font-bold line-clamp-1">{movie.name}</h3>
                 <p className="mb-2 text-sm text-gray-300 line-clamp-1">{movie.origin_name}</p>
 
-                <div className="mb-3 flex flex-wrap gap-2">
-                  {movie.quality && (
+                <div className="mb-3">
+                  {movie.quality && movie.year && (
                     <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs">
-                      {movie.quality}
-                    </span>
-                  )}
-                  {movie.year && (
-                    <span className="rounded-full bg-gray-800 px-2 py-0.5 text-xs">
-                      {movie.year}
+                      {movie.quality} • {movie.year}
                     </span>
                   )}
                 </div>
 
-                <Link href={`/movie/${movie.slug}`}>
-                  <Button variant="primary" size="sm" className="flex items-center gap-1 w-full">
-                    <Play size={16} fill="white" />
-                    Xem chi tiết
-                  </Button>
-                </Link>
+                <MenuLink
+                  href={`/phim/${movie.slug}`}
+                  className="bg-primary text-white rounded-md px-3 py-1 text-sm flex items-center justify-center gap-1 w-full hover:bg-primary/90"
+                >
+                  <Play size={16} fill="white" />
+                  <span>Xem chi tiết</span>
+                </MenuLink>
               </div>
             </div>
           </div>

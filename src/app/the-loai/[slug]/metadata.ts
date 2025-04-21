@@ -4,12 +4,14 @@ import { getCategories } from '@/lib/api';
 import { Category } from '@/types';
 
 // Tạo metadata động cho trang thể loại
-export async function generateMetadata({
-  params,
-}: {
+type Props = {
   params: { slug: string };
-}): Promise<Metadata> {
-  const { slug } = params;
+};
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(props.params);
+  const slug = params.slug;
 
   // Get category name from API
   const categories = await getCategories();

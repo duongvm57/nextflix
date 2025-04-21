@@ -1,11 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMoviesByCategory } from '@/lib/api/services';
 
-export async function GET(request: NextRequest, { params }: { params: { slug: string } }) {
+export async function GET(request: NextRequest, context: { params: { slug: string } }) {
   try {
+    // Use Promise.resolve to handle the params
+    const params = await Promise.resolve(context.params);
+    const slug = params.slug;
+
+    // Get search params from URL
     const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get('page') || '1');
-    const { slug } = params;
 
     const response = await getMoviesByCategory(slug, page);
 
@@ -27,7 +31,7 @@ export async function GET(request: NextRequest, { params }: { params: { slug: st
 
     return NextResponse.json(response);
   } catch (error) {
-    console.error(`Error in category API route for ${params.slug}:`, error);
+    console.error(`Error in category API route for ${slug}:`, error);
     return NextResponse.json({ error: 'Failed to fetch movies' }, { status: 500 });
   }
 }

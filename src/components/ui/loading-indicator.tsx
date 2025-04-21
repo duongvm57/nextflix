@@ -10,10 +10,10 @@ export function triggerLoading() {
   if (setGlobalLoadingState) {
     setGlobalLoadingState(true);
 
-    // Auto-hide after 2 seconds in case navigation doesn't happen
+    // Auto-hide after 1.5 seconds in case navigation doesn't happen
     setTimeout(() => {
       if (setGlobalLoadingState) setGlobalLoadingState(false);
-    }, 2000);
+    }, 1500);
   }
 }
 
@@ -39,10 +39,10 @@ export function LoadingIndicator() {
         if (href && (href.startsWith('/') || href.startsWith('http'))) {
           setIsLoading(true);
 
-          // Hide loading after a delay
+          // Hide loading after a longer delay
           setTimeout(() => {
             setIsLoading(false);
-          }, 800);
+          }, 1500);
         }
       }
     };
@@ -58,7 +58,7 @@ export function LoadingIndicator() {
 
   return (
     <div className="fixed top-0 left-0 z-50 h-2 w-full bg-blue-500/20">
-      <div className="h-full w-1/3 animate-loading-bar bg-blue-600"></div>
+      <div className="h-full w-2/5 animate-loading-bar bg-blue-600"></div>
     </div>
   );
 }

@@ -186,7 +186,6 @@ export function Header() {
 
   // Function to toggle mobile dropdown menu
   const toggleMobileDropdown = (label: string) => {
-    console.log('Toggle mobile dropdown:', label, 'Current:', mobileOpenDropdown);
     setMobileOpenDropdown(prevState => (prevState === label ? null : label));
   };
 
@@ -201,7 +200,6 @@ export function Header() {
       // Check if we have cached menu data
       const cachedMenu = clientCache.get<MenuItem[]>('full_menu');
       if (cachedMenu) {
-        console.log('[MENU] Using cached full menu data');
         setMenuState(prev => ({
           ...prev,
           items: cachedMenu,
@@ -212,7 +210,6 @@ export function Header() {
 
       setMenuState(prev => ({ ...prev, isLoading: true }));
       try {
-        console.log('[MENU] Fetching menu data from batch API');
         // Use batch API to fetch menu data in a single request
         const response = await fetchMenuData();
         const { categories = [], countries = [] } = response as {
@@ -223,9 +220,6 @@ export function Header() {
         if (!mounted) return;
 
         if (categories.length > 0 && countries.length > 0) {
-          console.log(
-            `[MENU] Received ${categories.length} categories and ${countries.length} countries`
-          );
           // Sử dụng callback trong setMenuState để tránh phụ thuộc vào menuState.items
           setMenuState(prev => {
             const updatedItems = [...prev.items];
@@ -257,7 +251,6 @@ export function Header() {
             }
 
             // Cache the full menu with longer duration
-            console.log('[MENU] Caching full menu data');
             clientCache.set('full_menu', updatedItems, CACHE_CONFIG.CLIENT.NAVIGATION);
 
             return {
@@ -405,42 +398,33 @@ export function Header() {
                         {/* Menu con - hiển thị khi menu cha được click */}
                         {mobileOpenDropdown === item.label && (
                           <div className="ml-4 border-l border-gray-700 pl-4 mt-2">
-                            {/* Chia menu con thành nhiều cột khi có quá nhiều mục */}
-                            {(item.id === 'categories' || item.id === 'countries') &&
-                            item.children &&
-                            item.children.length > 10 ? (
-                              <div className="grid grid-cols-2 gap-x-2 gap-y-1">
-                                {item.children?.map(child => (
-                                  <MenuLink
-                                    key={child.href}
-                                    href={child.href}
-                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
-                                    onClick={() => {
-                                      setMobileOpenDropdown(null);
-                                      setIsMenuOpen(false);
-                                    }}
-                                  >
-                                    {child.label}
-                                  </MenuLink>
-                                ))}
-                              </div>
-                            ) : (
-                              <div>
-                                {item.children?.map(child => (
-                                  <MenuLink
-                                    key={child.href}
-                                    href={child.href}
-                                    className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
-                                    onClick={() => {
-                                      setMobileOpenDropdown(null);
-                                      setIsMenuOpen(false);
-                                    }}
-                                  >
-                                    {child.label}
-                                  </MenuLink>
-                                ))}
-                              </div>
-                            )}
+                            <div className="grid grid-cols-2 gap-x-2 gap-y-1">
+                              {item.children?.slice(0, 12).map(child => (
+                                <MenuLink
+                                  key={child.href}
+                                  href={child.href}
+                                  className="block py-2 text-sm text-gray-300 font-medium hover:text-blue-500 transition-colors"
+                                  onClick={() => {
+                                    setMobileOpenDropdown(null);
+                                    setIsMenuOpen(false);
+                                  }}
+                                >
+                                  {child.label}
+                                </MenuLink>
+                              ))}
+                              {item.children && item.children.length > 12 && (
+                                <MenuLink
+                                  href={item.id === 'categories' ? '/chu-de' : '/quoc-gia'}
+                                  className="block py-2 text-sm text-blue-500 font-medium"
+                                  onClick={() => {
+                                    setMobileOpenDropdown(null);
+                                    setIsMenuOpen(false);
+                                  }}
+                                >
+                                  Xem tất cả...
+                                </MenuLink>
+                              )}
+                            </div>
                           </div>
                         )}
                       </div>

@@ -2,12 +2,14 @@ import { Metadata } from 'next';
 import { DOMAIN, SITE_NAME } from '@/lib/constants';
 
 // Tạo metadata động cho trang tìm kiếm
-export async function generateMetadata({
-  searchParams,
-}: {
+type Props = {
   searchParams: { keyword?: string };
-}): Promise<Metadata> {
-  const keyword = searchParams.keyword || '';
+};
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  // Use Promise.resolve to handle the searchParams
+  const searchParams = await Promise.resolve(props.searchParams);
+  const keyword = searchParams?.keyword || '';
 
   let title;
   let description;

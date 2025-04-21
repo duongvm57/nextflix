@@ -44,13 +44,13 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     }, 300);
   }, []);
 
-  // Auto-hide loading after timeout (shorter timeout)
+  // Auto-hide loading after timeout (longer timeout)
   useEffect(() => {
     if (isLoading) {
       const timer = setTimeout(() => {
         setIsLoading(false);
         isLoadingRef.current = false;
-      }, 800); // Maximum loading time - reduced to 800ms for better UX
+      }, 1500); // Maximum loading time - adjusted to 1500ms for better balance
       return () => clearTimeout(timer);
     }
     return undefined; // Explicit return for ESLint
@@ -91,7 +91,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
         <>
           {/* Loading bar at the top */}
           <div className="fixed top-0 left-0 z-50 h-1 w-full bg-blue-500/20">
-            <div className="h-full w-1/3 animate-loading-bar bg-blue-600"></div>
+            <div className="h-full w-2/5 animate-loading-bar bg-blue-600"></div>
           </div>
 
           {/* Small loading spinner in the corner */}

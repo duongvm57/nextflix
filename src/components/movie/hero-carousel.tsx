@@ -69,14 +69,6 @@ export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps
     return () => clearInterval(interval);
   }, [emblaApi]);
 
-  // Log movie data for debugging
-  useEffect(() => {
-    if (movies && movies.length > 0) {
-      console.log('Hero Carousel Movies:', movies);
-      console.log('First movie category:', movies[0].category);
-    }
-  }, [movies]);
-
   if (!movies || movies.length === 0) {
     return null;
   }
@@ -124,10 +116,7 @@ export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps
                 <div className="relative aspect-video w-full overflow-hidden">
                   {movie.imageError ? (
                     <div className="flex h-full w-full items-center justify-center bg-gray-800">
-                      <div className="flex flex-col items-center justify-center text-gray-400">
-                        <ImageOff size={32} className="mb-2" />
-                        <span className="text-sm">Không tải được ảnh</span>
-                      </div>
+                      <ImageOff size={32} />
                     </div>
                   ) : (
                     <Image
@@ -138,22 +127,15 @@ export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps
                       priority={index === 0}
                       loading={index < 2 ? 'eager' : 'lazy'}
                       sizes="(max-width: 768px) 100vw, 100vw"
-                      onError={e => {
+                      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                      onError={_e => {
                         const updatedMovies = [...movies];
                         updatedMovies[index] = { ...movie, imageError: true };
                         setMovies(updatedMovies);
-                        // Ẩn hình ảnh lỗi
-                        const img = e.target as HTMLImageElement;
-                        if (img) img.style.display = 'none';
                       }}
                     />
                   )}
                   <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-transparent" />
-
-                  {/* Thêm link phủ toàn bộ banner trên mobile */}
-                  <MenuLink href={`/phim/${movie.slug}`} className="absolute inset-0 md:hidden">
-                    <span className="sr-only">Xem thông tin phim {movie.name}</span>
-                  </MenuLink>
                 </div>
 
                 <div className="absolute bottom-0 left-0 p-4 md:p-12 w-full md:w-2/3 lg:w-1/2">
@@ -165,30 +147,9 @@ export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps
                   </p>
 
                   <div className="mb-1 flex flex-wrap gap-1 md:gap-2 md:mb-4">
-                    {/* Hiển thị category (có thể là mảng hoặc đối tượng) */}
-                    {movie.category &&
-                      Array.isArray(movie.category) &&
-                      movie.category.length > 0 && (
-                        <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
-                          {movie.category[0].name}
-                        </span>
-                      )}
-                    {/* Hiển thị category nếu là đối tượng */}
-                    {movie.category && !Array.isArray(movie.category) && (
-                      <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
-                        {movie.category.name}
-                      </span>
-                    )}
-                    {/* Chất lượng phim */}
                     {movie.quality && (
                       <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
-                        {movie.quality}
-                      </span>
-                    )}
-                    {/* Năm sản xuất */}
-                    {movie.year && (
-                      <span className="rounded-full bg-gray-800 px-1.5 py-0.5 text-[10px] md:px-3 md:py-1 md:text-sm">
-                        {movie.year}
+                        {movie.quality} • {movie.year}
                       </span>
                     )}
                   </div>
@@ -205,13 +166,13 @@ export function HeroCarousel({ movies: initialMovies, title }: HeroCarouselProps
                         size="sm"
                         className="flex items-center gap-2 md:text-base md:px-4 md:py-2"
                       >
-                        <Play size={16} fill="white" className="md:h-5 md:w-5" />
+                        <Play size={16} fill="white" />
                         Xem phim
                       </Button>
                     </MenuLink>
                     <MenuLink href={`/phim/${movie.slug}`}>
                       <Button variant="outline" size="sm" className="md:text-base md:px-4 md:py-2">
-                        Thông tin thêm
+                        Thông tin
                       </Button>
                     </MenuLink>
                   </div>

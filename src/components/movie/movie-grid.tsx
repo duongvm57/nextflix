@@ -29,15 +29,21 @@ export const MovieGrid = memo(function MovieGrid({
   const memoizedMovies = useMemo(() => movies, [movies]);
 
   if (isLoading) {
+    // Pre-calculate skeleton items to avoid unnecessary DOM elements
+    const skeletonCount = PAGINATION_CONFIG.ITEMS_PER_PAGE / 2;
+    const skeletonItems = [];
+
+    for (let i = 0; i < skeletonCount; i++) {
+      skeletonItems.push(
+        <div key={i} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
+      );
+    }
+
     return (
       <section className="py-6">
         {title && <h2 className="mb-6 text-2xl font-bold">{title}</h2>}
         <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-          {Array(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2)
-            .fill(null)
-            .map((_, index) => (
-              <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
-            ))}
+          {skeletonItems}
         </div>
       </section>
     );
@@ -65,13 +71,12 @@ export const MovieGrid = memo(function MovieGrid({
       </div>
 
       {totalPages > 1 && onPageChange && (
-        <div className="mt-8 flex justify-center">
-          <Pagination
-            currentPage={currentPage}
-            totalPages={totalPages}
-            onPageChange={onPageChange}
-          />
-        </div>
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={onPageChange}
+          className="mt-8 flex justify-center"
+        />
       )}
     </section>
   );

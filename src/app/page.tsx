@@ -11,7 +11,7 @@ export const revalidate = 3600; // revalidate every hour
 
 export default function HomePage() {
   return (
-    <Suspense fallback={<LoadingSpinner size="lg" text="Đang tải..." />}>
+    <Suspense fallback={<LoadingSpinner size="lg" text="" />}>
       <HomeContent />
     </Suspense>
   );

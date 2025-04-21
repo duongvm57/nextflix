@@ -19,9 +19,15 @@ async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
   }
 }
 
+type Props = {
+  params: { slug: string };
+};
+
 // Server component for the page
-export default async function MovieDetailPage({ params }: { params: { slug: string } }) {
-  const { slug } = params;
+export default async function MovieDetailPage(props: Props) {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(props.params);
+  const slug = params.slug;
   const movie = await getMovieDetail(slug);
 
   if (!movie) {

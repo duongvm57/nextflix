@@ -310,10 +310,11 @@ export default function HomeClientPage({ initialCountriesData = [] }: HomeClient
         {/* Featured Countries Skeleton */}
         <FeaturedCountriesSkeleton className="mt-8" />
 
-        {/* Movies Grid Skeleton */}
+        {/* Movies Grid Skeleton - optimized with fewer elements */}
         <div className="mb-6 h-8 w-40 animate-pulse rounded bg-gray-800"></div>
         <div className="grid grid-cols-2 gap-2 xs:gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 sm:gap-4">
-          {Array(Math.floor(PAGINATION_CONFIG.ITEMS_PER_PAGE / 2))
+          {/* Render only 5 skeleton items instead of 10 */}
+          {Array(5)
             .fill(null)
             .map((_, index) => (
               <div key={index} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />

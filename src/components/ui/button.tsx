@@ -1,12 +1,12 @@
 import { cn } from '@/lib/utils';
-import { forwardRef } from 'react';
+import { forwardRef, memo } from 'react';
 
 export interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
   variant?: 'default' | 'primary' | 'secondary' | 'outline' | 'ghost';
   size?: 'sm' | 'md' | 'lg';
 }
 
-const Button = forwardRef<HTMLButtonElement, ButtonProps>(
+const ButtonComponent = forwardRef<HTMLButtonElement, ButtonProps>(
   ({ className, variant = 'default', size = 'md', children, ...props }, ref) => {
     return (
       <button
@@ -33,6 +33,10 @@ const Button = forwardRef<HTMLButtonElement, ButtonProps>(
   }
 );
 
+ButtonComponent.displayName = 'ButtonComponent';
+
+// Memoize the Button component to prevent unnecessary re-renders
+const Button = memo(ButtonComponent);
 Button.displayName = 'Button';
 
 export { Button };

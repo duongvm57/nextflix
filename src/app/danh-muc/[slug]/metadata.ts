@@ -27,12 +27,14 @@ const SPECIAL_CATEGORY_DESCRIPTIONS: Record<string, string> = {
 };
 
 // Tạo metadata động cho trang danh sách phim
-export async function generateMetadata({
-  params,
-}: {
+type Props = {
   params: { slug: string };
-}): Promise<Metadata> {
-  const { slug } = params;
+};
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(props.params);
+  const slug = params.slug;
 
   // Check if slug is a year (4 digits)
   const isYear = /^\d{4}$/.test(slug);

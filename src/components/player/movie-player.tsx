@@ -75,7 +75,7 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
       <div className="mb-6">
         <h3 className="mb-4 text-2xl font-semibold">Danh sách tập</h3>
 
-        {/* Server tabs */}
+        {/* Server tabs - optimized */}
         {movie.episodes.length > 1 && (
           <div className="mb-4 flex flex-wrap gap-2">
             {movie.episodes.map((server, index) => (
@@ -90,23 +90,18 @@ export function MoviePlayer({ movie, initialEpisode }: MoviePlayerProps) {
           </div>
         )}
 
-        {/* Episodes grid - Điều chỉnh hiển thị dựa vào số lượng tập */}
+        {/* Episodes grid - optimized */}
         <div className="rounded-lg bg-gray-800 p-4">
           {movie.episodes[selectedServer]?.server_data?.length === 1 &&
           movie.episodes[selectedServer]?.server_data[0]?.name.toLowerCase() === 'full' ? (
-            // Nếu chỉ có 1 tập "Full", hiển thị nút nhỏ
-            <div className="flex justify-start">
-              <div className="w-24">
-                <EpisodeButton
-                  key={0}
-                  episode={movie.episodes[selectedServer]?.server_data[0]}
-                  isActive={true}
-                  onClick={handleEpisodeSelect}
-                />
-              </div>
-            </div>
+            <EpisodeButton
+              key={0}
+              episode={movie.episodes[selectedServer]?.server_data[0]}
+              isActive={true}
+              onClick={handleEpisodeSelect}
+              className="w-24"
+            />
           ) : (
-            // Nếu có nhiều tập, hiển thị dạng lưới
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6">
               {movie.episodes[selectedServer]?.server_data?.map((episode, episodeIndex) => (
                 <EpisodeButton

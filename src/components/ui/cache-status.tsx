@@ -192,52 +192,20 @@ export function CacheStatus() {
           <h3 className="text-lg font-semibold mb-4">Cache Status</h3>
 
           {/* Client Cache Section */}
-          <div className="mb-6">
+          <div className="mb-4">
             <h4 className="font-medium text-blue-400 mb-2">Client Cache</h4>
+            <p className="text-sm">Memory: {cacheInfo.client.memory.totalItems} items</p>
+            <p className="text-sm">
+              Session: {cacheInfo.client.session.totalItems} items (
+              {cacheInfo.client.session.totalSize} KB)
+            </p>
 
-            {/* Memory Cache */}
-            <div className="mb-3">
-              <h5 className="text-sm font-medium mb-1">Memory Cache:</h5>
-              <p className="text-sm">Items: {cacheInfo.client.memory.totalItems}</p>
-              <div className="mt-1">
-                <p className="text-xs text-gray-400">Cached Keys:</p>
-                <div className="max-h-20 overflow-y-auto text-xs">
-                  {cacheInfo.client.memory.keys.map(key => (
-                    <div key={key} className="truncate text-gray-300">
-                      {key}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            {/* Session Storage */}
-            <div className="mb-3">
-              <h5 className="text-sm font-medium mb-1">Session Storage:</h5>
-              <p className="text-sm">
-                Items: {cacheInfo.client.session.totalItems} ({cacheInfo.client.session.totalSize}{' '}
-                KB)
-              </p>
-              <div className="mt-1">
-                <p className="text-xs text-gray-400">Cached Keys:</p>
-                <div className="max-h-20 overflow-y-auto text-xs">
-                  {cacheInfo.client.session.keys.map(key => (
-                    <div key={key} className="truncate text-gray-300">
-                      {key.replace('cache_', '')}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
-
-            <div className="flex flex-wrap gap-2 mt-2">
-              <button
-                onClick={clearClientCache}
-                className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm"
-              >
-                Clear Client Cache
-              </button>
-            </div>
+            <button
+              onClick={clearClientCache}
+              className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-sm mt-2"
+            >
+              Clear Client Cache
+            </button>
           </div>
 
           {/* Server Cache Section */}
@@ -245,22 +213,17 @@ export function CacheStatus() {
             <h4 className="font-medium text-green-400 mb-2">Server Cache</h4>
             <p className="text-sm">
               Status: <span className="text-green-500">●</span> {cacheInfo.server.status}
+              {cacheInfo.server.lastRevalidated && (
+                <span> (Last: {cacheInfo.server.lastRevalidated.toLocaleString()})</span>
+              )}
             </p>
-            {cacheInfo.server.lastRevalidated && (
-              <p className="text-sm">
-                Last Revalidated: {cacheInfo.server.lastRevalidated.toLocaleString()}
-              </p>
-            )}
+
             <button
               onClick={revalidateServerCache}
               className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm mt-2"
             >
               Revalidate Server Cache
             </button>
-          </div>
-
-          <div className="text-xs text-gray-400 mt-4">
-            <p>Note: Browser HTTP Cache can be cleared from browser settings</p>
           </div>
         </div>
       )}

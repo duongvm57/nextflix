@@ -14,11 +14,7 @@ export function BackToTop({ threshold = 300, smooth = true }: BackToTopProps) {
   // Show button when user scrolls down
   useEffect(() => {
     const toggleVisibility = () => {
-      if (window.scrollY > threshold) {
-        setIsVisible(true);
-      } else {
-        setIsVisible(false);
-      }
+      setIsVisible(window.scrollY > threshold);
     };
 
     window.addEventListener('scroll', toggleVisibility);
@@ -26,16 +22,7 @@ export function BackToTop({ threshold = 300, smooth = true }: BackToTopProps) {
   }, [threshold]);
 
   // Scroll to top function
-  const scrollToTop = () => {
-    if (smooth) {
-      window.scrollTo({
-        top: 0,
-        behavior: 'smooth',
-      });
-    } else {
-      window.scrollTo(0, 0);
-    }
-  };
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: smooth ? 'smooth' : 'auto' });
 
   if (!isVisible) return null;
 

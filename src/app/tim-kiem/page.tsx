@@ -19,13 +19,16 @@ async function searchMovies(keyword: string, page: number = 1) {
   }
 }
 
-export default async function SearchPage({
-  searchParams,
-}: {
+type Props = {
   searchParams: { keyword?: string; page?: string };
-}) {
-  const keyword = searchParams.keyword || '';
-  const page = searchParams.page ? parseInt(searchParams.page) : 1;
+};
+
+export default async function SearchPage(props: Props) {
+  // Use Promise.resolve to handle the searchParams
+  const searchParams = await Promise.resolve(props.searchParams);
+
+  const keyword = searchParams?.keyword || '';
+  const page = searchParams?.page ? parseInt(searchParams.page) : 1;
   const { data: movies, pagination } = keyword
     ? await searchMovies(keyword, page)
     : { data: [], pagination: null };

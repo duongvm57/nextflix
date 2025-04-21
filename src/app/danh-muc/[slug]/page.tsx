@@ -48,14 +48,17 @@ const SPECIAL_CATEGORY_NAMES: Record<string, string> = {
   'tv-shows': 'TV Shows',
 };
 
-export default async function ListingPage({
-  params,
-  searchParams,
-}: {
+type Props = {
   params: { slug: string };
   searchParams: { page?: string };
-}) {
-  const { slug } = params;
+};
+
+export default async function ListingPage(props: Props) {
+  // Use Promise.resolve to handle the params and searchParams
+  const params = await Promise.resolve(props.params);
+  const searchParams = await Promise.resolve(props.searchParams);
+
+  const slug = params.slug;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
 
   // Check if slug is a year (4 digits)

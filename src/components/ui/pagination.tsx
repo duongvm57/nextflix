@@ -1,4 +1,3 @@
-import { Button } from './button';
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MenuLink } from '@/components/ui/menu-link';
@@ -8,9 +7,16 @@ interface PaginationProps {
   totalPages: number;
   baseUrl?: string;
   onPageChange?: (page: number) => void;
+  className?: string;
 }
 
-export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: PaginationProps) {
+export function Pagination({
+  currentPage,
+  totalPages,
+  baseUrl,
+  onPageChange,
+  className = '',
+}: PaginationProps) {
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
@@ -61,8 +67,8 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
   const pageNumbers = getPageNumbers();
 
   return (
-    <div className="flex items-center justify-center gap-2 py-8">
-      {/* Previous button */}
+    <div className={`flex items-center justify-center gap-2 py-8 ${className}`}>
+      {/* Previous button - optimized */}
       {baseUrl ? (
         <MenuLink
           href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
@@ -70,56 +76,55 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
             currentPage <= 1 ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
           )}
+          aria-label="Previous Page"
         >
           <ChevronLeft size={16} />
-          <span className="sr-only">Previous Page</span>
         </MenuLink>
       ) : (
-        <Button
-          variant="outline"
+        <button
           onClick={() => onPageChange?.(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="h-10 w-10 p-0"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border hover:bg-gray-100 disabled:opacity-50"
+          aria-label="Previous Page"
         >
           <ChevronLeft size={16} />
-          <span className="sr-only">Previous Page</span>
-        </Button>
+        </button>
       )}
 
-      {/* Page numbers */}
+      {/* Page numbers - optimized */}
       {pageNumbers.map((page, index) => {
-        if (page === '...') {
+        // Ellipsis
+        if (page === '...')
           return (
             <span key={`ellipsis-${index}`} className="px-2">
               ...
             </span>
           );
-        }
+
+        // Page number
+        const isActive = currentPage === page;
+        const className = cn(
+          'inline-flex h-10 w-10 items-center justify-center rounded-md',
+          isActive ? 'bg-blue-500 text-white' : 'border hover:bg-gray-100'
+        );
 
         return baseUrl ? (
-          <MenuLink
-            key={`link-page-${page}-${index}`}
-            href={`${baseUrl}?page=${page}`}
-            className={cn(
-              'inline-flex h-10 w-10 items-center justify-center rounded-md',
-              currentPage === page ? 'bg-blue-500 text-white' : 'border hover:bg-gray-100'
-            )}
-          >
+          <MenuLink key={index} href={`${baseUrl}?page=${page}`} className={className}>
             {page}
           </MenuLink>
         ) : (
-          <Button
-            key={`button-page-${page}-${index}`}
-            variant={currentPage === page ? 'default' : 'outline'}
+          <button
+            key={index}
             onClick={() => onPageChange?.(page as number)}
-            className={cn('h-10 w-10 p-0', currentPage === page && 'bg-blue-500 text-white')}
+            className={className}
+            disabled={isActive}
           >
             {page}
-          </Button>
+          </button>
         );
       })}
 
-      {/* Next button */}
+      {/* Next button - optimized */}
       {baseUrl ? (
         <MenuLink
           href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
@@ -127,20 +132,19 @@ export function Pagination({ currentPage, totalPages, baseUrl, onPageChange }: P
             'inline-flex h-10 w-10 items-center justify-center rounded-md border',
             currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
           )}
+          aria-label="Next Page"
         >
           <ChevronRight size={16} />
-          <span className="sr-only">Next Page</span>
         </MenuLink>
       ) : (
-        <Button
-          variant="outline"
+        <button
           onClick={() => onPageChange?.(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="h-10 w-10 p-0"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border hover:bg-gray-100 disabled:opacity-50"
+          aria-label="Next Page"
         >
           <ChevronRight size={16} />
-          <span className="sr-only">Next Page</span>
-        </Button>
+        </button>
       )}
     </div>
   );

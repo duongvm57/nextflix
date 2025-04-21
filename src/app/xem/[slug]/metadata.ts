@@ -13,12 +13,14 @@ async function getMovieDetail(slug: string): Promise<MovieDetail | null> {
 }
 
 // Tạo metadata động cho trang chi tiết phim
-export async function generateMetadata({
-  params,
-}: {
+type Props = {
   params: { slug: string };
-}): Promise<Metadata> {
-  const { slug } = params;
+};
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(props.params);
+  const slug = params.slug;
   const movie = await getMovieDetail(slug);
 
   if (!movie) {

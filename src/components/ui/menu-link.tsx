@@ -7,7 +7,11 @@ import { clientCache } from '@/lib/cache/client-cache';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { RippleEffect } from './ripple-effect';
 import { useLoading } from '@/providers/loading-provider';
-import { storeNavigationState, logNavigationState, clearNavigationState as clearNavState } from '@/utils/navigation-debug';
+import {
+  storeNavigationState,
+  logNavigationState,
+  clearNavigationState as clearNavState,
+} from '@/utils/navigation-debug';
 
 interface MenuLinkProps {
   href: string;
@@ -73,7 +77,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       // Reset the navigation flag
       isNavigating.current = false;
     }
-  }, [href]);
+  }, []);
 
   const handleNavigation = useCallback(() => {
     // Prevent multiple navigations

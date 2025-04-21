@@ -10,6 +10,8 @@ import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
 import { WebsiteSchema } from '@/components/schema/website-schema';
+import { OrganizationSchema } from '@/components/schema/organization-schema';
+import { LogoSchema } from '@/components/schema/logo-schema';
 import { SpeedInsights } from '@vercel/speed-insights/next';
 // Removed prefetch imports
 import Script from 'next/script';
@@ -121,7 +123,7 @@ export default async function RootLayout({
                     const lastUrl = sessionStorage.getItem('lastUrl');
 
                     // Only log in development mode
-                    if (process.env.NODE_ENV === 'development') {
+                    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                       console.log('[NAVIGATION_DEBUG] Current path:', currentPath);
                       console.log('[NAVIGATION_DEBUG] Target URL:', targetUrl);
                       console.log('[NAVIGATION_DEBUG] Last URL:', lastUrl);
@@ -130,7 +132,7 @@ export default async function RootLayout({
                     // If we're on the home page but should be on another page
                     if (currentPath === '/' && targetUrl && targetUrl !== '/') {
                       // Only log in development mode
-                      if (process.env.NODE_ENV === 'development') {
+                      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                         console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
                         console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
                       }
@@ -156,7 +158,7 @@ export default async function RootLayout({
                       // Kiểm tra xem đã prefetch chưa
                       if (window.__PREFETCHED_PAGES.has(path)) {
                         // Only log in development mode
-                        if (process.env.NODE_ENV === 'development') {
+                        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                           console.log('[OPTIMIZER] Blocked duplicate RSC request:', path);
                         }
                         return Promise.resolve(new Response('{}', {
@@ -175,7 +177,7 @@ export default async function RootLayout({
                         const movieSlug = path.replace('/watch/', '');
                         if (window.__PREFETCHED_MOVIES.has(movieSlug)) {
                           // Only log in development mode
-                          if (process.env.NODE_ENV === 'development') {
+                          if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                             console.log('[OPTIMIZER] Blocked duplicate movie request:', movieSlug);
                           }
                           return Promise.resolve(new Response('{}', {
@@ -214,7 +216,7 @@ export default async function RootLayout({
                     sessionStorage.setItem('navigationMethod', 'popstate');
                     sessionStorage.setItem('currentPath', window.location.pathname);
                     // Only log in development mode
-                    if (process.env.NODE_ENV === 'development') {
+                    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                       console.log('[NAVIGATION_POPSTATE] Current path:', window.location.pathname);
                     }
                   });
@@ -227,7 +229,7 @@ export default async function RootLayout({
                     const navigationMethod = sessionStorage.getItem('navigationMethod');
 
                     // Only log in development mode
-                    if (process.env.NODE_ENV === 'development') {
+                    if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                       console.log('[NAVIGATION_CHECK] Current path:', currentPath);
                       console.log('[NAVIGATION_CHECK] Target URL:', targetUrl);
                       console.log('[NAVIGATION_CHECK] Last URL:', lastUrl);
@@ -237,7 +239,7 @@ export default async function RootLayout({
                     // If we're on the home page but should be on another page
                     if (currentPath === '/' && targetUrl && targetUrl !== '/') {
                       // Only log in development mode
-                      if (process.env.NODE_ENV === 'development') {
+                      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                         console.log('[NAVIGATION_FIX] Detected incorrect navigation to home page');
                         console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
                       }
@@ -249,7 +251,7 @@ export default async function RootLayout({
                     // Also check for other navigation issues
                     if (currentPath !== targetUrl && targetUrl && !currentPath.includes('/xem/')) {
                       // Only log in development mode
-                      if (process.env.NODE_ENV === 'development') {
+                      if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                         console.log('[NAVIGATION_CHECK] Current path does not match target URL');
                         console.log('[NAVIGATION_CHECK] This might indicate a navigation issue');
                       }
@@ -265,7 +267,7 @@ export default async function RootLayout({
                       // If we're on the home page but should be somewhere else
                       if (currentPath === '/' && targetUrl && targetUrl !== '/') {
                         // Only log in development mode
-                        if (process.env.NODE_ENV === 'development') {
+                        if (typeof window !== 'undefined' && window.location.hostname === 'localhost') {
                           console.log('[NAVIGATION_VISIBILITY] Detected incorrect navigation to home page');
                           console.log('[NAVIGATION_VISIBILITY] Redirecting to:', targetUrl);
                         }
@@ -284,6 +286,8 @@ export default async function RootLayout({
       <body className="antialiased text-white min-h-screen flex flex-col" suppressHydrationWarning>
         {/* Thêm Schema.org structured data cho website */}
         <WebsiteSchema />
+        <OrganizationSchema />
+        <LogoSchema />
 
         <Suspense fallback={<LoadingSpinner fullPage={true} />}>
           <YearWrapper>

@@ -1,8 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { getMoviesByYear } from '@/lib/api/services';
 
-export async function GET(request: NextRequest, { params }: { params: { year: string } }) {
-  const { year } = params;
+export async function GET(request: NextRequest, context: { params: { year: string } }) {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(context.params);
+  const year = params.year;
+
+  // Get search params from URL
   const searchParams = request.nextUrl.searchParams;
   const page = searchParams.get('page') ? parseInt(searchParams.get('page')!) : 1;
 

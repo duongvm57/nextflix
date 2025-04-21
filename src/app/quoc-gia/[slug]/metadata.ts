@@ -4,12 +4,14 @@ import { getCountries } from '@/lib/api';
 import { Country } from '@/types';
 
 // Tạo metadata động cho trang quốc gia
-export async function generateMetadata({
-  params,
-}: {
+type Props = {
   params: { slug: string };
-}): Promise<Metadata> {
-  const { slug } = params;
+};
+
+export async function generateMetadata(props: Props): Promise<Metadata> {
+  // Use Promise.resolve to handle the params
+  const params = await Promise.resolve(props.params);
+  const slug = params.slug;
 
   // Get country name from API
   const countries = await getCountries();
