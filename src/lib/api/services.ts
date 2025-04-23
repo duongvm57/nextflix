@@ -12,6 +12,7 @@ import { logger } from '@/utils/logger';
 import { Category, Country, Episode, Movie, MovieDetail, PaginatedResponse } from '@/types';
 import * as apiClient from './client';
 import { API_BASE_URL } from './constants';
+import { ApiParams } from './client';
 
 // Re-export constants for use in services
 export { API_BASE_URL };
@@ -214,12 +215,36 @@ export async function getCountries(): Promise<Country[]> {
  */
 export async function getNewMovies(
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE
+  limit = PAGINATION_CONFIG.ITEMS_PER_PAGE,
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`[API Service] Fetching new movies for page: ${page}, limit: ${limit}`);
 
-    const response = await apiClient.fetchNewMovies(page, limit);
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = options.sort_field === '_id' && options.sort_type === 'asc';
+    console.log('[API Service] Checking for newest + ascending order in getNewMovies:', {
+      sort_field: options.sort_field,
+      sort_type: options.sort_type,
+      isNewestAscending
+    });
+    const processedOptions = { ...options };
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order in getNewMovies');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedOptions.sort_type = 'desc';
+    }
+
+    // Chuyển đổi options thành dạng Record<string, string>
+    const optionsRecord: Record<string, string> = {};
+    Object.entries(processedOptions).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        optionsRecord[key] = String(value);
+      }
+    });
+
+    const response = await apiClient.fetchNewMovies(page, limit, optionsRecord);
 
     if (response && response.status === true) {
       // Check if there are items
@@ -227,8 +252,16 @@ export async function getNewMovies(
         logger.debug(`[API Service] Found ${response.items.length} movies`);
         logger.debug('[API Service] Pagination data:', response.pagination);
 
+        let mappedData = response.items.map(mapAPIMovieToMovie);
+
+        // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+        if (isNewestAscending && mappedData.length > 0) {
+          console.log('[API Service] Reversing movie order for newest + ascending in getNewMovies');
+          mappedData = [...mappedData].reverse();
+        }
+
         return {
-          data: response.items.map(mapAPIMovieToMovie),
+          data: mappedData,
           pagination: {
             totalItems: response.pagination?.totalItems || 0,
             totalItemsPerPage: response.pagination?.totalItemsPerPage || 20,
@@ -253,10 +286,20 @@ export async function getNewMovies(
 export async function getMoviesByCategory(
   slug: string,
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: Record<string, string> = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`[API Service] Fetching movies for category: ${slug}, page: ${page}`);
+
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = options.sort_field === '_id' && options.sort_type === 'asc';
+    const processedOptions = { ...options };
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order in getMoviesByCategory');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedOptions.sort_type = 'desc';
+    }
 
     // Set default limit if not provided in options
     const defaultOptions = {
@@ -266,7 +309,7 @@ export async function getMoviesByCategory(
     // Combine default options with provided options
     const params = {
       ...defaultOptions,
-      ...options,
+      ...processedOptions,
     };
 
     // Xử lý các danh mục đặc biệt
@@ -284,16 +327,39 @@ export async function getMoviesByCategory(
     if (specialCategories.includes(slug)) {
       // Đối với các danh mục đặc biệt, sử dụng endpoint danh-sach
       logger.debug(`[API Service] Using movies list endpoint for special category: ${slug}`);
+
+      // Tạo object params cho API call
+      const apiParams: Record<string, string> = {
+        page: page.toString(),
+        limit: params.limit,
+      };
+
+      // Thêm các tham số tùy chọn nếu có
+      Object.entries(params).forEach(([key, value]) => {
+        if (key !== 'limit' && value !== undefined && value !== null && value !== '') {
+          apiParams[key] = String(value);
+        }
+      });
+
       response = await apiClient.fetchAPIV1<any>(
         `${apiClient.API_ENDPOINTS.V1_MOVIES_LIST}/${slug}`,
-        {
-          page: page.toString(),
-          limit: params.limit,
-        }
+        apiParams
       );
     } else {
       // Đối với các thể loại thông thường, sử dụng endpoint the-loai
-      response = await apiClient.fetchMoviesByCategory(slug, page, parseInt(params.limit));
+      // Chuyển đổi params thành options cho fetchMoviesByCategory
+      const categoryOptions: Record<string, string> = {};
+
+      // Thêm các tham số tùy chọn nếu có
+      Object.entries(params).forEach(([key, value]) => {
+        if (key !== 'limit' && value !== undefined && value !== null && value !== '') {
+          categoryOptions[key] = String(value);
+        }
+      });
+
+      console.log(`[API Service] Category options for API call:`, categoryOptions);
+
+      response = await apiClient.fetchMoviesByCategory(slug, page, parseInt(params.limit), categoryOptions);
     }
 
     if (response && response.status === 'success' && response.data) {
@@ -302,8 +368,16 @@ export async function getMoviesByCategory(
       if (items && Array.isArray(items)) {
         logger.debug(`[API Service] Found ${items.length} movies for category ${slug}`);
 
+        let mappedData = items.map(mapAPIMovieToMovie);
+
+        // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+        if (isNewestAscending && mappedData.length > 0) {
+          console.log('[API Service] Reversing movie order for newest + ascending in getMoviesByCategory');
+          mappedData = [...mappedData].reverse();
+        }
+
         return {
-          data: items.map(mapAPIMovieToMovie),
+          data: mappedData,
           pagination: {
             totalItems: responseParams?.pagination?.totalItems || items.length,
             totalItemsPerPage:
@@ -329,10 +403,20 @@ export async function getMoviesByCategory(
 export async function getMoviesByCountry(
   slug: string,
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: { limit?: string } = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`[API Service] Fetching movies for country ${slug}, page: ${page}`);
+
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = options.sort_field === '_id' && options.sort_type === 'asc';
+    const processedOptions = { ...options };
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order in getMoviesByCountry');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedOptions.sort_type = 'desc';
+    }
 
     // Set default limit if not provided in options
     const defaultOptions = {
@@ -342,10 +426,20 @@ export async function getMoviesByCountry(
     // Combine default options with provided options
     const params = {
       ...defaultOptions,
-      ...options,
+      ...processedOptions,
     };
 
-    const response = await apiClient.fetchMoviesByCountry(slug, page, parseInt(params.limit));
+    // Chuyển đổi params thành options cho fetchMoviesByCountry
+    const countryOptions: Record<string, string> = {};
+
+    // Thêm các tham số tùy chọn nếu có
+    Object.entries(params).forEach(([key, value]) => {
+      if (key !== 'limit' && value !== undefined && value !== null && value !== '') {
+        countryOptions[key] = String(value);
+      }
+    });
+
+    const response = await apiClient.fetchMoviesByCountry(slug, page, parseInt(params.limit), countryOptions);
 
     // Kiểm tra cấu trúc response
     if (!response || typeof response !== 'object') {
@@ -360,8 +454,16 @@ export async function getMoviesByCountry(
       if (items && Array.isArray(items)) {
         logger.debug(`[API Service] Found ${items.length} movies for country ${slug}`);
 
+        let mappedData = items.map(mapAPIMovieToMovie);
+
+        // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+        if (isNewestAscending && mappedData.length > 0) {
+          console.log('[API Service] Reversing movie order for newest + ascending in getMoviesByCountry');
+          mappedData = [...mappedData].reverse();
+        }
+
         return {
-          data: items.map(mapAPIMovieToMovie),
+          data: mappedData,
           pagination: {
             totalItems: responseParams?.pagination?.totalItems || items.length,
             totalItemsPerPage:
@@ -381,7 +483,9 @@ export async function getMoviesByCountry(
       );
 
       return {
-        data: processedItems.map(mapAPIMovieToMovie),
+        data: isNewestAscending && processedItems.length > 0
+          ? [...processedItems.map(mapAPIMovieToMovie)].reverse()
+          : processedItems.map(mapAPIMovieToMovie),
         pagination: response.pagination || {
           totalItems: response.data.length,
           totalItemsPerPage: PAGINATION_CONFIG.ITEMS_PER_PAGE,
@@ -406,17 +510,20 @@ export async function getMoviesByCountry(
 export async function getMoviesByYear(
   year: string,
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: {
-    sort_field?: string;
-    sort_type?: string;
-    sort_lang?: string;
-    category?: string;
-    country?: string;
-    limit?: string;
-  } = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`[API Service] Fetching movies for year ${year}, page: ${page}`);
+
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = options.sort_field === '_id' && options.sort_type === 'asc';
+    const processedOptions = { ...options };
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order in getMoviesByYear');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedOptions.sort_type = 'desc';
+    }
 
     // Set default limit if not provided in options
     const defaultOptions = {
@@ -427,16 +534,27 @@ export async function getMoviesByYear(
 
     // Filter out undefined values from options
     const filteredOptions: Record<string, string> = {};
-    for (const [key, value] of Object.entries(options)) {
+    for (const [key, value] of Object.entries(processedOptions)) {
       if (value !== undefined && value !== null && value !== 'undefined') {
         filteredOptions[key] = value;
       }
     }
 
+    // Chuyển đổi options thành dạng phù hợp cho API client
+    const yearOptions: Record<string, string> = {};
+
+    // Thêm các tham số tùy chọn nếu có
+    Object.entries(filteredOptions).forEach(([key, value]) => {
+      if (key !== 'limit' && value !== undefined && value !== null && value !== '') {
+        yearOptions[key] = String(value);
+      }
+    });
+
     const response = await apiClient.fetchMoviesByYear(
       year,
       page,
-      parseInt(filteredOptions.limit || defaultOptions.limit)
+      parseInt(filteredOptions.limit || defaultOptions.limit),
+      yearOptions
     );
 
     if (response && response.status === 'success' && response.data) {
@@ -445,8 +563,16 @@ export async function getMoviesByYear(
       if (items && Array.isArray(items)) {
         logger.debug(`[API Service] Found ${items.length} movies for year ${year}`);
 
+        let mappedData = items.map(mapAPIMovieToMovie);
+
+        // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+        if (isNewestAscending && mappedData.length > 0) {
+          console.log('[API Service] Reversing movie order for newest + ascending in getMoviesByYear');
+          mappedData = [...mappedData].reverse();
+        }
+
         return {
-          data: items.map(mapAPIMovieToMovie),
+          data: mappedData,
           pagination: {
             totalItems: responseParams?.pagination?.totalItems || items.length,
             totalItemsPerPage:
@@ -472,18 +598,20 @@ export async function getMoviesByYear(
 export async function searchMovies(
   keyword: string,
   page = PAGINATION_CONFIG.DEFAULT_PAGE,
-  options: {
-    sort_field?: string;
-    sort_type?: string;
-    sort_lang?: string;
-    category?: string;
-    country?: string;
-    year?: string;
-    limit?: string;
-  } = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     logger.debug(`[API Service] Searching movies for keyword: ${keyword}, page: ${page}`);
+
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = options.sort_field === '_id' && options.sort_type === 'asc';
+    const processedOptions = { ...options };
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order in searchMovies');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedOptions.sort_type = 'desc';
+    }
 
     // Set default limit if not provided in options
     const defaultOptions = {
@@ -494,16 +622,27 @@ export async function searchMovies(
 
     // Filter out undefined values from options
     const filteredOptions: Record<string, string> = {};
-    for (const [key, value] of Object.entries(options)) {
+    for (const [key, value] of Object.entries(processedOptions)) {
       if (value !== undefined && value !== null && value !== 'undefined') {
         filteredOptions[key] = value;
       }
     }
 
+    // Chuyển đổi options thành dạng phù hợp cho API client
+    const searchOptions: Record<string, string> = {};
+
+    // Thêm các tham số tùy chọn nếu có
+    Object.entries(filteredOptions).forEach(([key, value]) => {
+      if (key !== 'limit' && value !== undefined && value !== null && value !== '') {
+        searchOptions[key] = String(value);
+      }
+    });
+
     const response = await apiClient.fetchSearchMovies(
       keyword,
       page,
-      parseInt(filteredOptions.limit || defaultOptions.limit)
+      parseInt(filteredOptions.limit || defaultOptions.limit),
+      searchOptions
     );
 
     if (response && response.status === 'success' && response.data) {
@@ -512,8 +651,16 @@ export async function searchMovies(
       if (items && Array.isArray(items)) {
         logger.debug(`[API Service] Found ${items.length} movies for keyword ${keyword}`);
 
+        let mappedData = items.map(mapAPIMovieToMovie);
+
+        // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+        if (isNewestAscending && mappedData.length > 0) {
+          console.log('[API Service] Reversing movie order for newest + ascending in searchMovies');
+          mappedData = [...mappedData].reverse();
+        }
+
         return {
-          data: items.map(mapAPIMovieToMovie),
+          data: mappedData,
           pagination: {
             totalItems: responseParams?.pagination?.totalItems || items.length,
             totalItemsPerPage:
@@ -592,7 +739,7 @@ export async function getNewMoviesClientPaginated(
 export async function getMoviesByCategoryClientPaginated(
   typeOrCategorySlug: string,
   clientPage = 1,
-  options = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   return fetchMultiplePages<Movie>(
     apiPage => getMoviesByCategory(typeOrCategorySlug, apiPage, options),
@@ -603,7 +750,7 @@ export async function getMoviesByCategoryClientPaginated(
 export async function getMoviesByCountryClientPaginated(
   countrySlug: string,
   clientPage = 1,
-  options = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   return fetchMultiplePages<Movie>(
     apiPage => getMoviesByCountry(countrySlug, apiPage, options),
@@ -614,7 +761,7 @@ export async function getMoviesByCountryClientPaginated(
 export async function searchMoviesClientPaginated(
   keyword: string,
   clientPage = 1,
-  options = {}
+  options: Partial<ApiParams> = {}
 ): Promise<PaginatedResponse<Movie>> {
   try {
     return await fetchMultiplePages<Movie>(
@@ -624,6 +771,146 @@ export async function searchMoviesClientPaginated(
   } catch (error) {
     logger.error(`[API Service] Error searching movies for keyword ${keyword}:`, error);
     return getEmptyResponse(clientPage);
+  }
+}
+
+/**
+ * Hàm filter thông minh dựa trên route hiện tại
+ *
+ * @param routeType Loại route hiện tại (the-loai, quoc-gia, nam, tim-kiem)
+ * @param routeSlug Slug của route hiện tại
+ * @param filters Các tham số filter
+ * @param page Trang hiện tại
+ */
+export async function getFilteredMovies(
+  routeType: 'the-loai' | 'quoc-gia' | 'nam' | 'tim-kiem' | string,
+  routeSlug: string,
+  filters: Partial<ApiParams>,
+  page = PAGINATION_CONFIG.DEFAULT_PAGE
+): Promise<PaginatedResponse<Movie>> {
+  // Sử dụng các tham số filter nguyên bản
+  const processedFilters = { ...filters };
+  try {
+    logger.debug(`[API Service] Getting filtered movies for ${routeType}/${routeSlug} with filters:`, filters);
+    console.log(`[API Service] Getting filtered movies for ${routeType}/${routeSlug} with filters:`, filters);
+
+    // Xử lý đặc biệt cho trường hợp "Mới nhất" + "Tăng dần"
+    const isNewestAscending = filters.sort_field === '_id' && filters.sort_type === 'asc';
+    console.log('[API Service] Checking for newest + ascending order:', {
+      sort_field: filters.sort_field,
+      sort_type: filters.sort_type,
+      isNewestAscending,
+      originalFilters: {...filters},
+      processedFilters: {...processedFilters}
+    });
+
+    if (isNewestAscending) {
+      console.log('[API Service] Special handling for newest + ascending order');
+      // Đổi thành "Mới nhất" + "Giảm dần" để lấy dữ liệu từ API
+      processedFilters.sort_type = 'desc';
+    }
+
+    // Xác định xem có cần chuyển sang API tìm kiếm không
+    let useSearchAPI = false;
+
+    // Kiểm tra xem filter có chọn thể loại khác với route hiện tại không
+    if (routeType === 'the-loai' && processedFilters.category && processedFilters.category !== routeSlug) {
+      console.log('[API Service] Using search API because category filter differs from route slug');
+      useSearchAPI = true;
+    }
+
+    // Kiểm tra xem filter có chọn quốc gia khác với route hiện tại không
+    if (routeType === 'quoc-gia' && processedFilters.country && processedFilters.country !== routeSlug) {
+      console.log('[API Service] Using search API because country filter differs from route slug');
+      useSearchAPI = true;
+    }
+
+    // Kiểm tra xem filter có chọn năm khác với route hiện tại không
+    if (routeType === 'nam' && processedFilters.year && processedFilters.year !== routeSlug) {
+      console.log('[API Service] Using search API because year filter differs from route slug');
+      useSearchAPI = true;
+    }
+
+    // Nếu có nhiều hơn một tham số filter chính, sử dụng API tìm kiếm
+    const filterCount = Object.keys(processedFilters).filter(key =>
+      processedFilters[key as keyof typeof processedFilters] &&
+      key !== 'limit' &&
+      key !== 'page' &&
+      key !== 'sort_field' &&
+      key !== 'sort_type' &&
+      key !== 'sort_lang'
+    ).length;
+
+    if (filterCount > 1) {
+      console.log(`[API Service] Using search API because multiple filters (${filterCount}) are applied`);
+      useSearchAPI = true;
+    }
+
+    // Sử dụng API phù hợp dựa trên điều kiện
+    let result: PaginatedResponse<Movie>;
+
+    if (useSearchAPI) {
+      // Sử dụng API tìm kiếm với các tham số filter
+      logger.debug('[API Service] Using search API for filtering');
+      console.log('[API Service] Using search API for filtering with params:', processedFilters);
+      result = await searchMovies('', page, processedFilters);
+    } else {
+      // Sử dụng API tương ứng với route hiện tại
+      switch (routeType) {
+        case 'the-loai':
+          logger.debug('[API Service] Using category API for filtering');
+          console.log('[API Service] Using category API for filtering with slug:', routeSlug, 'and params:', processedFilters);
+          result = await getMoviesByCategory(routeSlug, page, processedFilters);
+          break;
+
+        case 'quoc-gia':
+          logger.debug('[API Service] Using country API for filtering');
+          console.log('[API Service] Using country API for filtering with slug:', routeSlug, 'and params:', processedFilters);
+          result = await getMoviesByCountry(routeSlug, page, processedFilters);
+          break;
+
+        case 'nam':
+          logger.debug('[API Service] Using year API for filtering');
+          console.log('[API Service] Using year API for filtering with slug:', routeSlug, 'and params:', processedFilters);
+          result = await getMoviesByYear(routeSlug, page, processedFilters);
+          break;
+
+        case 'tim-kiem':
+          logger.debug('[API Service] Using search API for filtering');
+          console.log('[API Service] Using search API for filtering with keyword:', routeSlug, 'and params:', processedFilters);
+          result = await searchMovies(routeSlug, page, processedFilters);
+          break;
+
+        default:
+          // Mặc định sử dụng API danh sách phim mới
+          logger.debug('[API Service] Using default new movies API for filtering');
+          console.log('[API Service] Using default new movies API for filtering with params:', processedFilters);
+          result = await getNewMovies(page, PAGINATION_CONFIG.ITEMS_PER_PAGE, processedFilters);
+          break;
+      }
+    }
+
+    console.log('[API Service] Filter result:', {
+      totalItems: result.pagination.totalItems,
+      totalPages: result.pagination.totalPages,
+      currentPage: result.pagination.currentPage,
+      itemCount: result.data.length
+    });
+
+    // Nếu là "Mới nhất" + "Tăng dần", đảo ngược thứ tự phim
+    if (isNewestAscending && result.data.length > 0) {
+      console.log('[API Service] Reversing movie order for newest + ascending');
+      result.data = [...result.data].reverse();
+
+      // Đảm bảo rằng sort_type trong kết quả trả về vẫn là 'asc'
+      console.log('[API Service] Original filters had sort_type =', filters.sort_type);
+    }
+
+    return result;
+  } catch (error) {
+    console.error(`[API Service] Error getting filtered movies:`, error);
+    logger.error(`[API Service] Error getting filtered movies:`, error);
+    return getEmptyResponse(page);
   }
 }
 

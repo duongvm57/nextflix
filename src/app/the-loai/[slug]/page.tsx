@@ -1,11 +1,9 @@
 import { getMoviesByGenre } from '@/lib/api';
-import { MovieGrid } from '@/components/movie/movie-grid';
-import { Pagination } from '@/components/ui/pagination';
-import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { getCategories } from '@/lib/api';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
 import { Suspense } from 'react';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { GenreClientPage } from './client-page';
 import type { Category } from '@/types';
 
 // Export metadata từ file riêng biệt
@@ -33,9 +31,8 @@ type Props = {
 };
 
 export default async function GenrePage(props: Props) {
-  // Use Promise.resolve to handle the params and searchParams
-  const params = await Promise.resolve(props.params);
-  const searchParams = await Promise.resolve(props.searchParams);
+  // Access params and searchParams directly
+  const { params, searchParams } = props;
 
   const slug = params.slug;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
@@ -68,28 +65,18 @@ async function GenreContent({ slug, page }: { slug: string; page: number }) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
+  // Prepare initial data for client component
+  const initialData = {
+    movies,
+    pagination,
+    genreName,
+    slug,
+  };
+
   return (
     <>
       <BreadcrumbSchema items={[{ name: genreName, url: `/the-loai/${slug}` }]} />
-      <Breadcrumb items={[{ name: genreName, url: `/the-loai/${slug}` }]} className="mt-4" />
-      <h1 className="mb-8 text-3xl font-bold">Thể loại: {genreName}</h1>
-
-      {movies.length > 0 ? (
-        <>
-          <MovieGrid movies={movies} />
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              baseUrl={`/the-loai/${slug}`}
-            />
-          )}
-        </>
-      ) : (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <p className="text-xl text-gray-400">Không tìm thấy phim nào trong thể loại này.</p>
-        </div>
-      )}
+      <GenreClientPage initialData={initialData} />
     </>
   );
 }

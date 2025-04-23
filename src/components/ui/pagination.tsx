@@ -1,6 +1,9 @@
+"use client";
+
 import { ChevronLeft, ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { MenuLink } from '@/components/ui/menu-link';
+import { useSearchParams } from 'next/navigation';
 
 interface PaginationProps {
   currentPage: number;
@@ -17,6 +20,22 @@ export function Pagination({
   onPageChange,
   className = '',
 }: PaginationProps) {
+  // Get current search params to preserve them when changing pages
+  const searchParams = useSearchParams();
+
+  // Function to create URL with preserved query params
+  const createPageUrl = (page: number) => {
+    if (!baseUrl) return '#';
+
+    // Create a new URLSearchParams object
+    const params = new URLSearchParams(searchParams?.toString());
+
+    // Update or add the page parameter
+    params.set('page', page.toString());
+
+    // Return the URL with all parameters
+    return `${baseUrl}?${params.toString()}`;
+  };
   // Generate page numbers to display
   const getPageNumbers = () => {
     const pages = [];
@@ -71,10 +90,10 @@ export function Pagination({
       {/* Previous button - optimized */}
       {baseUrl ? (
         <MenuLink
-          href={currentPage > 1 ? `${baseUrl}?page=${currentPage - 1}` : '#'}
+          href={currentPage > 1 ? createPageUrl(currentPage - 1) : '#'}
           className={cn(
-            'inline-flex h-10 w-10 items-center justify-center rounded-md border',
-            currentPage <= 1 ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+            'inline-flex h-10 w-10 items-center justify-center rounded-md border pagination-button',
+            currentPage <= 1 ? 'pointer-events-none opacity-50' : ''
           )}
           aria-label="Previous Page"
         >
@@ -84,7 +103,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange?.(currentPage - 1)}
           disabled={currentPage <= 1}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border hover:bg-gray-100 disabled:opacity-50"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border pagination-button disabled:opacity-50"
           aria-label="Previous Page"
         >
           <ChevronLeft size={16} />
@@ -105,11 +124,11 @@ export function Pagination({
         const isActive = currentPage === page;
         const className = cn(
           'inline-flex h-10 w-10 items-center justify-center rounded-md',
-          isActive ? 'bg-blue-500 text-white' : 'border hover:bg-gray-100'
+          isActive ? 'bg-blue-500 text-white' : 'border pagination-button'
         );
 
         return baseUrl ? (
-          <MenuLink key={index} href={`${baseUrl}?page=${page}`} className={className}>
+          <MenuLink key={index} href={createPageUrl(page as number)} className={className}>
             {page}
           </MenuLink>
         ) : (
@@ -127,10 +146,10 @@ export function Pagination({
       {/* Next button - optimized */}
       {baseUrl ? (
         <MenuLink
-          href={currentPage < totalPages ? `${baseUrl}?page=${currentPage + 1}` : '#'}
+          href={currentPage < totalPages ? createPageUrl(currentPage + 1) : '#'}
           className={cn(
-            'inline-flex h-10 w-10 items-center justify-center rounded-md border',
-            currentPage >= totalPages ? 'pointer-events-none opacity-50' : 'hover:bg-gray-100'
+            'inline-flex h-10 w-10 items-center justify-center rounded-md border pagination-button',
+            currentPage >= totalPages ? 'pointer-events-none opacity-50' : ''
           )}
           aria-label="Next Page"
         >
@@ -140,7 +159,7 @@ export function Pagination({
         <button
           onClick={() => onPageChange?.(currentPage + 1)}
           disabled={currentPage >= totalPages}
-          className="inline-flex h-10 w-10 items-center justify-center rounded-md border hover:bg-gray-100 disabled:opacity-50"
+          className="inline-flex h-10 w-10 items-center justify-center rounded-md border pagination-button disabled:opacity-50"
           aria-label="Next Page"
         >
           <ChevronRight size={16} />

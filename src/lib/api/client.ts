@@ -8,6 +8,28 @@
 import { logger } from '@/utils/logger';
 import { API_BASE_URL, API_V1_BASE_URL } from './constants';
 
+/**
+ * Interface cho các tham số API chung
+ */
+export interface ApiParams {
+  type?: string;
+  sort_field?: string;
+  sort_type?: string;
+  sort_lang?: string;
+  category?: string;
+  country?: string;
+  year?: string;
+  limit?: string;
+  page?: string;
+}
+
+/**
+ * Interface cho các tham số API tìm kiếm
+ */
+export interface SearchApiParams extends ApiParams {
+  keyword: string;
+}
+
 // Các endpoint API theo tài liệu
 export const API_ENDPOINTS = {
   // Danh sách phim
@@ -58,6 +80,8 @@ export async function fetchAPI<T>(
 
   // Tạo URL đầy đủ
   const url = `${API_BASE_URL}${endpoint}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
+
+  console.log(`[API Client] Full URL: ${url}`);
 
   // Maximum number of retries
   const MAX_RETRIES = 3;
@@ -130,6 +154,8 @@ export async function fetchAPIV1<T>(
   // Tạo URL đầy đủ
   const url = `${API_V1_BASE_URL}${endpoint}${queryParams.toString() ? `?${queryParams.toString()}` : ''}`;
 
+  console.log(`[API Client] Full V1 URL: ${url}`);
+
   // Maximum number of retries
   const MAX_RETRIES = 3;
   let retries = 0;
@@ -200,12 +226,30 @@ export async function fetchCountries() {
 /**
  * Fetch danh sách phim mới
  */
-export async function fetchNewMovies(page: number = 1, limit: number = 15) {
+export async function fetchNewMovies(
+  page: number = 1,
+  limit: number = 15,
+  options: Partial<ApiParams> = {}
+) {
   logger.debug(`[API Client] Fetching new movies for page ${page}`);
-  return fetchAPI<any>(`${API_ENDPOINTS.NEW_MOVIES}`, {
+
+  // Tạo object params với các giá trị mặc định
+  const params: Record<string, string> = {
     page: page.toString(),
     limit: limit.toString(),
+  };
+
+  // Thêm các tham số tùy chọn nếu có
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = String(value);
+    }
   });
+
+  console.log(`[API Client] Fetching new movies with params:`, params);
+  console.log(`[API Client] Original options:`, options);
+
+  return fetchAPI<any>(`${API_ENDPOINTS.NEW_MOVIES}`, params);
 }
 
 /**
@@ -219,45 +263,126 @@ export async function fetchMovieDetail(slug: string) {
 /**
  * Fetch danh sách phim theo thể loại
  */
-export async function fetchMoviesByCategory(slug: string, page: number = 1, limit: number = 15) {
+export async function fetchMoviesByCategory(
+  slug: string,
+  page: number = 1,
+  limit: number = 15,
+  options: Partial<ApiParams> = {}
+) {
   logger.debug(`[API Client] Fetching movies by category ${slug} for page ${page}`);
-  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_CATEGORY}/${slug}`, {
+
+  // Tạo object params với các giá trị mặc định
+  const params: Record<string, string> = {
     page: page.toString(),
     limit: limit.toString(),
+  };
+
+  // Thêm các tham số tùy chọn nếu có
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = String(value);
+    }
   });
+
+  console.log(`[API Client] Fetching movies by category with params:`, params);
+  console.log(`[API Client] Original options:`, options);
+
+  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_CATEGORY}/${slug}`, params);
 }
 
 /**
  * Fetch danh sách phim theo quốc gia
  */
-export async function fetchMoviesByCountry(slug: string, page: number = 1, limit: number = 15) {
+export async function fetchMoviesByCountry(
+  slug: string,
+  page: number = 1,
+  limit: number = 15,
+  options: Partial<ApiParams> = {}
+) {
   logger.debug(`[API Client] Fetching movies by country ${slug} for page ${page}`);
-  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_COUNTRY}/${slug}`, {
+
+  // Tạo object params với các giá trị mặc định
+  const params: Record<string, string> = {
     page: page.toString(),
     limit: limit.toString(),
+  };
+
+  // Thêm các tham số tùy chọn nếu có
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = String(value);
+    }
   });
+
+  console.log(`[API Client] Fetching movies by country with params:`, params);
+  console.log(`[API Client] Original options:`, options);
+
+  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_COUNTRY}/${slug}`, params);
 }
 
 /**
  * Fetch danh sách phim theo năm
  */
-export async function fetchMoviesByYear(year: string, page: number = 1, limit: number = 15) {
+export async function fetchMoviesByYear(
+  year: string,
+  page: number = 1,
+  limit: number = 15,
+  options: Partial<ApiParams> = {}
+) {
   logger.debug(`[API Client] Fetching movies by year ${year} for page ${page}`);
-  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_MOVIES_LIST}/phim-bo`, {
+
+  // Tạo object params với các giá trị mặc định
+  const params: Record<string, string> = {
     page: page.toString(),
     limit: limit.toString(),
     year,
+  };
+
+  // Xác định endpoint dựa trên type (nếu có)
+  const endpoint = options.type ?
+    `${API_ENDPOINTS.V1_MOVIES_LIST}/${options.type}` :
+    `${API_ENDPOINTS.V1_MOVIES_LIST}/phim-bo`;
+
+  // Thêm các tham số tùy chọn nếu có
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = String(value);
+    }
   });
+
+  console.log(`[API Client] Fetching movies by year with params:`, params);
+  console.log(`[API Client] Original options:`, options);
+
+  return fetchAPIV1<any>(endpoint, params);
 }
 
 /**
  * Tìm kiếm phim
  */
-export async function fetchSearchMovies(keyword: string, page: number = 1, limit: number = 15) {
+export async function fetchSearchMovies(
+  keyword: string,
+  page: number = 1,
+  limit: number = 15,
+  options: Partial<ApiParams> = {}
+) {
   logger.debug(`[API Client] Searching movies for ${keyword} on page ${page}`);
-  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_SEARCH}`, {
+
+  // Tạo object params với các giá trị mặc định
+  const params: Record<string, string> = {
     keyword,
     page: page.toString(),
     limit: limit.toString(),
+  };
+
+  // Thêm các tham số tùy chọn nếu có
+  Object.entries(options).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      params[key] = String(value);
+    }
   });
+
+  console.log(`[API Client] Searching movies with params:`, params);
+  console.log(`[API Client] Original options:`, options);
+
+  return fetchAPIV1<any>(`${API_ENDPOINTS.V1_SEARCH}`, params);
 }

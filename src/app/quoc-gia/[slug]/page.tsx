@@ -1,17 +1,17 @@
 import { getMoviesByCountry as apiGetMoviesByCountry } from '@/lib/api';
-import { MovieGrid } from '@/components/movie/movie-grid';
-import { Pagination } from '@/components/ui/pagination';
-import { Breadcrumb } from '@/components/ui/breadcrumb';
 import { getCountries } from '@/lib/api';
 import { BreadcrumbSchema } from '@/components/schema/breadcrumb-schema';
+import { CountryClientPage } from './client-page';
 import { Country, PaginatedResponse, Movie } from '@/types';
+import { ApiParams } from '@/lib/api/client';
 
 // Export metadata từ file riêng biệt
 export { generateMetadata } from './metadata';
 
 async function getMoviesByCountry(
   slug: string,
-  page: number = 1
+  page: number = 1,
+  options?: Partial<ApiParams>
 ): Promise<PaginatedResponse<Movie>> {
   try {
     // Kiểm tra xem slug có phải là country slug hợp lệ không
@@ -26,7 +26,13 @@ async function getMoviesByCountry(
       };
     }
 
-    return await apiGetMoviesByCountry(slug, page);
+    if (options && Object.keys(options).length > 0) {
+      console.log(`[Page] Fetching movies for country: ${slug} with options:`, options);
+      return await apiGetMoviesByCountry(slug, page, options);
+    } else {
+      console.log(`[Page] Fetching movies for country: ${slug} without options`);
+      return await apiGetMoviesByCountry(slug, page);
+    }
   } catch (error) {
     console.error('Error fetching movies by country:', error);
     return {
@@ -38,7 +44,7 @@ async function getMoviesByCountry(
 
 type Props = {
   params: { slug: string };
-  searchParams: { page?: string };
+  searchParams: { page?: string; type?: string; [key: string]: string | undefined };
 };
 
 export default async function CountryPage(props: Props) {
@@ -46,9 +52,18 @@ export default async function CountryPage(props: Props) {
   const params = await Promise.resolve(props.params);
   const searchParams = await Promise.resolve(props.searchParams);
 
+  // Now safely access the properties
   const slug = params.slug;
   const page = searchParams.page ? parseInt(searchParams.page) : 1;
-  const { data: movies, pagination } = await getMoviesByCountry(slug, page);
+  const typeParam = searchParams.type;
+
+  // Tạo object options cho API
+  const options: Partial<ApiParams> = {};
+  if (typeParam) options.type = typeParam;
+
+  console.log(`[Page] Country page options:`, options);
+
+  const { data: movies, pagination } = await getMoviesByCountry(slug, page, options);
 
   // Get country name from API
   const countries = await getCountries();
@@ -62,29 +77,18 @@ export default async function CountryPage(props: Props) {
         .map(word => word.charAt(0).toUpperCase() + word.slice(1))
         .join(' ');
 
+  // Prepare initial data for client component
+  const initialData = {
+    movies,
+    pagination,
+    countryName,
+    slug,
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <BreadcrumbSchema items={[{ name: countryName, url: `/quoc-gia/${slug}` }]} />
-      <Breadcrumb items={[{ name: countryName, url: `/quoc-gia/${slug}` }]} className="mt-4" />
-      <h1 className="mb-8 text-3xl font-bold">Quốc gia: {countryName}</h1>
-
-      {movies.length > 0 ? (
-        <>
-          <MovieGrid movies={movies} />
-
-          {pagination && pagination.totalPages > 1 && (
-            <Pagination
-              currentPage={pagination.currentPage}
-              totalPages={pagination.totalPages}
-              baseUrl={`/quoc-gia/${slug}`}
-            />
-          )}
-        </>
-      ) : (
-        <div className="flex min-h-[40vh] items-center justify-center">
-          <p className="text-xl text-gray-400">Không tìm thấy phim nào từ quốc gia này.</p>
-        </div>
-      )}
+      <CountryClientPage initialData={initialData} />
     </div>
   );
 }
