@@ -59,7 +59,19 @@ export const CACHED_ENDPOINTS = [
   'phim-bo',
   'phim-chieu-rap',
   'phim-sap-chieu',
+  'tim-kiem',
+  'danh-sach',
 ];
+
+// Cache duration cho từng loại endpoint (giây)
+export const CACHE_DURATIONS = {
+  // Dữ liệu ít thay đổi
+  STATIC: 86400, // 24 giờ
+  // Dữ liệu thay đổi vừa phải
+  MEDIUM: 7200, // 2 giờ
+  // Dữ liệu thay đổi thường xuyên
+  DYNAMIC: 1800, // 30 phút
+};
 
 /**
  * Fetch API với retry logic và error handling
@@ -94,6 +106,14 @@ export async function fetchAPI<T>(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 30000); // 30 second timeout
 
+      // Xác định thời gian cache dựa trên endpoint
+      let cacheDuration = 0;
+      if (endpoint.includes('the-loai') || endpoint.includes('quoc-gia')) {
+        cacheDuration = CACHE_DURATIONS.STATIC; // Dữ liệu ít thay đổi
+      } else if (CACHED_ENDPOINTS.some(e => endpoint.includes(e))) {
+        cacheDuration = CACHE_DURATIONS.MEDIUM; // Dữ liệu thay đổi vừa phải
+      }
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -102,12 +122,10 @@ export async function fetchAPI<T>(
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         },
         signal: controller.signal,
-        // Use cache for better performance
-        cache: CACHED_ENDPOINTS.some(e => endpoint.includes(e)) ? 'force-cache' : 'no-store',
-        // Revalidate categories and countries every hour, otherwise disable cache
-        next: CACHED_ENDPOINTS.some(e => endpoint.includes(e))
-          ? { revalidate: 3600 } // Cache 1 giờ
-          : { revalidate: 0 },
+        // Sử dụng cache cho tất cả các endpoint được liệt kê
+        cache: cacheDuration > 0 ? 'force-cache' : 'no-store',
+        // Cấu hình revalidate dựa trên loại dữ liệu
+        next: cacheDuration > 0 ? { revalidate: cacheDuration } : { revalidate: 0 },
       });
 
       // Clear the timeout
@@ -167,6 +185,14 @@ export async function fetchAPIV1<T>(
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 15000); // 15 second timeout
 
+      // Xác định thời gian cache dựa trên endpoint
+      let cacheDuration = 0;
+      if (endpoint.includes('the-loai') || endpoint.includes('quoc-gia')) {
+        cacheDuration = CACHE_DURATIONS.STATIC; // Dữ liệu ít thay đổi
+      } else if (CACHED_ENDPOINTS.some(e => endpoint.includes(e))) {
+        cacheDuration = CACHE_DURATIONS.MEDIUM; // Dữ liệu thay đổi vừa phải
+      }
+
       const response = await fetch(url, {
         method: 'GET',
         headers: {
@@ -175,12 +201,10 @@ export async function fetchAPIV1<T>(
             'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36',
         },
         signal: controller.signal,
-        // Use cache for better performance
-        cache: CACHED_ENDPOINTS.some(e => endpoint.includes(e)) ? 'force-cache' : 'no-store',
-        // Revalidate categories and countries every hour, otherwise disable cache
-        next: CACHED_ENDPOINTS.some(e => endpoint.includes(e))
-          ? { revalidate: 3600 } // Cache 1 giờ
-          : { revalidate: 0 },
+        // Sử dụng cache cho tất cả các endpoint được liệt kê
+        cache: cacheDuration > 0 ? 'force-cache' : 'no-store',
+        // Cấu hình revalidate dựa trên loại dữ liệu
+        next: cacheDuration > 0 ? { revalidate: cacheDuration } : { revalidate: 0 },
       });
 
       // Clear the timeout

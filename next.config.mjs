@@ -30,7 +30,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+            value: 'public, max-age=7200, s-maxage=86400, stale-while-revalidate=31536000'
           }
         ],
       },
@@ -65,7 +65,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+            value: 'public, max-age=7200, s-maxage=86400, stale-while-revalidate=31536000'
           }
         ],
       },
@@ -81,7 +81,7 @@ const nextConfig = {
         headers: [
           {
             key: 'Cache-Control',
-            value: 'public, max-age=3600, s-maxage=86400, stale-while-revalidate=31536000'
+            value: 'public, max-age=7200, s-maxage=86400, stale-while-revalidate=31536000'
           }
         ],
       }
@@ -125,9 +125,20 @@ const nextConfig = {
     // Optimize for static rendering where possible
     serverMinification: true,
     // Optimize RSC payload size
-    optimizePackageImports: ['react', 'react-dom', 'next', 'embla-carousel-react'],
+    optimizePackageImports: [
+      'react',
+      'react-dom',
+      'next',
+      'embla-carousel-react',
+      'lucide-react',
+      'clsx',
+      'tailwind-merge',
+      'swr'
+    ],
     // Optimize RSC
     optimizeServerReact: true,
+    // Tối ưu hóa tải trang (chỉ sử dụng các tính năng tương thích)
+    optimisticClientCache: true,
   },
 
   // External packages for server components

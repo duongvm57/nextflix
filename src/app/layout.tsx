@@ -1,20 +1,18 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { Suspense } from 'react';
+import Script from 'next/script';
+import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { Header } from '@/components/layout/header';
 import { Footer } from '@/components/layout/footer';
-import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
-
-import { LoadingProvider } from '@/providers/loading-provider';
-import { YearWrapper } from '@/components/year-wrapper';
-import { Suspense } from 'react';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import { SITE_NAME, SITE_DESCRIPTION, DOMAIN } from '@/lib/constants';
 import { WebsiteSchema } from '@/components/schema/website-schema';
 import { OrganizationSchema } from '@/components/schema/organization-schema';
 import { LogoSchema } from '@/components/schema/logo-schema';
+import { LoadingProvider } from '@/providers/loading-provider';
+import { YearWrapper } from '@/components/year-wrapper';
+import { CacheStatusWrapper } from '@/components/ui/cache-status-wrapper';
 import { SpeedInsights } from '@vercel/speed-insights/next';
-// Removed prefetch imports
-import Script from 'next/script';
 
 // Removed font declarations to avoid hydration issues
 
@@ -137,8 +135,9 @@ export default async function RootLayout({
                         console.log('[NAVIGATION_FIX] Should be on:', targetUrl, 'Last URL was:', lastUrl);
                       }
 
-                      // Check if we came from a watch page or any other page
-                      if (lastUrl) {
+                      // Kiểm tra xem targetUrl có chứa tham số from=watch không
+                      // Nếu có, không thực hiện chuyển hướng vì đây là điều hướng từ trang xem phim sang trang thông tin phim
+                      if (lastUrl && !targetUrl.includes('from=watch')) {
                         // Use replace instead of href to avoid adding to browser history
                         window.location.replace(targetUrl);
                       }
@@ -244,8 +243,12 @@ export default async function RootLayout({
                         console.log('[NAVIGATION_FIX] Redirecting from home to:', targetUrl);
                       }
 
-                      // Redirect to the intended page
-                      window.location.replace(targetUrl);
+                      // Kiểm tra xem targetUrl có chứa tham số from=watch không
+                      // Nếu có, không thực hiện chuyển hướng vì đây là điều hướng từ trang xem phim sang trang thông tin phim
+                      if (!targetUrl.includes('from=watch')) {
+                        // Redirect to the intended page
+                        window.location.replace(targetUrl);
+                      }
                     }
 
                     // Also check for other navigation issues
@@ -271,7 +274,12 @@ export default async function RootLayout({
                           console.log('[NAVIGATION_VISIBILITY] Detected incorrect navigation to home page');
                           console.log('[NAVIGATION_VISIBILITY] Redirecting to:', targetUrl);
                         }
-                        window.location.replace(targetUrl);
+
+                        // Kiểm tra xem targetUrl có chứa tham số from=watch không
+                        // Nếu có, không thực hiện chuyển hướng vì đây là điều hướng từ trang xem phim sang trang thông tin phim
+                        if (!targetUrl.includes('from=watch')) {
+                          window.location.replace(targetUrl);
+                        }
                       }
                     }
                   });

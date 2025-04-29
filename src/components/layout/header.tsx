@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { MenuLink } from '@/components/ui/menu-link';
 import { useState, useRef, useEffect, memo } from 'react';
 import { Search, Menu, X, ChevronDown } from 'lucide-react';
@@ -303,7 +302,19 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      router.push(`/tim-kiem?keyword=${encodeURIComponent(searchQuery.trim())}`);
+      // Kiểm tra xem có đang ở trang tìm kiếm không
+      const isOnSearchPage = typeof window !== 'undefined' && window.location.pathname === '/tim-kiem';
+
+      const searchUrl = `/tim-kiem?keyword=${encodeURIComponent(searchQuery.trim())}`;
+
+      if (isOnSearchPage) {
+        // Nếu đang ở trang tìm kiếm, sử dụng window.location.href để tải lại trang
+        window.location.href = searchUrl;
+      } else {
+        // Nếu không ở trang tìm kiếm, sử dụng router.push
+        router.push(searchUrl);
+      }
+
       setSearchQuery('');
     }
   };
@@ -312,8 +323,8 @@ export function Header() {
     <header className="sticky top-0 z-50 bg-black shadow-md">
       <div className="container mx-auto px-4">
         <div className="flex h-16 items-center justify-between">
-          {/* Logo */}
-          <Link href="/" className="flex items-center">
+          {/* Logo - Sử dụng MenuLink để tận dụng cơ chế điều hướng đã tối ưu */}
+          <MenuLink href="/" className="flex items-center">
             <Image
               src="/images/logo.png"
               alt="Nextflix"
@@ -322,7 +333,7 @@ export function Header() {
               priority
               className="h-8 w-auto"
             />
-          </Link>
+          </MenuLink>
 
           {/* Desktop Navigation */}
           <nav className="hidden md:block" ref={dropdownRef}>

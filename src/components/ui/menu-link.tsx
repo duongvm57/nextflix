@@ -7,11 +7,7 @@ import { clientCache } from '@/lib/cache/client-cache';
 import { CACHE_CONFIG } from '@/lib/config/cache-config';
 import { RippleEffect } from './ripple-effect';
 import { useLoading } from '@/providers/loading-provider';
-import {
-  storeNavigationState,
-  logNavigationState,
-  clearNavigationState as clearNavState,
-} from '@/utils/navigation-debug';
+import { clearNavigationState as clearNavState } from '@/utils/navigation-debug';
 
 interface MenuLinkProps {
   href: string;
@@ -29,7 +25,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
   // Track visited links to avoid unnecessary prefetching
   const prefetchedLinks = useRef<Set<string>>(new Set());
 
-  // Prefetch only essential links to reduce RSC requests
+  // Tối ưu hóa prefetching để cải thiện hiệu suất
   useEffect(() => {
     // Skip prefetching for anchor links and external links
     if (href.startsWith('#') || href.startsWith('http')) {
@@ -41,17 +37,39 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       return;
     }
 
-    // Only prefetch home page and a few essential links
-    // Significantly reduced list to minimize RSC requests
-    const essentialPaths = ['/', '/danh-muc/phim-le', '/danh-muc/phim-bo'];
+    // Mở rộng danh sách các đường dẫn cần prefetch
+    const essentialPaths = [
+      '/',
+      '/danh-muc/phim-le',
+      '/danh-muc/phim-bo',
+      '/danh-muc/tv-shows',
+      '/danh-muc/hoat-hinh',
+      '/chu-de',
+      '/tim-kiem'
+    ];
 
-    // Only prefetch essential paths, not all genre/country links
-    const shouldPrefetch = essentialPaths.includes(href);
+    // Prefetch các trang thông tin phim và trang xem phim
+    const isMovieDetailLink = href.startsWith('/phim/');
+    const isWatchLink = href.startsWith('/xem/');
+    const isCategoryLink = href.startsWith('/the-loai/');
+    const isCountryLink = href.startsWith('/quoc-gia/');
+
+    // Prefetch các trang quan trọng và các trang phim
+    const shouldPrefetch =
+      essentialPaths.includes(href) ||
+      isMovieDetailLink ||
+      isWatchLink ||
+      isCategoryLink ||
+      isCountryLink;
 
     if (shouldPrefetch) {
       // Mark as prefetched
       prefetchedLinks.current.add(href);
-      console.log(`[PREFETCH] Prefetching essential link: ${href}`);
+
+      // Chỉ log trong môi trường development
+      if (process.env.NODE_ENV === 'development') {
+        console.log(`[PREFETCH] Prefetching link: ${href}`);
+      }
 
       // Use Next.js router to prefetch the page
       router.prefetch(href);
@@ -62,7 +80,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
         clientCache.set(
           'prefetched_links',
           [...prefetchedLinksCache, href],
-          CACHE_CONFIG.CLIENT.NAVIGATION
+          CACHE_CONFIG.CLIENT.PREFETCHED_LINKS
         );
       }
     }
@@ -101,34 +119,49 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Call onClick handler if provided
     if (onClick) onClick();
 
-    // Check if this is a genre, country, footer, or search link
-    const isGenreLink = href.startsWith('/the-loai/');
-    const isCountryLink = href.startsWith('/quoc-gia/');
-    const isFooterLink = href.startsWith('/danh-muc/');
-    const isSearchLink = href.startsWith('/tim-kiem');
-    const isWatchLink = href.startsWith('/xem/');
-
-    // Store the current URL in sessionStorage before navigation
-    // This will help us detect and fix navigation issues
-    if (typeof window !== 'undefined') {
-      storeNavigationState(href);
-      // Only log in development mode
-      if (process.env.NODE_ENV === 'development') {
-        logNavigationState('NAVIGATION_CLICK');
-      }
+    if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
+      console.log('[NAVIGATION] Navigating to:', href);
     }
 
     try {
-      // Use direct navigation for specific link types to avoid Next.js routing issues
-      if (isGenreLink || isCountryLink || isFooterLink || isSearchLink) {
-        window.location.href = href;
-      } else if (isWatchLink) {
-        // Special handling for watch links to prevent navigation issues
-        router.push(href);
-      } else {
-        // For other links, use normal push navigation
-        router.push(href);
+      // Kiểm tra xem đây có phải là link thông tin phim không
+      const isMovieDetailLink = href.startsWith('/phim/');
+
+      // Tối ưu hóa cách xử lý điều hướng
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        const isHomeLink = href === '/';
+
+        // Xử lý đặc biệt cho link trang chủ
+        if (isHomeLink) {
+          // Xóa tất cả các biến sessionStorage liên quan đến điều hướng
+          sessionStorage.removeItem('lastUrl');
+          sessionStorage.removeItem('targetUrl');
+          sessionStorage.removeItem('navigationMethod');
+          sessionStorage.removeItem('currentPath');
+
+          // Sử dụng router.push() để tận dụng client-side navigation
+          router.push(href);
+          return; // Kết thúc sớm
+        }
+
+        // Xử lý đặc biệt cho trường hợp từ trang xem phim sang trang thông tin phim
+        if (isMovieDetailLink && currentPath.startsWith('/xem/')) {
+          // Xóa tất cả các biến sessionStorage liên quan đến điều hướng
+          // để tránh các vấn đề với script điều hướng
+          sessionStorage.removeItem('lastUrl');
+          sessionStorage.removeItem('targetUrl');
+          sessionStorage.removeItem('navigationMethod');
+          sessionStorage.removeItem('currentPath');
+
+          // Sử dụng window.location.href để đảm bảo điều hướng đúng
+          window.location.href = href;
+          return; // Kết thúc sớm
+        }
       }
+
+      // Sử dụng router.push() cho các trường hợp còn lại để tận dụng client-side navigation
+      router.push(href);
     } catch (error) {
       if (process.env.NODE_ENV === 'development') {
         console.error(`[NAVIGATION] Error navigating to ${href}:`, error);
@@ -141,7 +174,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Reset navigation flag after a delay
     setTimeout(() => {
       isNavigating.current = false;
-    }, 300);
+    }, 200); // Giảm thời gian delay xuống 200ms để cải thiện UX
   }, [href, onClick, router, startLoading, clearNavigationState]);
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
@@ -158,8 +191,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     let touchStartY = 0;
     let touchStartTime = 0;
     let isTouchMoved = false;
-    const TOUCH_THRESHOLD = 10; // Increased threshold for better reliability
-    const TAP_DURATION_THRESHOLD = 500; // Increased max milliseconds for a tap
+    const TOUCH_THRESHOLD = 5; // Giảm ngưỡng để cải thiện độ nhạy
+    const TAP_DURATION_THRESHOLD = 300; // Giảm thời gian tối đa cho một tap để cải thiện UX
 
     const handleTouchStart = (e: TouchEvent) => {
       touchStartX = e.touches[0].clientX;
@@ -194,10 +227,10 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
         // Clear any existing navigation state from previous attempts
         clearNavigationState();
 
-        // Small delay to ensure clean navigation state
+        // Giảm delay để cải thiện UX
         setTimeout(() => {
           handleNavigation();
-        }, 50);
+        }, 10);
       }
     };
 
@@ -212,13 +245,14 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     };
   }, [href, handleNavigation, clearNavigationState]);
 
+  // Tối ưu hóa component Link
   return (
     <Link
       ref={linkRef}
       href={href}
       className={`relative block ${className}`}
       onClick={handleClick}
-      prefetch={false} // Disable Next.js automatic prefetching, we handle it manually
+      prefetch={true} // Bật prefetch của Next.js để cải thiện hiệu suất
     >
       {children}
       <RippleEffect />

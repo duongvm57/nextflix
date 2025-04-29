@@ -28,17 +28,23 @@ export const MovieGrid = memo(function MovieGrid({
   // Memoize movies để tránh re-render không cần thiết
   const memoizedMovies = useMemo(() => movies, [movies]);
 
-  if (isLoading) {
-    // Pre-calculate skeleton items to avoid unnecessary DOM elements
+  // Memoize skeleton items để tránh tạo lại khi re-render
+  const skeletonItems = useMemo(() => {
+    if (!isLoading) return [];
+
     const skeletonCount = PAGINATION_CONFIG.ITEMS_PER_PAGE / 2;
-    const skeletonItems = [];
+    const items = [];
 
     for (let i = 0; i < skeletonCount; i++) {
-      skeletonItems.push(
+      items.push(
         <div key={i} className="aspect-[2/3] animate-pulse rounded-lg bg-gray-800" />
       );
     }
 
+    return items;
+  }, [isLoading]);
+
+  if (isLoading) {
     return (
       <section className="py-6">
         {title && <h2 className="mb-6 text-2xl font-bold">{title}</h2>}

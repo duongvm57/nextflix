@@ -41,7 +41,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
     loadingTimeoutRef.current = setTimeout(() => {
       setIsLoading(false);
       isLoadingRef.current = false;
-    }, 300);
+    }, 200); // Giảm thời gian delay xuống 200ms để cải thiện UX
   }, []);
 
   // Auto-hide loading after timeout (longer timeout)
@@ -50,7 +50,7 @@ export function LoadingProvider({ children }: { children: React.ReactNode }) {
       const timer = setTimeout(() => {
         setIsLoading(false);
         isLoadingRef.current = false;
-      }, 1500); // Maximum loading time - adjusted to 1500ms for better balance
+      }, 1000); // Giảm thời gian tối đa xuống 1000ms để cải thiện UX
       return () => clearTimeout(timer);
     }
     return undefined; // Explicit return for ESLint

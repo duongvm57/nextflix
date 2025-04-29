@@ -5,23 +5,29 @@ import Image from 'next/image';
 import { MenuLink } from '@/components/ui/menu-link';
 import { getImageUrl, truncateText } from '@/lib/utils';
 import { ImageOff, Play } from 'lucide-react';
-import { useState } from 'react';
+import { useState, memo, useMemo } from 'react';
 
 interface MovieCardProps {
   movie: Movie;
   variant?: 'default' | 'featured';
 }
 
-export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
+// Sử dụng memo để tránh re-render không cần thiết
+export const MovieCard = memo(function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
   const isFeatured = variant === 'featured';
   const [imageError, setImageError] = useState(false);
+
+  // Tính toán các giá trị trước để tránh tính toán lại khi render
+  const imageUrl = useMemo(() => getImageUrl(movie.poster_url || movie.thumb_url), [movie.poster_url, movie.thumb_url]);
+  const movieName = useMemo(() => truncateText(movie.name, isFeatured ? 40 : 25), [movie.name, isFeatured]);
+  const movieLink = useMemo(() => `/phim/${movie.slug}`, [movie.slug]);
 
   return (
     <div
       className={`group relative overflow-hidden rounded-lg transition-all duration-300 ${isFeatured ? 'h-[300px] sm:h-[350px] md:h-[400px]' : 'h-[200px] sm:h-[250px] md:h-[320px]'}`}
     >
       <MenuLink
-        href={`/phim/${movie.slug}`}
+        href={movieLink}
         className="block h-full w-full active:opacity-80 active:scale-95 transition-all duration-150"
       >
         {imageError ? (
@@ -30,7 +36,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
           </div>
         ) : (
           <Image
-            src={getImageUrl(movie.poster_url || movie.thumb_url)}
+            src={imageUrl}
             alt={movie.name}
             fill
             className="object-cover transition-transform duration-300 group-hover:scale-105"
@@ -39,6 +45,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
             placeholder="blur"
             blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMzIwIiBoZWlnaHQ9IjUwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIiB2ZXJzaW9uPSIxLjEiLz4="
             onError={() => setImageError(true)}
+            priority={isFeatured} // Ưu tiên tải hình ảnh cho các phim nổi bật
           />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 via-black/30 to-transparent" />
@@ -46,7 +53,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
         {/* Movie info overlay */}
         <div className="absolute bottom-0 left-0 right-0 p-2 sm:p-3 md:p-4 text-white">
           <h3 className="mb-0.5 sm:mb-1 text-sm sm:text-base font-bold leading-tight text-shadow-sm">
-            {truncateText(movie.name, isFeatured ? 40 : 25)}
+            {movieName}
           </h3>
           <p className="text-xs sm:text-sm text-gray-200 line-clamp-1 text-shadow-sm">
             {movie.origin_name}
@@ -74,4 +81,7 @@ export function MovieCard({ movie, variant = 'default' }: MovieCardProps) {
       </MenuLink>
     </div>
   );
-}
+});
+
+// Đặt displayName để dễ debug
+MovieCard.displayName = 'MovieCard';
