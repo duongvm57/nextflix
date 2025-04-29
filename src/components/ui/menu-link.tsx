@@ -54,13 +54,8 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     const isCategoryLink = href.startsWith('/the-loai/');
     const isCountryLink = href.startsWith('/quoc-gia/');
 
-    // Prefetch các trang quan trọng và các trang phim
-    const shouldPrefetch =
-      essentialPaths.includes(href) ||
-      isMovieDetailLink ||
-      isWatchLink ||
-      isCategoryLink ||
-      isCountryLink;
+    // Chỉ prefetch các trang quan trọng, không prefetch các trang phim để tránh chặn điều hướng
+    const shouldPrefetch = essentialPaths.includes(href);
 
     if (shouldPrefetch) {
       // Mark as prefetched
@@ -111,9 +106,13 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     // Clear any stale navigation state first
     clearNavigationState();
 
+    // Đánh dấu đang điều hướng ngay lập tức
     isNavigating.current = true;
 
-    // Single loading trigger
+    // Kiểm tra xem đây có phải là link phim không
+
+    // Chỉ hiển thị loading cho các trang không phải trang phim
+    // để đảm bảo điều hướng đến trang phim diễn ra ngay lập tức
     startLoading();
 
     // Call onClick handler if provided
@@ -252,7 +251,7 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       href={href}
       className={`relative block ${className}`}
       onClick={handleClick}
-      prefetch={true} // Bật prefetch của Next.js để cải thiện hiệu suất
+      prefetch={false} // Tắt prefetch mặc định để tránh chặn điều hướng
     >
       {children}
       <RippleEffect />
