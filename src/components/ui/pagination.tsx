@@ -27,14 +27,40 @@ export function Pagination({
   const createPageUrl = (page: number) => {
     if (!baseUrl) return '#';
 
-    // Create a new URLSearchParams object
-    const params = new URLSearchParams(searchParams?.toString());
+    // Kiểm tra xem baseUrl đã có tham số query chưa
+    const hasQueryParams = baseUrl.includes('?');
 
-    // Update or add the page parameter
-    params.set('page', page.toString());
+    // Tạo URL cơ sở không có tham số query
+    const baseUrlWithoutParams = hasQueryParams ? baseUrl.split('?')[0] : baseUrl;
 
-    // Return the URL with all parameters
-    return `${baseUrl}?${params.toString()}`;
+    // Tạo đối tượng URLSearchParams từ tham số hiện tại trong baseUrl (nếu có)
+    const baseUrlParams = hasQueryParams
+      ? new URLSearchParams(baseUrl.split('?')[1])
+      : new URLSearchParams();
+
+    // Thêm các tham số từ searchParams hiện tại
+    const currentParams = new URLSearchParams(searchParams?.toString());
+    currentParams.forEach((value, key) => {
+      // Không ghi đè các tham số đã có trong baseUrl
+      if (!baseUrlParams.has(key)) {
+        baseUrlParams.set(key, value);
+      }
+    });
+
+    // Cập nhật hoặc thêm tham số page
+    baseUrlParams.set('page', page.toString());
+
+    // Lưu trữ thông tin điều hướng để tránh chuyển hướng về trang chủ
+    if (typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      const url = `${baseUrlWithoutParams}?${baseUrlParams.toString()}`;
+      sessionStorage.setItem('lastUrl', currentPath);
+      sessionStorage.setItem('targetUrl', url);
+      sessionStorage.setItem('navigationMethod', 'pagination');
+    }
+
+    // Trả về URL với tất cả các tham số
+    return `${baseUrlWithoutParams}?${baseUrlParams.toString()}`;
   };
   // Generate page numbers to display
   const getPageNumbers = () => {

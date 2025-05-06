@@ -48,12 +48,6 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       '/tim-kiem'
     ];
 
-    // Prefetch các trang thông tin phim và trang xem phim
-    const isMovieDetailLink = href.startsWith('/phim/');
-    const isWatchLink = href.startsWith('/xem/');
-    const isCategoryLink = href.startsWith('/the-loai/');
-    const isCountryLink = href.startsWith('/quoc-gia/');
-
     // Chỉ prefetch các trang quan trọng, không prefetch các trang phim để tránh chặn điều hướng
     const shouldPrefetch = essentialPaths.includes(href);
 
@@ -98,9 +92,30 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
       return;
     }
 
-    // Check if we're already on the same page
-    if (typeof window !== 'undefined' && window.location.pathname === href) {
-      return;
+    // Kiểm tra xem đã ở trang hiện tại chưa, nhưng cho phép điều hướng nếu tham số query khác nhau
+    if (typeof window !== 'undefined') {
+      const currentPathname = window.location.pathname;
+      const targetPathname = href.split('?')[0];
+
+      // Nếu đang ở cùng một trang (pathname giống nhau)
+      if (currentPathname === targetPathname) {
+        // Kiểm tra xem có phải là trang phân trang không
+        const isPaginationLink = href.includes('page=');
+        const isSearchPage = targetPathname === '/tim-kiem';
+        const isFilterPage = targetPathname.startsWith('/danh-muc/') ||
+                            targetPathname.startsWith('/the-loai/') ||
+                            targetPathname.startsWith('/quoc-gia/');
+
+        // Nếu không phải trang phân trang, trang tìm kiếm hoặc trang lọc, không cần điều hướng
+        if (!isPaginationLink && !isSearchPage && !isFilterPage) {
+          return;
+        }
+
+        // Nếu là trang phân trang, trang tìm kiếm hoặc trang lọc, kiểm tra xem URL hiện tại và URL đích có giống nhau không
+        if (window.location.href === new URL(href, window.location.origin).href) {
+          return;
+        }
+      }
     }
 
     // Clear any stale navigation state first
@@ -108,8 +123,6 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
 
     // Đánh dấu đang điều hướng ngay lập tức
     isNavigating.current = true;
-
-    // Kiểm tra xem đây có phải là link phim không
 
     // Chỉ hiển thị loading cho các trang không phải trang phim
     // để đảm bảo điều hướng đến trang phim diễn ra ngay lập tức
@@ -123,13 +136,40 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
     }
 
     try {
-      // Kiểm tra xem đây có phải là link thông tin phim không
-      const isMovieDetailLink = href.startsWith('/phim/');
+      // Phân tích URL để xử lý đúng
+      const url = new URL(href, window.location.origin);
+      const pathname = url.pathname;
+      const search = url.search;
 
-      // Tối ưu hóa cách xử lý điều hướng
+      // Kiểm tra các loại trang đặc biệt
+      const isMovieDetailLink = pathname.startsWith('/phim/');
+      const isSearchPage = pathname === '/tim-kiem';
+      const isHomeLink = pathname === '/';
+      const isPaginationLink = search.includes('page=');
+      const isFilterPage = pathname.startsWith('/danh-muc/') ||
+                          pathname.startsWith('/the-loai/') ||
+                          pathname.startsWith('/quoc-gia/');
+
       if (typeof window !== 'undefined') {
         const currentPath = window.location.pathname;
-        const isHomeLink = href === '/';
+
+        // Lưu trữ thông tin điều hướng để tránh chuyển hướng về trang chủ
+        if (!isHomeLink) {
+          // Đặt phương thức điều hướng dựa trên loại trang
+          let navigationMethod = 'menu_link';
+
+          if (isPaginationLink) {
+            navigationMethod = 'pagination';
+          } else if (isFilterPage) {
+            navigationMethod = 'filter';
+          } else if (isSearchPage) {
+            navigationMethod = 'search';
+          }
+
+          sessionStorage.setItem('lastUrl', currentPath);
+          sessionStorage.setItem('targetUrl', href);
+          sessionStorage.setItem('navigationMethod', navigationMethod);
+        }
 
         // Xử lý đặc biệt cho link trang chủ
         if (isHomeLink) {
@@ -157,6 +197,29 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
           window.location.href = href;
           return; // Kết thúc sớm
         }
+
+        // Xử lý đặc biệt cho trang tìm kiếm và trang phân trang
+        if (isSearchPage || isPaginationLink || isFilterPage) {
+          // Đảm bảo lưu thông tin điều hướng
+          sessionStorage.setItem('lastUrl', currentPath);
+          sessionStorage.setItem('targetUrl', href);
+
+          // Đặt phương thức điều hướng dựa trên loại trang
+          let navigationMethod = 'menu_link';
+          if (isPaginationLink) {
+            navigationMethod = 'pagination';
+          } else if (isFilterPage) {
+            navigationMethod = 'filter';
+          } else if (isSearchPage) {
+            navigationMethod = 'search';
+          }
+
+          sessionStorage.setItem('navigationMethod', navigationMethod);
+
+          // Sử dụng router.push() để tận dụng client-side navigation
+          router.push(href);
+          return; // Kết thúc sớm
+        }
       }
 
       // Sử dụng router.push() cho các trường hợp còn lại để tận dụng client-side navigation
@@ -178,6 +241,24 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
 
   const handleClick = (e: React.MouseEvent<HTMLAnchorElement>) => {
     e.preventDefault();
+
+    // Kiểm tra xem href có phải là link phân trang không
+    const isPaginationLink = href.includes('page=');
+
+    // Nếu là link phân trang, thêm thông tin vào sessionStorage
+    if (isPaginationLink && typeof window !== 'undefined') {
+      const currentPath = window.location.pathname;
+      sessionStorage.setItem('lastUrl', currentPath);
+      sessionStorage.setItem('targetUrl', href);
+      sessionStorage.setItem('navigationMethod', 'pagination');
+
+      // Log thông tin điều hướng trong môi trường development
+      if (process.env.NODE_ENV === 'development') {
+        console.log('[PAGINATION] Navigating to:', href);
+        console.log('[PAGINATION] Current path:', currentPath);
+      }
+    }
+
     handleNavigation();
   };
 
@@ -225,6 +306,23 @@ export function MenuLink({ href, className = '', children, onClick }: MenuLinkPr
 
         // Clear any existing navigation state from previous attempts
         clearNavigationState();
+
+        // Kiểm tra xem href có phải là link phân trang không
+        const isPaginationLink = href.includes('page=');
+
+        // Nếu là link phân trang, thêm thông tin vào sessionStorage
+        if (isPaginationLink && typeof window !== 'undefined') {
+          const currentPath = window.location.pathname;
+          sessionStorage.setItem('lastUrl', currentPath);
+          sessionStorage.setItem('targetUrl', href);
+          sessionStorage.setItem('navigationMethod', 'pagination');
+
+          // Log thông tin điều hướng trong môi trường development
+          if (process.env.NODE_ENV === 'development') {
+            console.log('[PAGINATION_TOUCH] Navigating to:', href);
+            console.log('[PAGINATION_TOUCH] Current path:', currentPath);
+          }
+        }
 
         // Giảm delay để cải thiện UX
         setTimeout(() => {

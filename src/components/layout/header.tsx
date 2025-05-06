@@ -302,19 +302,22 @@ export function Header() {
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
     if (searchQuery.trim()) {
-      // Kiểm tra xem có đang ở trang tìm kiếm không
-      const isOnSearchPage = typeof window !== 'undefined' && window.location.pathname === '/tim-kiem';
+      // Tạo URL tìm kiếm với từ khóa đã mã hóa
+      const keyword = encodeURIComponent(searchQuery.trim());
+      const searchUrl = `/tim-kiem?keyword=${keyword}`;
 
-      const searchUrl = `/tim-kiem?keyword=${encodeURIComponent(searchQuery.trim())}`;
-
-      if (isOnSearchPage) {
-        // Nếu đang ở trang tìm kiếm, sử dụng window.location.href để tải lại trang
-        window.location.href = searchUrl;
-      } else {
-        // Nếu không ở trang tìm kiếm, sử dụng router.push
-        router.push(searchUrl);
+      // Lưu trữ thông tin điều hướng để tránh chuyển hướng về trang chủ
+      if (typeof window !== 'undefined') {
+        const currentPath = window.location.pathname;
+        sessionStorage.setItem('lastUrl', currentPath);
+        sessionStorage.setItem('targetUrl', searchUrl);
+        sessionStorage.setItem('navigationMethod', 'search');
       }
 
+      // Luôn sử dụng router.push để tận dụng client-side navigation
+      router.push(searchUrl);
+
+      // Xóa trường tìm kiếm sau khi đã tìm
       setSearchQuery('');
     }
   };
